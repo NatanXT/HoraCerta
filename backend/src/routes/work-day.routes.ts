@@ -4,6 +4,7 @@ import { workDayController } from '../controllers/work-day.controller';
 const workDayRouter = Router();
 
 workDayRouter.get('/today', (req, res, next) => workDayController.getToday(req, res, next));
+workDayRouter.get('/monthly', (req, res, next) => workDayController.getMonthly(req, res, next));
 workDayRouter.get('/:date', (req, res, next) => workDayController.getByDate(req, res, next));
 
 export { workDayRouter };

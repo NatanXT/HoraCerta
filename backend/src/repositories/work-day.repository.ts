@@ -28,6 +28,33 @@ export class WorkDayRepository {
     });
   }
 
+  async findByUserAndDateRange(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+    tx: Prisma.TransactionClient = prisma
+  ): Promise<WorkDayWithEntries[]> {
+    return tx.workDay.findMany({
+      where: {
+        userId,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        timeEntries: {
+          orderBy: {
+            timestamp: 'asc',
+          },
+        },
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    });
+  }
+
   async findOrCreateByUserAndDate(
     userId: string,
     date: Date,

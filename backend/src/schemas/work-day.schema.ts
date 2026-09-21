@@ -29,4 +29,28 @@ export const getWorkDayByDateSchema = z.object({
     ),
 });
 
+export const getMonthlyWorkDaysSchema = z.object({
+  month: z
+    .string({
+      required_error: 'Mês é obrigatório.',
+    })
+    .regex(/^\d{4}-\d{2}$/, {
+      message: 'Formato de mês inválido. Utilize YYYY-MM.',
+    })
+    .refine(
+      (val) => {
+        const [yearStr, monthStr] = val.split('-');
+        const year = parseInt(yearStr, 10);
+        const month = parseInt(monthStr, 10);
+
+        if (month < 1 || month > 12) return false;
+        if (year < 1900 || year > 2100) return false;
+
+        return true;
+      },
+      { message: 'Formato de mês inválido. Utilize YYYY-MM.' }
+    ),
+});
+
 export type GetWorkDayByDateParams = z.infer<typeof getWorkDayByDateSchema>;
+export type GetMonthlyWorkDaysQuery = z.infer<typeof getMonthlyWorkDaysSchema>;

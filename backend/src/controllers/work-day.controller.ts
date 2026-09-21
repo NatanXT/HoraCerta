@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { workDayService } from '../services/work-day.service';
-import { getWorkDayByDateSchema } from '../schemas/work-day.schema';
+import { getWorkDayByDateSchema, getMonthlyWorkDaysSchema } from '../schemas/work-day.schema';
 import { AppError } from '../errors/app-error';
 
 export class WorkDayController {
@@ -8,6 +8,24 @@ export class WorkDayController {
     try {
       const summary = await workDayService.getTodaySummary();
       res.status(200).json(summary);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getMonthly(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const parseResult = getMonthlyWorkDaysSchema.safeParse(req.query);
+      if (!parseResult.success) {
+        throw new AppError(
+          parseResult.error.errors[0]?.message || 'Formato de mês inválido. Utilize YYYY-MM.',
+          400,
+          'INVALID_MONTH'
+        );
+      }
+      const { month } = parseResult.data;
+      const response = await workDayService.getMonthlySummary(month);
+      res.status(200).json(response);
     } catch (error) {
       next(error);
     }

@@ -61,3 +61,37 @@ export function getWeekdayFromDate(
   const dayIndex = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
   return weekdaysByIndex[dayIndex];
 }
+
+/**
+ * Returns the total number of days in a given year and month (1-indexed month).
+ */
+export function getDaysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+/**
+ * Returns the date range (start and end UTC midnight Date objects) for a month string YYYY-MM.
+ */
+export function getMonthDateRange(monthString: string): {
+  startDate: Date;
+  endDate: Date;
+  daysInMonth: number;
+  year: number;
+  month: number;
+} {
+  const [yearStr, monthStr] = monthString.split('-');
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10);
+  const daysInMonth = getDaysInMonth(year, month);
+
+  const startDateStr = `${yearStr}-${monthStr.padStart(2, '0')}-01`;
+  const endDateStr = `${yearStr}-${monthStr.padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+
+  return {
+    startDate: parseDateToUtcMidnight(startDateStr),
+    endDate: parseDateToUtcMidnight(endDateStr),
+    daysInMonth,
+    year,
+    month,
+  };
+}

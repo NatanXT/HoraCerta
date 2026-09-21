@@ -15,6 +15,12 @@ export class WorkScheduleRepository {
       },
     });
   }
+
+  async findAllByUser(userId: string): Promise<WorkSchedule[]> {
+    return prisma.workSchedule.findMany({
+      where: { userId },
+    });
+  }
 }
 
 export const workScheduleRepository = new WorkScheduleRepository();
