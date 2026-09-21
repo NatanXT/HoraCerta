@@ -1,25 +1,51 @@
-export function DashboardPage() {
-  return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-xl">
-          HC
-        </div>
-        
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">
-          HoraCerta
-        </h1>
-        
-        <p className="text-slate-400 text-sm leading-relaxed">
-          Controle simples e inteligente da sua jornada de trabalho.
-        </p>
+import { useTodayWorkDay } from '../hooks/useTodayWorkDay';
+import { DashboardHeader } from '../components/dashboard/DashboardHeader';
+import { ClockCard } from '../components/dashboard/ClockCard';
+import { SummaryCard } from '../components/dashboard/SummaryCard';
+import { TodayEntries } from '../components/dashboard/TodayEntries';
+import { FeedbackBanner } from '../components/dashboard/FeedbackBanner';
+import { LoadingSkeleton } from '../components/dashboard/LoadingSkeleton';
+import { OfflineError } from '../components/dashboard/OfflineError';
 
-        <div className="pt-2">
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Frontend configurado com sucesso.
-          </span>
-        </div>
+export function DashboardPage() {
+  const {
+    data,
+    loading,
+    submitting,
+    error,
+    feedback,
+    fetchToday,
+    handleClockIn,
+    handleClockOut,
+  } = useTodayWorkDay();
+
+  return (
+    <main className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+        <FeedbackBanner feedback={feedback} />
+
+        <DashboardHeader />
+
+        {loading && !data && <LoadingSkeleton />}
+
+        {error && !data && (
+          <OfflineError message={error} onRetry={fetchToday} />
+        )}
+
+        {data && (
+          <div className="space-y-6 sm:space-y-8">
+            <ClockCard
+              summary={data}
+              submitting={submitting}
+              onClockIn={handleClockIn}
+              onClockOut={handleClockOut}
+            />
+
+            <SummaryCard summary={data} />
+
+            <TodayEntries entries={data.entries} />
+          </div>
+        )}
       </div>
     </main>
   );
