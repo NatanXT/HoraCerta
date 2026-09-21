@@ -51,7 +51,7 @@ model WorkDay {
   id          String      @id @default(cuid())
   userId      String
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date        DateTime
+  date        DateTime    @db.Date
   note        String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

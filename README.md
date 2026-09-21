@@ -48,9 +48,13 @@ HoraCerta/
    ```bash
    cp backend/.env.example backend/.env
    ```
-2. Configure a variável `DATABASE_URL` no `backend/.env` com as credenciais do seu PostgreSQL local:
+2. Configure as variáveis no `backend/.env` com as credenciais do seu PostgreSQL local e timezone:
    ```env
+   PORT=3333
+   FRONTEND_URL=http://localhost:5173
    DATABASE_URL="postgresql://usuario:senha@localhost:5432/horacerta?schema=public"
+   APP_TIMEZONE=America/Sao_Paulo
+   DEFAULT_USER_EMAIL=usuario@horacerta.local
    ```
 
 ### Comandos Úteis do Prisma (no diretório `backend`)
@@ -90,6 +94,10 @@ npm run dev
 
 A API backend estará acessível em: [http://localhost:3333](http://localhost:3333)
 
-## Endpoints Principais
+## Endpoints Principais da API
 
-- **Health Check**: `GET http://localhost:3333/health`
+- **`GET /health`**: Retorna a saúde da API backend e timestamp atual.
+- **`GET /api/work-days/today`**: Consulta o resumo completo, métricas de tempo, saldo diário e histórico de registros do dia atual.
+- **`GET /api/work-days/:date`**: Consulta o resumo completo de uma data específica (`YYYY-MM-DD`). Retorna HTTP 400 se a data for inválida ou inexistente no calendário.
+- **`POST /api/time-entries/clock-in`**: Registra o ponto de entrada (`CLOCK_IN`) utilizando o horário atual do servidor. Retorna HTTP 409 em caso de entrada duplicada.
+- **`POST /api/time-entries/clock-out`**: Registra o ponto de saída (`CLOCK_OUT`) utilizando o horário atual do servidor. Retorna HTTP 409 em caso de saída sem entrada em aberto.
