@@ -23,7 +23,7 @@ enum TimeEntryType {
 }
 
 model User {
-  id            String         @id @default(uuid())
+  id            String         @id @default(cuid())
   name          String
   email         String         @unique
   createdAt     DateTime       @default(now())
@@ -35,7 +35,7 @@ model User {
 }
 
 model WorkSchedule {
-  id              String   @id @default(uuid())
+  id              String   @id @default(cuid())
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   weekday         Weekday
@@ -48,7 +48,7 @@ model WorkSchedule {
 }
 
 model WorkDay {
-  id          String      @id @default(uuid())
+  id          String      @id @default(cuid())
   userId      String
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   date        DateTime
@@ -62,7 +62,7 @@ model WorkDay {
 }
 
 model TimeEntry {
-  id        String        @id @default(uuid())
+  id        String        @id @default(cuid())
   workDayId String
   workDay   WorkDay       @relation(fields: [workDayId], references: [id], onDelete: Cascade)
   type      TimeEntryType

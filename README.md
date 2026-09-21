@@ -40,7 +40,33 @@ HoraCerta/
 
 - **Node.js** (versão 18 ou superior recomendada)
 - **npm** (ou yarn/pnpm)
-- **PostgreSQL** (para persistência real de dados em etapas futuras)
+- **PostgreSQL** (para persistência de dados real)
+
+## Configuração do Banco de Dados
+
+1. Copie o arquivo `backend/.env.example` para `backend/.env`:
+   ```bash
+   cp backend/.env.example backend/.env
+   ```
+2. Configure a variável `DATABASE_URL` no `backend/.env` com as credenciais do seu PostgreSQL local:
+   ```env
+   DATABASE_URL="postgresql://usuario:senha@localhost:5432/horacerta?schema=public"
+   ```
+
+### Comandos Úteis do Prisma (no diretório `backend`)
+
+- **Executar migrations**:
+  ```bash
+  npx prisma migrate dev
+  ```
+- **Executar seed de dados iniciais**:
+  ```bash
+  npm run prisma:seed
+  ```
+- **Abrir interface visual do banco**:
+  ```bash
+  npm run prisma:studio
+  ```
 
 ## Como Executar Localmente
 
@@ -63,8 +89,6 @@ npm run dev
 ```
 
 A API backend estará acessível em: [http://localhost:3333](http://localhost:3333)
-
-> **Nota de Configuração**: É necessário ter o arquivo `backend/.env` configurado com base em `backend/.env.example` para que a aplicação carregue a porta, URLs de CORS e a string de conexão com o PostgreSQL (`DATABASE_URL`).
 
 ## Endpoints Principais
 
