@@ -100,3 +100,7 @@ HoraCerta/
 - **`POST /api/time-entries/clock-out`**: Registra o ponto de saída (`CLOCK_OUT`) utilizando o horário atual do servidor. Retorna HTTP 409 em caso de saída sem entrada em aberto.
 - **`GET /api/bank-hours`**: Consulta o status do banco de horas, saldos (consolidado, provisório e ao vivo), métricas por mês e lista de pendências.
 - **`PUT /api/bank-hours/config`**: Define ou atualiza a data inicial e o saldo inicial do banco de horas. O banco de horas utiliza data inicial explícita e não transforma automaticamente dias sem registro em débito.
+- **`PUT /api/work-days/:date/manual-adjustment`**: Realiza correção manual atômica dos intervalos de um dia histórico com motivo obrigatório. Os registros anteriores são preservados via soft delete (`deletedAt`) e permanecem disponíveis para auditoria.
+- **`GET /api/work-days/:date/adjustments`**: Consulta a lista de histórico de auditoria de alterações manuais realizada em um dia histórico.
+
+*Ajustes manuais substituem os registros efetivos do dia sem excluir fisicamente os registros anteriores, que permanecem disponíveis para auditoria.*

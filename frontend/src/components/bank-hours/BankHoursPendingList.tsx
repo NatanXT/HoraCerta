@@ -1,4 +1,5 @@
-import { CircleCheck, TriangleAlert } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CircleCheck, TriangleAlert, ArrowRight } from 'lucide-react';
 import { BankHoursPendingDay } from '../../types/bank-hours';
 import { formatMinutes } from '../../utils/time';
 import { formatFullDate } from '../../utils/date';
@@ -45,9 +46,9 @@ export function BankHoursPendingList({ pending }: BankHoursPendingListProps) {
           return (
             <div
               key={p.date}
-              className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-2 hover:bg-slate-800/20 rounded-lg transition-colors"
+              className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-2 hover:bg-slate-800/20 rounded-lg transition-colors"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm font-semibold text-slate-200">
                   {formatFullDate(p.date)}
                 </span>
@@ -62,9 +63,18 @@ export function BankHoursPendingList({ pending }: BankHoursPendingListProps) {
                 </span>
               </div>
 
-              <div className="flex items-center gap-4 text-xs font-mono text-slate-400 self-end sm:self-auto">
-                <span>Jornada: <strong className="text-slate-300">{formatMinutes(p.expectedMinutes)}</strong></span>
-                <span>Registrado: <strong className="text-slate-300">{formatMinutes(p.totalWorkedMinutes)}</strong></span>
+              <div className="flex items-center gap-4 text-xs font-mono text-slate-400 justify-between sm:justify-end">
+                <div className="flex items-center gap-3">
+                  <span>Jornada: <strong className="text-slate-300">{formatMinutes(p.expectedMinutes)}</strong></span>
+                  <span>Registrado: <strong className="text-slate-300">{formatMinutes(p.totalWorkedMinutes)}</strong></span>
+                </div>
+                <Link
+                  to={`/historico?date=${p.date}`}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 hover:underline transition-colors shrink-0 font-sans"
+                >
+                  <span>Revisar no histórico</span>
+                  <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                </Link>
               </div>
             </div>
           );

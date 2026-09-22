@@ -3,7 +3,7 @@ import { workDayService } from './work-day.service';
 import { userRepository } from '../repositories/user.repository';
 import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
-import { TimeEntryType, Weekday } from '@prisma/client';
+import { TimeEntryType, TimeEntrySource, Weekday } from '@prisma/client';
 
 describe('WorkDayService - getMonthlySummary', () => {
   beforeEach(() => {
@@ -51,8 +51,8 @@ describe('WorkDayService - getMonthlySummary', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-1', workDayId: 'wd-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-2', workDayId: 'wd-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-1', workDayId: 'wd-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-2', workDayId: 'wd-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
       {
@@ -64,8 +64,8 @@ describe('WorkDayService - getMonthlySummary', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-3', workDayId: 'wd-2', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-02T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-4', workDayId: 'wd-2', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-02T15:30:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-3', workDayId: 'wd-2', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-02T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-4', workDayId: 'wd-2', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-02T15:30:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
       {
@@ -77,7 +77,7 @@ describe('WorkDayService - getMonthlySummary', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-5', workDayId: 'wd-3', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-03T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-5', workDayId: 'wd-3', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-03T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
       {
@@ -89,7 +89,7 @@ describe('WorkDayService - getMonthlySummary', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-6', workDayId: 'wd-21', type: TimeEntryType.CLOCK_IN, timestamp: nowFrozen, createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-6', workDayId: 'wd-21', type: TimeEntryType.CLOCK_IN, timestamp: nowFrozen, source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
     ];

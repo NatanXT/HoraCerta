@@ -20,6 +20,9 @@ export class WorkDayRepository {
       },
       include: {
         timeEntries: {
+          where: {
+            deletedAt: null,
+          },
           orderBy: {
             timestamp: 'asc',
           },
@@ -44,6 +47,9 @@ export class WorkDayRepository {
       },
       include: {
         timeEntries: {
+          where: {
+            deletedAt: null,
+          },
           orderBy: {
             timestamp: 'asc',
           },
@@ -64,6 +70,9 @@ export class WorkDayRepository {
       orderBy: { date: 'asc' },
       include: {
         timeEntries: {
+          where: {
+            deletedAt: null,
+          },
           orderBy: { timestamp: 'asc' },
         },
       },
@@ -78,6 +87,14 @@ export class WorkDayRepository {
   ): Promise<WorkDayWithEntries> {
     const existing = await this.findByUserAndDate(userId, date, tx);
     if (existing) {
+      if (existing.expectedMinutesSnapshot === null && expectedMinutesSnapshot !== null) {
+        // Update snapshot fallback for older WorkDays
+        await tx.workDay.update({
+          where: { id: existing.id },
+          data: { expectedMinutesSnapshot },
+        });
+        existing.expectedMinutesSnapshot = expectedMinutesSnapshot;
+      }
       return existing;
     }
 
@@ -89,6 +106,9 @@ export class WorkDayRepository {
       },
       include: {
         timeEntries: {
+          where: {
+            deletedAt: null,
+          },
           orderBy: {
             timestamp: 'asc',
           },

@@ -22,6 +22,11 @@ enum TimeEntryType {
   CLOCK_OUT
 }
 
+enum TimeEntrySource {
+  CLOCK
+  MANUAL
+}
+
 model User {
   id              String           @id @default(cuid())
   name            String
@@ -49,30 +54,46 @@ model WorkSchedule {
 }
 
 model WorkDay {
-  id                      String      @id @default(cuid())
+  id                      String              @id @default(cuid())
   userId                  String
-  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date                    DateTime    @db.Date
+  user                    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date                    DateTime            @db.Date
   note                    String?
   expectedMinutesSnapshot Int?
-  createdAt               DateTime    @default(now())
-  updatedAt               DateTime    @updatedAt
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
   timeEntries             TimeEntry[]
+  adjustments             WorkDayAdjustment[]
 
   @@unique([userId, date])
   @@map("work_days")
 }
 
 model TimeEntry {
-  id        String        @id @default(cuid())
+  id        String          @id @default(cuid())
   workDayId String
-  workDay   WorkDay       @relation(fields: [workDayId], references: [id], onDelete: Cascade)
+  workDay   WorkDay         @relation(fields: [workDayId], references: [id], onDelete: Cascade)
   type      TimeEntryType
   timestamp DateTime
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  source    TimeEntrySource @default(CLOCK)
+  deletedAt DateTime?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   @@map("time_entries")
+}
+
+model WorkDayAdjustment {
+  id            String   @id @default(cuid())
+  workDayId     String
+  workDay       WorkDay  @relation(fields: [workDayId], references: [id], onDelete: Cascade)
+  reason        String
+  beforeEntries Json
+  afterEntries  Json
+  createdAt     DateTime @default(now())
+
+  @@index([workDayId, createdAt])
+  @@map("work_day_adjustments")
 }
 
 model BankHoursConfig {

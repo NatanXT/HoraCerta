@@ -1,4 +1,4 @@
-import { TimeEntryType, Weekday } from '@prisma/client';
+import { TimeEntryType, TimeEntrySource, Weekday } from '@prisma/client';
 import { env } from '../config/env';
 import { AppError } from '../errors/app-error';
 import { userRepository } from '../repositories/user.repository';
@@ -17,6 +17,7 @@ export interface TimeEntryDto {
   id: string;
   type: TimeEntryType;
   timestamp: Date;
+  source: TimeEntrySource;
 }
 
 export interface WorkDaySummaryDto {
@@ -110,6 +111,7 @@ export class WorkDayService {
             id: e.id,
             type: e.type,
             timestamp: e.timestamp,
+            source: e.source,
           }))
         : [],
     };
@@ -186,6 +188,7 @@ export class WorkDayService {
               id: e.id,
               type: e.type,
               timestamp: e.timestamp,
+              source: e.source,
             }))
           : [],
       });

@@ -6,7 +6,7 @@ import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { bankHoursConfigRepository } from '../repositories/bank-hours-config.repository';
 import { saveBankHoursConfigSchema } from '../schemas/bank-hours.schema';
-import { TimeEntryType, Weekday } from '@prisma/client';
+import { TimeEntryType, TimeEntrySource, Weekday } from '@prisma/client';
 
 describe('saveBankHoursConfigSchema', () => {
   beforeEach(() => {
@@ -130,8 +130,8 @@ describe('BankHoursService - getBankHoursStatus', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-1', workDayId: 'wd-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-2', workDayId: 'wd-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:30:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-1', workDayId: 'wd-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-2', workDayId: 'wd-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:30:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
       {
@@ -143,8 +143,8 @@ describe('BankHoursService - getBankHoursStatus', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-3', workDayId: 'wd-2', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-02T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-4', workDayId: 'wd-2', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-02T15:30:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-3', workDayId: 'wd-2', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-02T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-4', workDayId: 'wd-2', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-02T15:30:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
       {
@@ -156,7 +156,7 @@ describe('BankHoursService - getBankHoursStatus', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-5', workDayId: 'wd-4', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-04T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-5', workDayId: 'wd-4', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-04T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
       {
@@ -168,8 +168,8 @@ describe('BankHoursService - getBankHoursStatus', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-6', workDayId: 'wd-7', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-07T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-7', workDayId: 'wd-7', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-07T10:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-6', workDayId: 'wd-7', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-07T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-7', workDayId: 'wd-7', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-07T10:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
       {
@@ -181,7 +181,7 @@ describe('BankHoursService - getBankHoursStatus', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-8', workDayId: 'wd-21', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-21T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-8', workDayId: 'wd-21', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-21T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
     ];
@@ -272,7 +272,7 @@ describe('BankHoursService - getBankHoursStatus', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-old-1', workDayId: 'wd-old-incomplete', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-08-30T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-old-1', workDayId: 'wd-old-incomplete', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-08-30T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
       {
@@ -284,8 +284,8 @@ describe('BankHoursService - getBankHoursStatus', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-old-2', workDayId: 'wd-old-extra', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-08-31T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-old-3', workDayId: 'wd-old-extra', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-08-31T18:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-old-2', workDayId: 'wd-old-extra', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-08-31T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-old-3', workDayId: 'wd-old-extra', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-08-31T18:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
       {
@@ -297,8 +297,8 @@ describe('BankHoursService - getBankHoursStatus', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
-          { id: 'te-sep-1', workDayId: 'wd-sept-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-sep-2', workDayId: 'wd-sept-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:30:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-sep-1', workDayId: 'wd-sept-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+          { id: 'te-sep-2', workDayId: 'wd-sept-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:30:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
     ];
@@ -363,8 +363,8 @@ describe('BankHoursService - getBankHoursStatus', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       timeEntries: [
-        { id: 'te-1', workDayId: 'wd-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-        { id: 'te-2', workDayId: 'wd-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+        { id: 'te-1', workDayId: 'wd-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+        { id: 'te-2', workDayId: 'wd-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
       ],
     };
 

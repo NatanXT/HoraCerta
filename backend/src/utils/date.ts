@@ -34,6 +34,52 @@ export function parseDateToUtcMidnight(dateString: string): Date {
 }
 
 /**
+ * Combines a YYYY-MM-DD date string and HH:mm time string in a given timezone
+ * and returns the corresponding UTC Date object.
+ */
+export function parseDateTimeInTimezone(
+  dateStr: string,
+  timeStr: string,
+  timeZone: string = env.APP_TIMEZONE
+): Date {
+  const [yearStr, monthStr, dayStr] = dateStr.split('-');
+  const [hoursStr, minutesStr] = timeStr.split(':');
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10);
+  const day = parseInt(dayStr, 10);
+  const hours = parseInt(hoursStr, 10);
+  const minutes = parseInt(minutesStr, 10);
+
+  const dummyUtc = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
+
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(dummyUtc);
+  let pYear = 0, pMonth = 0, pDay = 0, pHour = 0, pMinute = 0;
+  for (const p of parts) {
+    if (p.type === 'year') pYear = parseInt(p.value, 10);
+    if (p.type === 'month') pMonth = parseInt(p.value, 10);
+    if (p.type === 'day') pDay = parseInt(p.value, 10);
+    if (p.type === 'hour') pHour = parseInt(p.value, 10) % 24;
+    if (p.type === 'minute') pMinute = parseInt(p.value, 10);
+  }
+
+  const formattedAsUtc = new Date(Date.UTC(pYear, pMonth - 1, pDay, pHour, pMinute, 0));
+  const diffMs = dummyUtc.getTime() - formattedAsUtc.getTime();
+
+  return new Date(dummyUtc.getTime() + diffMs);
+}
+
+/**
  * Determines the Prisma Weekday enum for a given date string (YYYY-MM-DD) or Date object.
  */
 export function getWeekdayFromDate(

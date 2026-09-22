@@ -18,6 +18,7 @@ export function HistoryPage() {
     goToPreviousMonth,
     goToNextMonth,
     selectDay,
+    refresh,
     retry,
   } = useMonthlyHistory();
 
@@ -59,7 +60,7 @@ export function HistoryPage() {
             />
 
             {/* Selected Day Details Panel */}
-            <DayDetails day={selectedDay} />
+            <DayDetails day={selectedDay} onDayUpdated={refresh} />
           </div>
         )}
       </div>

@@ -4,6 +4,7 @@ export interface TimeEntry {
   id: string;
   type: TimeEntryType;
   timestamp: string;
+  source?: 'CLOCK' | 'MANUAL';
 }
 
 export interface WorkDaySummary {

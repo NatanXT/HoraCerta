@@ -5,7 +5,7 @@ import { workScheduleRepository } from '../repositories/work-schedule.repository
 import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
 import { timeEntryRepository } from '../repositories/time-entry.repository';
 import { prisma } from '../lib/prisma';
-import { TimeEntryType, Weekday } from '@prisma/client';
+import { TimeEntryType, TimeEntrySource, Weekday } from '@prisma/client';
 import { workDayService } from './work-day.service';
 
 describe('TimeEntryService - clockIn & snapshot persistence', () => {
@@ -14,7 +14,7 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-09-21T08:00:00.000Z'));
 
-    vi.spyOn(prisma, '$transaction').mockImplementation(async (cb: any) => {
+    vi.spyOn(prisma, '$transaction').mockImplementation(async (cb: (tx: typeof prisma) => Promise<unknown>) => {
       return cb(prisma);
     });
   });
@@ -65,6 +65,8 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
         workDayId: 'wd-new',
         type: TimeEntryType.CLOCK_IN,
         timestamp: new Date('2026-09-21T08:00:00.000Z'),
+        source: TimeEntrySource.CLOCK,
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -132,6 +134,8 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
           workDayId: 'wd-existing',
           type: TimeEntryType.CLOCK_IN,
           timestamp: new Date('2026-09-21T08:00:00.000Z'),
+          source: TimeEntrySource.CLOCK,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -140,6 +144,8 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
           workDayId: 'wd-existing',
           type: TimeEntryType.CLOCK_OUT,
           timestamp: new Date('2026-09-21T12:00:00.000Z'),
+          source: TimeEntrySource.CLOCK,
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -153,6 +159,8 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
       workDayId: 'wd-existing',
       type: TimeEntryType.CLOCK_IN,
       timestamp: new Date('2026-09-21T13:00:00.000Z'),
+      source: TimeEntrySource.CLOCK,
+      deletedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

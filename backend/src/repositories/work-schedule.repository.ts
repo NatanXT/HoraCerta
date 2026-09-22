@@ -1,12 +1,13 @@
-import { WorkSchedule, Weekday } from '@prisma/client';
+import { WorkSchedule, Weekday, Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 
 export class WorkScheduleRepository {
   async findByUserAndWeekday(
     userId: string,
-    weekday: Weekday
+    weekday: Weekday,
+    db: Prisma.TransactionClient | typeof prisma = prisma
   ): Promise<WorkSchedule | null> {
-    return prisma.workSchedule.findUnique({
+    return db.workSchedule.findUnique({
       where: {
         userId_weekday: {
           userId,
@@ -16,8 +17,11 @@ export class WorkScheduleRepository {
     });
   }
 
-  async findAllByUser(userId: string): Promise<WorkSchedule[]> {
-    return prisma.workSchedule.findMany({
+  async findAllByUser(
+    userId: string,
+    db: Prisma.TransactionClient | typeof prisma = prisma
+  ): Promise<WorkSchedule[]> {
+    return db.workSchedule.findMany({
       where: { userId },
     });
   }

@@ -130,6 +130,28 @@ export function formatFullDate(
 }
 
 /**
+ * Formats a Date or ISO timestamp into "DD/MM/YYYY HH:mm" respecting configured target timezone.
+ */
+export function formatDateTime(
+  timestamp: string | Date,
+  timeZone: string = env.VITE_APP_TIMEZONE
+): string {
+  try {
+    const d = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone,
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d);
+  } catch (_error) {
+    return String(timestamp);
+  }
+}
+
+/**
  * Returns local YYYY-MM-DD string for today.
  */
 export function getTodayDateStr(
