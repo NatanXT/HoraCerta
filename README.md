@@ -88,6 +88,7 @@ HoraCerta/
 
 - **`/`**: Dashboard diário em tempo real com estatísticas de hoje e botão de registro de ponto.
 - **`/historico`**: Visão mensal com calendário navegável, indicadores de frequência, status diários e detalhamento por dia.
+- **`/banco-de-horas`**: Painel de banco de horas consolidado com saldo de hoje (provisório), saldo ao vivo, resumo por mês e lista de pendências.
 
 ## Endpoints Principais da API
 
@@ -97,3 +98,5 @@ HoraCerta/
 - **`GET /api/work-days/:date`**: Consulta o resumo completo de uma data específica (`YYYY-MM-DD`). Retorna HTTP 400 se a data for inválida ou inexistente no calendário.
 - **`POST /api/time-entries/clock-in`**: Registra o ponto de entrada (`CLOCK_IN`) utilizando o horário atual do servidor. Retorna HTTP 409 em caso de entrada duplicada.
 - **`POST /api/time-entries/clock-out`**: Registra o ponto de saída (`CLOCK_OUT`) utilizando o horário atual do servidor. Retorna HTTP 409 em caso de saída sem entrada em aberto.
+- **`GET /api/bank-hours`**: Consulta o status do banco de horas, saldos (consolidado, provisório e ao vivo), métricas por mês e lista de pendências.
+- **`PUT /api/bank-hours/config`**: Define ou atualiza a data inicial e o saldo inicial do banco de horas. O banco de horas utiliza data inicial explícita e não transforma automaticamente dias sem registro em débito.

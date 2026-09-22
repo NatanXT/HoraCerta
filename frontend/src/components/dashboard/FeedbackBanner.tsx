@@ -1,3 +1,4 @@
+import { CircleCheck, TriangleAlert } from 'lucide-react';
 import { FeedbackState } from '../../hooks/useTodayWorkDay';
 
 interface FeedbackBannerProps {
@@ -19,8 +20,12 @@ export function FeedbackBanner({ feedback }: FeedbackBannerProps) {
           : 'bg-rose-500/10 text-rose-300 border-rose-500/20'
       }`}
     >
-      <div className="flex items-center gap-2">
-        <span className="text-base">{isSuccess ? '✓' : '⚠️'}</span>
+      <div className="flex items-center gap-2.5">
+        {isSuccess ? (
+          <CircleCheck className="w-4 h-4 shrink-0 text-emerald-400" aria-hidden="true" />
+        ) : (
+          <TriangleAlert className="w-4 h-4 shrink-0 text-rose-400" aria-hidden="true" />
+        )}
         <span>{feedback.message}</span>
       </div>
     </div>

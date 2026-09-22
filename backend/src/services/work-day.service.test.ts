@@ -38,11 +38,7 @@ describe('WorkDayService - getMonthlySummary', () => {
       { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, createdAt: new Date(), updatedAt: new Date() },
     ]);
 
-    // Mock WorkDays for 2026-09:
-    // 2026-09-01 (Terça): RECORDED (8h = 480m)
-    // 2026-09-02 (Quarta): RECORDED (7h30m = 450m)
-    // 2026-09-03 (Quinta): INCOMPLETE (Histórico com CLOCK_IN aberto de 08:00)
-    // 2026-09-21 (Hoje em 2026-09-21 12:00:00Z): IN_PROGRESS (CLOCK_IN aberto exatamente às 12:00:00Z -> session = 0m)
+    // Mock WorkDays for 2026-09
     const nowFrozen = new Date('2026-09-21T12:00:00.000Z');
 
     const mockWorkDays: WorkDayWithEntries[] = [
@@ -51,6 +47,7 @@ describe('WorkDayService - getMonthlySummary', () => {
         userId: 'user-1',
         date: new Date('2026-09-01T00:00:00.000Z'),
         note: null,
+        expectedMinutesSnapshot: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
@@ -63,6 +60,7 @@ describe('WorkDayService - getMonthlySummary', () => {
         userId: 'user-1',
         date: new Date('2026-09-02T00:00:00.000Z'),
         note: null,
+        expectedMinutesSnapshot: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
@@ -75,6 +73,7 @@ describe('WorkDayService - getMonthlySummary', () => {
         userId: 'user-1',
         date: new Date('2026-09-03T00:00:00.000Z'),
         note: null,
+        expectedMinutesSnapshot: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [
@@ -86,6 +85,7 @@ describe('WorkDayService - getMonthlySummary', () => {
         userId: 'user-1',
         date: new Date('2026-09-21T00:00:00.000Z'),
         note: null,
+        expectedMinutesSnapshot: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         timeEntries: [

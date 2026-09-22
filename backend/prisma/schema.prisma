@@ -23,13 +23,14 @@ enum TimeEntryType {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  name          String
-  email         String         @unique
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  workSchedules WorkSchedule[]
-  workDays      WorkDay[]
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  workSchedules   WorkSchedule[]
+  workDays        WorkDay[]
+  bankHoursConfig BankHoursConfig?
 
   @@map("users")
 }
@@ -48,14 +49,15 @@ model WorkSchedule {
 }
 
 model WorkDay {
-  id          String      @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date        DateTime    @db.Date
-  note        String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  timeEntries TimeEntry[]
+  id                      String      @id @default(cuid())
+  userId                  String
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date                    DateTime    @db.Date
+  note                    String?
+  expectedMinutesSnapshot Int?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  timeEntries             TimeEntry[]
 
   @@unique([userId, date])
   @@map("work_days")
@@ -71,4 +73,16 @@ model TimeEntry {
   updatedAt DateTime      @updatedAt
 
   @@map("time_entries")
+}
+
+model BankHoursConfig {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startDate             DateTime @db.Date
+  initialBalanceMinutes Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("bank_hours_configs")
 }

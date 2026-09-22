@@ -22,12 +22,12 @@ export function AppLayout() {
           </div>
 
           {/* Navigation Links */}
-          <nav aria-label="Navegação principal" className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800/60">
+          <nav aria-label="Navegação principal" className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800/60 overflow-x-auto">
             <NavLink
               to="/"
               end
               className={({ isActive }) =>
-                `px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 ${
+                `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
                   isActive
                     ? 'bg-indigo-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
@@ -39,7 +39,7 @@ export function AppLayout() {
             <NavLink
               to="/historico"
               className={({ isActive }) =>
-                `px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 ${
+                `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
                   isActive
                     ? 'bg-indigo-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
@@ -47,6 +47,18 @@ export function AppLayout() {
               }
             >
               Histórico
+            </NavLink>
+            <NavLink
+              to="/banco-de-horas"
+              className={({ isActive }) =>
+                `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`
+              }
+            >
+              Banco de horas
             </NavLink>
           </nav>
         </div>

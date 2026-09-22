@@ -1,3 +1,4 @@
+import { CalendarDays } from 'lucide-react';
 import { TimeEntry } from '../../types/work-day';
 import { formatTime } from '../../utils/time';
 
@@ -6,7 +7,6 @@ interface TodayEntriesProps {
 }
 
 export function TodayEntries({ entries }: TodayEntriesProps) {
-  // Sort entries defensively by timestamp ASC
   const sortedEntries = [...entries].sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
@@ -24,8 +24,8 @@ export function TodayEntries({ entries }: TodayEntriesProps) {
 
       {sortedEntries.length === 0 ? (
         <div className="py-10 text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-slate-800/60 text-slate-500 flex items-center justify-center mx-auto text-xl">
-            📅
+          <div className="w-12 h-12 rounded-2xl bg-slate-800/60 text-slate-500 flex items-center justify-center mx-auto shadow-inner">
+            <CalendarDays className="w-6 h-6" aria-hidden="true" />
           </div>
           <p className="text-sm font-semibold text-slate-300">
             Nenhum ponto registrado hoje.

@@ -55,9 +55,25 @@ export class WorkDayRepository {
     });
   }
 
+  async findOldestByUser(
+    userId: string,
+    tx: Prisma.TransactionClient = prisma
+  ): Promise<WorkDayWithEntries | null> {
+    return tx.workDay.findFirst({
+      where: { userId },
+      orderBy: { date: 'asc' },
+      include: {
+        timeEntries: {
+          orderBy: { timestamp: 'asc' },
+        },
+      },
+    });
+  }
+
   async findOrCreateByUserAndDate(
     userId: string,
     date: Date,
+    expectedMinutesSnapshot: number | null = null,
     tx: Prisma.TransactionClient = prisma
   ): Promise<WorkDayWithEntries> {
     const existing = await this.findByUserAndDate(userId, date, tx);
@@ -69,6 +85,7 @@ export class WorkDayRepository {
       data: {
         userId,
         date,
+        expectedMinutesSnapshot,
       },
       include: {
         timeEntries: {

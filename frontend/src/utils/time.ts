@@ -45,3 +45,41 @@ export function formatTime(
     return '--:--';
   }
 }
+
+/**
+ * Parses a user input string in HH:MM format (with optional + or - sign) into total minutes.
+ * Examples: "00:00" -> 0, "02:30" -> 150, "+02:30" -> 150, "-01:15" -> -75.
+ * Returns null if format is invalid.
+ */
+export function parseBalanceInput(inputStr: string): number | null {
+  const trimmed = inputStr.trim();
+  const match = trimmed.match(/^([+-])?(\d{1,3}):([0-5]\d)$/);
+  if (!match) return null;
+
+  const sign = match[1] === '-' ? -1 : 1;
+  const hours = parseInt(match[2], 10);
+  const minutes = parseInt(match[3], 10);
+
+  return sign * (hours * 60 + minutes);
+}
+
+/**
+ * Formats signed minutes into HH:MM or +HH:MM / -HH:MM for form input fields.
+ * Examples: 150 -> "+02:30", -75 -> "-01:15", 0 -> "00:00".
+ */
+export function formatBalanceInput(minutes: number): string {
+  const absoluteMinutes = Math.abs(minutes);
+  const hours = Math.floor(absoluteMinutes / 60);
+  const mins = absoluteMinutes % 60;
+  const formattedHours = String(hours).padStart(2, '0');
+  const formattedMins = String(mins).padStart(2, '0');
+  const str = `${formattedHours}:${formattedMins}`;
+
+  if (minutes > 0) {
+    return `+${str}`;
+  }
+  if (minutes < 0) {
+    return `-${str}`;
+  }
+  return str;
+}

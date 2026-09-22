@@ -11,6 +11,7 @@ import {
   getMonthDateRange,
 } from '../utils/date';
 import { calculateDaySummary } from '../utils/time-calculation';
+import { resolveWorkDayState, WorkDayStatus } from '../utils/work-day-status';
 
 export interface TimeEntryDto {
   id: string;
@@ -30,13 +31,7 @@ export interface WorkDaySummaryDto {
   entries: TimeEntryDto[];
 }
 
-export type MonthlyDayStatus =
-  | 'FUTURE'
-  | 'REST_DAY'
-  | 'NO_RECORDS'
-  | 'IN_PROGRESS'
-  | 'INCOMPLETE'
-  | 'RECORDED';
+export type MonthlyDayStatus = WorkDayStatus;
 
 export interface MonthlyDaySummaryDto {
   date: string;
@@ -79,48 +74,44 @@ export class WorkDayService {
     const weekday = getWeekdayFromDate(dateStr, env.APP_TIMEZONE);
 
     const schedule = await workScheduleRepository.findByUserAndWeekday(user.id, weekday);
-    const expectedMinutes = schedule ? schedule.expectedMinutes : 0;
-
     const workDay = await workDayRepository.findByUserAndDate(user.id, dateUtcMidnight);
-
-    if (!workDay) {
-      return {
-        date: dateStr,
-        expectedMinutes,
-        workedMinutes: 0,
-        currentSessionMinutes: 0,
-        totalWorkedMinutes: 0,
-        balanceMinutes: -expectedMinutes,
-        isOpen: false,
-        nextAction: TimeEntryType.CLOCK_IN,
-        entries: [],
-      };
-    }
-
+    const defaultExpected = schedule ? schedule.expectedMinutes : 0;
     const todayStr = getLocalDateString(new Date(), env.APP_TIMEZONE);
-    const isHistorical = dateStr !== todayStr;
 
-    const summary = calculateDaySummary({
-      entries: workDay.timeEntries,
-      expectedMinutes,
-      now: new Date(),
-      isHistorical,
+    const state = resolveWorkDayState({
+      dateStr,
+      todayStr,
+      defaultExpectedMinutes: defaultExpected,
+      workDay,
     });
+
+    let nextAction: TimeEntryType = TimeEntryType.CLOCK_IN;
+    if (workDay && workDay.timeEntries.length > 0) {
+      const summary = calculateDaySummary({
+        entries: workDay.timeEntries,
+        expectedMinutes: state.expectedMinutes,
+        now: new Date(),
+        isHistorical: dateStr !== todayStr,
+      });
+      nextAction = summary.nextAction;
+    }
 
     return {
       date: dateStr,
-      expectedMinutes,
-      workedMinutes: summary.workedMinutes,
-      currentSessionMinutes: summary.currentSessionMinutes,
-      totalWorkedMinutes: summary.totalWorkedMinutes,
-      balanceMinutes: summary.balanceMinutes,
-      isOpen: summary.isOpen,
-      nextAction: summary.nextAction,
-      entries: workDay.timeEntries.map((e) => ({
-        id: e.id,
-        type: e.type,
-        timestamp: e.timestamp,
-      })),
+      expectedMinutes: state.expectedMinutes,
+      workedMinutes: state.workedMinutes,
+      currentSessionMinutes: state.currentSessionMinutes,
+      totalWorkedMinutes: state.totalWorkedMinutes,
+      balanceMinutes: state.balanceMinutes ?? -state.expectedMinutes,
+      isOpen: state.isOpen,
+      nextAction,
+      entries: workDay
+        ? workDay.timeEntries.map((e) => ({
+            id: e.id,
+            type: e.type,
+            timestamp: e.timestamp,
+          }))
+        : [],
     };
   }
 
@@ -160,79 +151,43 @@ export class WorkDayService {
     for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
       const weekday = getWeekdayFromDate(dateStr, env.APP_TIMEZONE);
-      const expectedMinutes = scheduleMap.get(weekday) ?? 0;
-
       const workDay = workDayMap.get(dateStr);
-      const hasEntries = !!workDay && workDay.timeEntries.length > 0;
-      const isFuture = dateStr > todayStr;
-      const isToday = dateStr === todayStr;
+      const defaultExpected = scheduleMap.get(weekday) ?? 0;
 
-      let status: MonthlyDayStatus;
-      let balanceMinutes: number | null = null;
-      let workedMinutes = 0;
-      let currentSessionMinutes = 0;
-      let dayTotalWorkedMinutes = 0;
-      let isOpen = false;
-      let entries: TimeEntryDto[] = [];
+      const state = resolveWorkDayState({
+        dateStr,
+        todayStr,
+        defaultExpectedMinutes: defaultExpected,
+        workDay,
+      });
 
-      if (isFuture) {
-        status = 'FUTURE';
-        balanceMinutes = null;
-      } else if (!hasEntries) {
-        if (expectedMinutes === 0) {
-          status = 'REST_DAY';
-          balanceMinutes = 0;
-        } else {
-          status = 'NO_RECORDS';
-          balanceMinutes = null;
-          daysWithoutRecords++;
-        }
-      } else {
+      if (state.hasEntries) {
         recordedDays++;
-        entries = workDay.timeEntries.map((e) => ({
-          id: e.id,
-          type: e.type,
-          timestamp: e.timestamp,
-        }));
+        totalWorkedMinutes += state.totalWorkedMinutes;
+      }
 
-        const calc = calculateDaySummary({
-          entries: workDay.timeEntries,
-          expectedMinutes,
-          now: new Date(),
-          isHistorical: !isToday,
-        });
-
-        workedMinutes = calc.workedMinutes;
-        currentSessionMinutes = calc.currentSessionMinutes;
-        dayTotalWorkedMinutes = calc.totalWorkedMinutes;
-        balanceMinutes = calc.balanceMinutes;
-        isOpen = calc.isOpen;
-
-        totalWorkedMinutes += dayTotalWorkedMinutes;
-
-        const lastEntry = workDay.timeEntries[workDay.timeEntries.length - 1];
-        if (lastEntry.type === TimeEntryType.CLOCK_IN) {
-          if (isToday) {
-            status = 'IN_PROGRESS';
-          } else {
-            status = 'INCOMPLETE';
-            incompleteDays++;
-          }
-        } else {
-          status = 'RECORDED';
-        }
+      if (state.status === 'INCOMPLETE') {
+        incompleteDays++;
+      } else if (state.status === 'NO_RECORDS') {
+        daysWithoutRecords++;
       }
 
       days.push({
         date: dateStr,
-        expectedMinutes,
-        workedMinutes,
-        currentSessionMinutes,
-        totalWorkedMinutes: dayTotalWorkedMinutes,
-        balanceMinutes,
-        isOpen,
-        status,
-        entries,
+        expectedMinutes: state.expectedMinutes,
+        workedMinutes: state.workedMinutes,
+        currentSessionMinutes: state.currentSessionMinutes,
+        totalWorkedMinutes: state.totalWorkedMinutes,
+        balanceMinutes: state.balanceMinutes,
+        isOpen: state.isOpen,
+        status: state.status,
+        entries: workDay
+          ? workDay.timeEntries.map((e) => ({
+              id: e.id,
+              type: e.type,
+              timestamp: e.timestamp,
+            }))
+          : [],
       });
     }
 
@@ -250,3 +205,4 @@ export class WorkDayService {
 }
 
 export const workDayService = new WorkDayService();
+

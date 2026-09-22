@@ -3,9 +3,10 @@ import { env } from '../config/env';
 import { AppError } from '../errors/app-error';
 import { prisma } from '../lib/prisma';
 import { userRepository } from '../repositories/user.repository';
+import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { workDayRepository } from '../repositories/work-day.repository';
 import { timeEntryRepository } from '../repositories/time-entry.repository';
-import { getLocalDateString, parseDateToUtcMidnight } from '../utils/date';
+import { getLocalDateString, parseDateToUtcMidnight, getWeekdayFromDate } from '../utils/date';
 import { workDayService, WorkDaySummaryDto } from './work-day.service';
 
 export class TimeEntryService {
@@ -19,12 +20,17 @@ export class TimeEntryService {
     const todayStr = getLocalDateString(now, env.APP_TIMEZONE);
     const dateUtcMidnight = parseDateToUtcMidnight(todayStr);
 
+    const weekday = getWeekdayFromDate(todayStr, env.APP_TIMEZONE);
+    const schedule = await workScheduleRepository.findByUserAndWeekday(user.id, weekday);
+    const expectedMinutesSnapshot = schedule ? schedule.expectedMinutes : 0;
+
     try {
       await prisma.$transaction(
         async (tx) => {
           const workDay = await workDayRepository.findOrCreateByUserAndDate(
             user.id,
             dateUtcMidnight,
+            expectedMinutesSnapshot,
             tx
           );
 

@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatMonthLabel } from '../../utils/date';
 
 interface MonthSelectorProps {
@@ -23,7 +24,7 @@ export function MonthSelector({
         aria-label="Mês anterior"
         className="w-10 h-10 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 active:bg-slate-800 text-slate-200 border border-slate-700/50 flex items-center justify-center transition-colors cursor-pointer"
       >
-        ◀
+        <ChevronLeft className="w-5 h-5" aria-hidden="true" />
       </button>
 
       <div className="text-center">
@@ -44,7 +45,7 @@ export function MonthSelector({
             : 'bg-slate-800/80 hover:bg-slate-700/80 active:bg-slate-800 text-slate-200 border border-slate-700/50 cursor-pointer'
         }`}
       >
-        ▶
+        <ChevronRight className="w-5 h-5" aria-hidden="true" />
       </button>
     </div>
   );

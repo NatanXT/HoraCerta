@@ -1,3 +1,4 @@
+import { Timer, ClipboardList, Scale } from 'lucide-react';
 import { WorkDaySummary } from '../../types/work-day';
 import { formatMinutes, formatBalance } from '../../utils/time';
 
@@ -17,8 +18,8 @@ export function SummaryCard({ summary }: SummaryCardProps) {
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
             Trabalhado hoje
           </span>
-          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-sm font-bold">
-            ⏱
+          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+            <Timer className="w-4 h-4" aria-hidden="true" />
           </div>
         </div>
         <div>
@@ -40,8 +41,8 @@ export function SummaryCard({ summary }: SummaryCardProps) {
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
             Jornada esperada
           </span>
-          <div className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center text-sm font-bold">
-            📋
+          <div className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center">
+            <ClipboardList className="w-4 h-4" aria-hidden="true" />
           </div>
         </div>
         <div>
@@ -59,7 +60,7 @@ export function SummaryCard({ summary }: SummaryCardProps) {
             Saldo de hoje
           </span>
           <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
+            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
               isPositive
                 ? 'bg-emerald-500/10 text-emerald-400'
                 : isZero
@@ -67,7 +68,7 @@ export function SummaryCard({ summary }: SummaryCardProps) {
                 : 'bg-amber-500/10 text-amber-400'
             }`}
           >
-            ⚖️
+            <Scale className="w-4 h-4" aria-hidden="true" />
           </div>
         </div>
         <div>

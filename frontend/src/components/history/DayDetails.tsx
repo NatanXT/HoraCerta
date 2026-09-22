@@ -1,3 +1,4 @@
+import { CheckCircle2, TriangleAlert } from 'lucide-react';
 import { MonthlyDaySummary } from '../../types/work-day';
 import { formatMinutes, formatBalance, formatTime } from '../../utils/time';
 import { formatFullDate } from '../../utils/date';
@@ -34,19 +35,21 @@ export function DayDetails({ day }: DayDetailsProps) {
         {/* Status Badge */}
         <div className="self-start sm:self-auto">
           {day.status === 'RECORDED' && (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              ● Dia registrado
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Dia registrado</span>
             </span>
           )}
           {day.status === 'IN_PROGRESS' && (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Expediente em andamento
+              <span>Expediente em andamento</span>
             </span>
           )}
           {day.status === 'INCOMPLETE' && (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              ⚠️ Jornada incompleta
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-flex items-center gap-1.5">
+              <TriangleAlert className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Jornada incompleta</span>
             </span>
           )}
           {day.status === 'NO_RECORDS' && (
@@ -110,7 +113,7 @@ export function DayDetails({ day }: DayDetailsProps) {
       {/* Explanatory Banner for Specific Statuses */}
       {day.status === 'INCOMPLETE' && (
         <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center gap-2">
-          <span>⚠️</span>
+          <TriangleAlert className="w-4 h-4 shrink-0" aria-hidden="true" />
           <span>
             Este dia possui uma entrada sem saída correspondente. Ajuste manual será disponibilizado futuramente.
           </span>
