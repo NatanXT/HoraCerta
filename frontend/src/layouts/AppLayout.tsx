@@ -60,6 +60,18 @@ export function AppLayout() {
             >
               Banco de horas
             </NavLink>
+            <NavLink
+              to="/configuracoes"
+              className={({ isActive }) =>
+                `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`
+              }
+            >
+              Configurações
+            </NavLink>
           </nav>
         </div>
       </header>

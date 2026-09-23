@@ -1,4 +1,3 @@
-import { Weekday } from '@prisma/client';
 import { env } from '../config/env';
 import { AppError } from '../errors/app-error';
 import { userRepository } from '../repositories/user.repository';
@@ -11,6 +10,8 @@ import {
   getWeekdayFromDate,
 } from '../utils/date';
 import { resolveWorkDayState } from '../utils/work-day-status';
+
+import { WorkScheduleResolver } from '../utils/work-schedule-resolver';
 
 export interface BankHoursConfigDto {
   startDate: string;
@@ -91,12 +92,8 @@ export class BankHoursService {
     const endDateUtc = parseDateToUtcMidnight(todayStr);
 
     const workDays = await workDayRepository.findByUserAndDateRange(user.id, startDateUtc, endDateUtc);
-    const schedules = await workScheduleRepository.findAllByUser(user.id);
-
-    const scheduleMap = new Map<Weekday, number>();
-    for (const s of schedules) {
-      scheduleMap.set(s.weekday, s.expectedMinutes);
-    }
+    const schedules = await workScheduleRepository.findAllVersionsByUserUntilDate(user.id, endDateUtc);
+    const scheduleResolver = new WorkScheduleResolver(schedules);
 
     const workDayMap = new Map<string, WorkDayWithEntries>();
     for (const wd of workDays) {
@@ -135,9 +132,10 @@ export class BankHoursService {
       const dateStr = currentIter.toISOString().substring(0, 10);
       const monthKey = dateStr.substring(0, 7);
       const weekday = getWeekdayFromDate(dateStr, env.APP_TIMEZONE);
+      const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
       const workDay = workDayMap.get(dateStr);
 
-      const defaultExpected = scheduleMap.get(weekday) ?? 0;
+      const defaultExpected = scheduleResolver.getExpectedMinutesForDate(weekday, dateUtcMidnight);
       const state = resolveWorkDayState({
         dateStr,
         todayStr,

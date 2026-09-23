@@ -46,10 +46,12 @@ model WorkSchedule {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   weekday         Weekday
   expectedMinutes Int
+  effectiveFrom   DateTime @db.Date
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  @@unique([userId, weekday])
+  @@unique([userId, weekday, effectiveFrom])
+  @@index([userId, effectiveFrom])
   @@map("work_schedules")
 }
 

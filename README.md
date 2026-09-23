@@ -89,6 +89,7 @@ HoraCerta/
 - **`/`**: Dashboard diário em tempo real com estatísticas de hoje e botão de registro de ponto.
 - **`/historico`**: Visão mensal com calendário navegável, indicadores de frequência, status diários e detalhamento por dia.
 - **`/banco-de-horas`**: Painel de banco de horas consolidado com saldo de hoje (provisório), saldo ao vivo, resumo por mês e lista de pendências.
+- **`/configuracoes`**: Tela de configurações para visualização/edição do nome do perfil e personalização da jornada semanal.
 
 ## Endpoints Principais da API
 
@@ -102,5 +103,9 @@ HoraCerta/
 - **`PUT /api/bank-hours/config`**: Define ou atualiza a data inicial e o saldo inicial do banco de horas. O banco de horas utiliza data inicial explícita e não transforma automaticamente dias sem registro em débito.
 - **`PUT /api/work-days/:date/manual-adjustment`**: Realiza correção manual atômica dos intervalos de um dia histórico com motivo obrigatório. Os registros anteriores são preservados via soft delete (`deletedAt`) e permanecem disponíveis para auditoria.
 - **`GET /api/work-days/:date/adjustments`**: Consulta a lista de histórico de auditoria de alterações manuais realizada em um dia histórico.
+- **`GET /api/settings`**: Consulta as configurações atuais de perfil, preferências (timezone) e jornada semanal esperada.
+- **`PUT /api/settings/profile`**: Atualiza o nome do usuário. E-mail e fuso horário permanecem em somente leitura.
+- **`PUT /api/settings/work-schedule`**: Salva uma nova versão da jornada semanal para os 7 dias da semana.
 
+*As jornadas são versionadas por data de vigência para preservar corretamente os cálculos históricos.*
 *Ajustes manuais substituem os registros efetivos do dia sem excluir fisicamente os registros anteriores, que permanecem disponíveis para auditoria.*

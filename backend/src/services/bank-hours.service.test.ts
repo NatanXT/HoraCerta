@@ -101,14 +101,14 @@ describe('BankHoursService - getBankHoursStatus', () => {
     });
 
     // Schedules: Mon-Fri = 480m, Sat-Sun = 0m
-    vi.spyOn(workScheduleRepository, 'findAllByUser').mockResolvedValue([
-      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, createdAt: new Date(), updatedAt: new Date() },
-      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, createdAt: new Date(), updatedAt: new Date() },
+    vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
+      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ]);
 
     // WorkDays:
@@ -251,14 +251,14 @@ describe('BankHoursService - getBankHoursStatus', () => {
       updatedAt: new Date(),
     });
 
-    vi.spyOn(workScheduleRepository, 'findAllByUser').mockResolvedValue([
-      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, createdAt: new Date(), updatedAt: new Date() },
-      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, createdAt: new Date(), updatedAt: new Date() },
+    vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
+      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ]);
 
     // WorkDays retornados pelo banco (incluindo datas anteriores ao range de startDate)
@@ -341,17 +341,18 @@ describe('BankHoursService - getBankHoursStatus', () => {
       updatedAt: new Date(),
     });
 
-    vi.spyOn(workScheduleRepository, 'findByUserAndWeekday').mockResolvedValue({
+    vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
       id: '1',
       userId: 'user-1',
       weekday: Weekday.TUESDAY,
       expectedMinutes: 360,
+      effectiveFrom: new Date('2000-01-01T00:00:00.000Z'),
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    vi.spyOn(workScheduleRepository, 'findAllByUser').mockResolvedValue([
-      { id: '1', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 360, createdAt: new Date(), updatedAt: new Date() },
+    vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
+      { id: '1', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 360, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ]);
 
     const mockWorkDay: WorkDayWithEntries = {

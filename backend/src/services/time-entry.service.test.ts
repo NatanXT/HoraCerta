@@ -34,11 +34,12 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
 
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue(mockUser);
 
-    vi.spyOn(workScheduleRepository, 'findByUserAndWeekday').mockResolvedValue({
+    vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
       id: 'sched-1',
       userId: 'user-1',
       weekday: Weekday.MONDAY,
       expectedMinutes: 480,
+      effectiveFrom: new Date('2000-01-01T00:00:00.000Z'),
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -111,11 +112,12 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
 
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue(mockUser);
 
-    vi.spyOn(workScheduleRepository, 'findByUserAndWeekday').mockResolvedValue({
+    vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
       id: 'sched-1',
       userId: 'user-1',
       weekday: Weekday.MONDAY,
       expectedMinutes: 360,
+      effectiveFrom: new Date('2000-01-01T00:00:00.000Z'),
       createdAt: new Date(),
       updatedAt: new Date(),
     });

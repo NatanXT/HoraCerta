@@ -83,3 +83,38 @@ export function formatBalanceInput(minutes: number): string {
   }
   return str;
 }
+
+/**
+ * Parses a user input string in HH:MM format for day duration (00:00 to 24:00).
+ * Examples: "08:00" -> 480, "07:30" -> 450, "00:00" -> 0, "24:00" -> 1440.
+ * Returns null if format is invalid or exceeds 1440 minutes.
+ */
+export function parseDurationInput(inputStr: string): number | null {
+  const trimmed = inputStr.trim();
+  const match = trimmed.match(/^(\d{2}):([0-5]\d)$/);
+  if (!match) return null;
+
+  const hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+
+  if (hours > 24) return null;
+  if (hours === 24 && minutes > 0) return null;
+
+  const totalMinutes = hours * 60 + minutes;
+  if (totalMinutes < 0 || totalMinutes > 1440) return null;
+
+  return totalMinutes;
+}
+
+/**
+ * Formats non-negative expected minutes into "HH:MM" for duration form inputs.
+ * Examples: 480 -> "08:00", 450 -> "07:30", 0 -> "00:00".
+ */
+export function formatDurationInput(minutes: number): string {
+  const safeMinutes = Math.max(0, Math.min(1440, Math.floor(minutes)));
+  const hours = Math.floor(safeMinutes / 60);
+  const mins = safeMinutes % 60;
+  const formattedHours = String(hours).padStart(2, '0');
+  const formattedMins = String(mins).padStart(2, '0');
+  return `${formattedHours}:${formattedMins}`;
+}

@@ -1,4 +1,4 @@
-import { TimeEntryType, TimeEntrySource, Weekday } from '@prisma/client';
+import { TimeEntryType, TimeEntrySource } from '@prisma/client';
 import { env } from '../config/env';
 import { AppError } from '../errors/app-error';
 import { userRepository } from '../repositories/user.repository';
@@ -12,6 +12,7 @@ import {
 } from '../utils/date';
 import { calculateDaySummary } from '../utils/time-calculation';
 import { resolveWorkDayState, WorkDayStatus } from '../utils/work-day-status';
+import { WorkScheduleResolver } from '../utils/work-schedule-resolver';
 
 export interface TimeEntryDto {
   id: string;
@@ -74,7 +75,11 @@ export class WorkDayService {
     const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
     const weekday = getWeekdayFromDate(dateStr, env.APP_TIMEZONE);
 
-    const schedule = await workScheduleRepository.findByUserAndWeekday(user.id, weekday);
+    const schedule = await workScheduleRepository.findEffectiveByUserWeekdayAndDate(
+      user.id,
+      weekday,
+      dateUtcMidnight
+    );
     const workDay = await workDayRepository.findByUserAndDate(user.id, dateUtcMidnight);
     const defaultExpected = schedule ? schedule.expectedMinutes : 0;
     const todayStr = getLocalDateString(new Date(), env.APP_TIMEZONE);
@@ -128,12 +133,9 @@ export class WorkDayService {
     // Single batch query for all WorkDays in the month
     const workDays = await workDayRepository.findByUserAndDateRange(user.id, startDate, endDate);
 
-    // Single batch query for all User WorkSchedules
-    const schedules = await workScheduleRepository.findAllByUser(user.id);
-    const scheduleMap = new Map<Weekday, number>();
-    for (const s of schedules) {
-      scheduleMap.set(s.weekday, s.expectedMinutes);
-    }
+    // Single batch query for all User WorkSchedules versions up to month end
+    const schedules = await workScheduleRepository.findAllVersionsByUserUntilDate(user.id, endDate);
+    const scheduleResolver = new WorkScheduleResolver(schedules);
 
     // Map WorkDays by YYYY-MM-DD date string
     const workDayMap = new Map<string, WorkDayWithEntries>();
@@ -153,8 +155,10 @@ export class WorkDayService {
     for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
       const weekday = getWeekdayFromDate(dateStr, env.APP_TIMEZONE);
+      const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
       const workDay = workDayMap.get(dateStr);
-      const defaultExpected = scheduleMap.get(weekday) ?? 0;
+
+      const defaultExpected = scheduleResolver.getExpectedMinutesForDate(weekday, dateUtcMidnight);
 
       const state = resolveWorkDayState({
         dateStr,

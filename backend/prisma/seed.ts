@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function main() {
   const user = await prisma.user.upsert({
     where: { email: 'usuario@horacerta.local' },
-    update: { name: 'Usuário HoraCerta' },
+    update: {},
     create: {
       name: 'Usuário HoraCerta',
       email: 'usuario@horacerta.local',
@@ -22,12 +22,15 @@ async function main() {
     { weekday: Weekday.SUNDAY, expectedMinutes: 0 },
   ];
 
+  const baseEffectiveFrom = new Date('2000-01-01T00:00:00.000Z');
+
   for (const schedule of defaultSchedules) {
     await prisma.workSchedule.upsert({
       where: {
-        userId_weekday: {
+        userId_weekday_effectiveFrom: {
           userId: user.id,
           weekday: schedule.weekday,
+          effectiveFrom: baseEffectiveFrom,
         },
       },
       update: {
@@ -37,6 +40,7 @@ async function main() {
         userId: user.id,
         weekday: schedule.weekday,
         expectedMinutes: schedule.expectedMinutes,
+        effectiveFrom: baseEffectiveFrom,
       },
     });
   }

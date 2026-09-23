@@ -105,9 +105,10 @@ export class ManualAdjustmentService {
     try {
       await prisma.$transaction(
         async (tx) => {
-          const schedule = await workScheduleRepository.findByUserAndWeekday(
+          const schedule = await workScheduleRepository.findEffectiveByUserWeekdayAndDate(
             user.id,
             weekday,
+            dateUtcMidnight,
             tx
           );
           const defaultExpectedMinutes = schedule ? schedule.expectedMinutes : 0;

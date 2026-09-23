@@ -19,9 +19,13 @@ export class TimeEntryService {
     const now = new Date();
     const todayStr = getLocalDateString(now, env.APP_TIMEZONE);
     const dateUtcMidnight = parseDateToUtcMidnight(todayStr);
-
     const weekday = getWeekdayFromDate(todayStr, env.APP_TIMEZONE);
-    const schedule = await workScheduleRepository.findByUserAndWeekday(user.id, weekday);
+
+    const schedule = await workScheduleRepository.findEffectiveByUserWeekdayAndDate(
+      user.id,
+      weekday,
+      dateUtcMidnight
+    );
     const expectedMinutesSnapshot = schedule ? schedule.expectedMinutes : 0;
 
     try {

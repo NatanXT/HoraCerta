@@ -28,14 +28,14 @@ describe('WorkDayService - getMonthlySummary', () => {
     });
 
     // Mock schedules: Mon-Fri = 480m (8h), Sat-Sun = 0m (Folga)
-    vi.spyOn(workScheduleRepository, 'findAllByUser').mockResolvedValue([
-      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, createdAt: new Date(), updatedAt: new Date() },
-      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, createdAt: new Date(), updatedAt: new Date() },
-      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, createdAt: new Date(), updatedAt: new Date() },
+    vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
+      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ]);
 
     // Mock WorkDays for 2026-09
