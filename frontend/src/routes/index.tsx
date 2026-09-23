@@ -4,6 +4,7 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { HistoryPage } from '../pages/HistoryPage';
 import { BankHoursPage } from '../pages/BankHoursPage';
 import { AbsencesPage } from '../pages/AbsencesPage';
+import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
 
 export function AppRoutes() {
@@ -15,9 +16,11 @@ export function AppRoutes() {
           <Route path="/historico" element={<HistoryPage />} />
           <Route path="/banco-de-horas" element={<BankHoursPage />} />
           <Route path="/ausencias" element={<AbsencesPage />} />
+          <Route path="/relatorios" element={<ReportsPage />} />
           <Route path="/configuracoes" element={<SettingsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
   );
 }
+

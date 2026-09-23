@@ -19,6 +19,7 @@ O **HoraCerta** é um sistema pessoal desenvolvido com o objetivo de oferecer co
 - **Ajustes Manuais & Auditoria**: Correção atômica de registros de ponto em dias históricos com motivo obrigatório, preservando o histórico anterior via soft delete (`deletedAt`) e registros de auditoria (`WorkDayAdjustment`).
 - **Jornada Semanal Versionada**: Configuração de carga horária esperada para os 7 dias da semana com versionamento por data de vigência (`effectiveFrom`), sem reescrever o passado.
 - **Ausências, Feriados e Justificativas (ETAPA 09)**: Cadastro de ocorrências de dia inteiro (`HOLIDAY`, `VACATION`, `MEDICAL_LEAVE`, `JUSTIFIED_ABSENCE`, `EXCEPTIONAL_DAY_OFF`) que abonam a jornada esperada (expected = 0) sem destruir os snapshots históricos (`WorkDay.expectedMinutesSnapshot`).
+- **Relatórios & Exportação (ETAPA 10)**: Geração de relatórios consolidados por período personalizável (até 366 dias inclusivos), métricas globais e de banco de horas (crédito, débito, saldo apurado e saldo ao vivo provisório), breakdown de ocorrências ativas por interseção civil de dias, detalhamento diário com fonte dos registros (`CLOCK`, `MANUAL`, `MIXED`), exportação CSV com sanitização contra Formula Injection e visualização de impressão/PDF otimizada.
 
 ---
 
@@ -333,6 +334,10 @@ npm run build             # Valida TypeScript e gera build de produção
 - `PUT /api/calendar-occurrences/:id` — Atualiza ocorrência existente.
 - `DELETE /api/calendar-occurrences/:id` — Realiza soft delete (`deletedAt = agora`).
 
+### Relatórios & Exportação (ETAPA 10)
+- `GET /api/reports/work-hours?from=YYYY-MM-DD&to=YYYY-MM-DD` — Consulta relatório consolidado completo de horas, banco de horas, pendências e breakdown de ocorrências.
+- `GET /api/reports/work-hours.csv?from=YYYY-MM-DD&to=YYYY-MM-DD` — Exporta relatório consolidado em arquivo CSV formatado (UTF-8 BOM, `;` separador e sanitização anti-formula-injection).
+
 ---
 
 ## 16. Roadmap do Projeto
@@ -346,5 +351,6 @@ npm run build             # Valida TypeScript e gera build de produção
 - [x] **ETAPA 07**: Ajustes manuais e auditoria de alterações
 - [x] **ETAPA 08**: Jornada semanal versionada e configurações
 - [x] **ETAPA 09**: Gestão de Ausências, Feriados e Justificativas
-- [ ] **ETAPA 10**: Relatórios e exportação de dados (PDF/CSV)
-- [ ] Polimento de UX e refinamentos visuais
+- [x] **ETAPA 10**: Relatórios e exportação de dados (CSV e Impressão/PDF)
+- [ ] Polimento de UX e refinamentos visuais (Próxima Fase)
+

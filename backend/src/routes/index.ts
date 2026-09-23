@@ -5,6 +5,7 @@ import { timeEntryRouter } from './time-entry.routes';
 import { bankHoursRouter } from './bank-hours.routes';
 import { settingsRouter } from './settings.routes';
 import { calendarOccurrenceRouter } from './calendar-occurrence.routes';
+import { reportRouter } from './report.routes';
 
 const routes = Router();
 
@@ -14,6 +15,8 @@ routes.use('/api/time-entries', timeEntryRouter);
 routes.use('/api/bank-hours', bankHoursRouter);
 routes.use('/api/settings', settingsRouter);
 routes.use('/api/calendar-occurrences', calendarOccurrenceRouter);
+routes.use('/api/reports', reportRouter);
 
 export { routes };
+
 

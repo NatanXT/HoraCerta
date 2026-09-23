@@ -243,3 +243,30 @@ Ao realizar uma correção manual em um dia histórico (`PUT /api/work-days/:dat
 4. **Trabalho realizado em dia abonado gera crédito integral (100%)**.
 5. **Pontos incompletos (`INCOMPLETE`) em dias de ocorrência continuam sendo pendências obrigatórias**.
 6. **Visual de interface com ZERO emojis — utilizar estritamente ícones Lucide React**.
+
+---
+
+## 13. Módulo de Relatórios e Exportação (ETAPA 10)
+
+O Módulo de Relatórios introduz a consolidação global de dados de jornada, banco de horas e ocorrências para qualquer período civil selecionado:
+
+### Validação de Período
+- **Período Máximo**: Suporta intervalos de até 366 dias inclusivos (calculados em formato civil UTC `YYYY-MM-DD` imunes a fuso horário e DST).
+- **Tratamento de Erro Estrito**: Requisições com período $> 366$ dias retornam HTTP 400 com payload estruturado `code: "INVALID_REPORT_PERIOD"`.
+
+### Desempenho e Apuração em Lote
+- **Consulta Única (Zero N+1)**: Carrega todas as jornadas versionadas (`WorkSchedule`), dias gravados (`WorkDay`), entradas ativas (`TimeEntry`), configurações de banco (`BankHoursConfig`) e ocorrências (`CalendarOccurrence`) em batch único.
+- **Autoridade Central do Backend (`pendingDays`)**: O total de pendências é calculado no backend pela soma estrita `noRecordsDays + incompleteDays` apenas para datas não futuras. O frontend não executa recálculo de pendências.
+- **Hoje Provocante/Provisório**: O dia atual nunca entra em `periodConsolidatedBalanceMinutes`, permanecendo isolado em `provisionalTodayBalanceMinutes`. O saldo ao vivo do período é `livePeriodBalanceMinutes = periodConsolidatedBalanceMinutes + (provisionalTodayBalanceMinutes ?? 0)`.
+- **Saldo Apurado do Período**: `periodConsolidatedBalanceMinutes` representa a soma exclusiva de créditos menos débitos apurados dentro do período solicitado para dias elegíveis ao banco de horas. Não inclui `initialBalanceMinutes` nem saldos anteriores a `from`.
+
+### Ocorrências e Origem dos Registros
+- **Breakdown por Interseção Civil**: `totalOccurrenceDays` e `byType.days` representam a quantidade exata de dias dentro do período solicitado que estão cobertos por ocorrências ativas. Ocorrências futuras dentro do período aparecem no breakdown como planejamento, mas não afetam totais apurados de `scheduledMinutes` ou `workedMinutes`.
+- **Base Expected vs Effective Expected**: `baseExpectedMinutes` reflete o snapshot gravado ou a jornada da tabela de horários. `expectedMinutes` é resolvido como `0` em dias de ocorrência ativa sem afetar `baseExpectedMinutes`.
+- **Origem dos Registros (`entrySource`)**: Determinado exclusivamente por entradas ativas (`deletedAt: null`). Entradas apagadas por soft delete são desconsideradas na classificação (`CLOCK`, `MANUAL`, `MIXED` ou `null`).
+
+### Sanitização CSV e Impressão
+- **CSV Sanitizado contra Formula Injection**: O gerador CSV utiliza UTF-8 BOM (`\uFEFF`), delimitador `;`, e escapa valores de texto que iniciem com `=`, `+`, `-`, `@`, `\t` ou `\r` adicionando apóstrofo prefixado (`'`).
+- **Arquitetura de Impressão/PDF**: O frontend utiliza regras puras de `@media print` para ocultar navegação, filtros e botões, permitindo que a função `window.print()` gere impressões ou PDFs limpos e padronizados sem bibliotecas externas pesadas.
+- **Módulo 100% Read-Only**: O módulo de relatórios não executa nenhuma operação de mutação (zero `POST`, `PUT`, `DELETE` contra entidades do banco) e não altera o schema do Prisma.
+

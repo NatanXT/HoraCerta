@@ -4,7 +4,7 @@ export function AppLayout() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white">
       {/* Top Main Navigation Bar */}
-      <header className="bg-slate-900/90 border-b border-slate-800/80 sticky top-0 z-40 backdrop-blur-md">
+      <header className="bg-slate-900/90 border-b border-slate-800/80 sticky top-0 z-40 backdrop-blur-md print:hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
           {/* Logo & Branding */}
           <div className="flex items-center gap-3">
@@ -71,6 +71,18 @@ export function AppLayout() {
               }
             >
               Ausências
+            </NavLink>
+            <NavLink
+              to="/relatorios"
+              className={({ isActive }) =>
+                `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                }`
+              }
+            >
+              Relatórios
             </NavLink>
             <NavLink
               to="/configuracoes"
