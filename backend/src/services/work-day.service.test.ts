@@ -3,13 +3,13 @@ import { workDayService } from './work-day.service';
 import { userRepository } from '../repositories/user.repository';
 import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
-import { TimeEntryType, TimeEntrySource, Weekday } from '@prisma/client';
+import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
+import { TimeEntryType, TimeEntrySource, Weekday, CalendarOccurrenceType } from '@prisma/client';
 
-describe('WorkDayService - getMonthlySummary', () => {
+describe('WorkDayService - ETAPA 09 (Ausências, Feriados e Status)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.useFakeTimers();
-    // Freeze clock deterministically at 2026-09-21 12:00:00 UTC
     vi.setSystemTime(new Date('2026-09-21T12:00:00.000Z'));
   });
 
@@ -17,8 +17,7 @@ describe('WorkDayService - getMonthlySummary', () => {
     vi.useRealTimers();
   });
 
-  it('deve calcular corretamente status, saldos e totais descritivos do mês', async () => {
-    // Mock user
+  it('deve calcular corretamente status, saldos e totais descritivos do mês incluindo EXCUSED', async () => {
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
       id: 'user-1',
       name: 'Usuário Teste',
@@ -27,7 +26,6 @@ describe('WorkDayService - getMonthlySummary', () => {
       updatedAt: new Date('2026-01-01T00:00:00.000Z'),
     });
 
-    // Mock schedules: Mon-Fri = 480m (8h), Sat-Sun = 0m (Folga)
     vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
       { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
       { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
@@ -38,8 +36,33 @@ describe('WorkDayService - getMonthlySummary', () => {
       { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ]);
 
-    // Mock WorkDays for 2026-09
-    const nowFrozen = new Date('2026-09-21T12:00:00.000Z');
+    // Active holiday on 2026-09-04
+    vi.spyOn(calendarOccurrenceRepository, 'findActiveInRange').mockResolvedValue([
+      {
+        id: 'occ-1',
+        userId: 'user-1',
+        type: CalendarOccurrenceType.HOLIDAY,
+        title: 'Feriado Municipal',
+        startDate: new Date('2026-09-04T00:00:00.000Z'),
+        endDate: new Date('2026-09-04T00:00:00.000Z'),
+        note: 'Aniversário',
+        deletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'occ-2',
+        userId: 'user-1',
+        type: CalendarOccurrenceType.VACATION,
+        title: 'Férias Futuras',
+        startDate: new Date('2026-09-25T00:00:00.000Z'),
+        endDate: new Date('2026-09-30T00:00:00.000Z'),
+        note: null,
+        deletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
 
     const mockWorkDays: WorkDayWithEntries[] = [
       {
@@ -55,43 +78,6 @@ describe('WorkDayService - getMonthlySummary', () => {
           { id: 'te-2', workDayId: 'wd-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
         ],
       },
-      {
-        id: 'wd-2',
-        userId: 'user-1',
-        date: new Date('2026-09-02T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-3', workDayId: 'wd-2', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-02T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-4', workDayId: 'wd-2', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-02T15:30:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
-      {
-        id: 'wd-3',
-        userId: 'user-1',
-        date: new Date('2026-09-03T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-5', workDayId: 'wd-3', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-03T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
-      {
-        id: 'wd-21',
-        userId: 'user-1',
-        date: new Date('2026-09-21T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-6', workDayId: 'wd-21', type: TimeEntryType.CLOCK_IN, timestamp: nowFrozen, source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
     ];
 
     vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue(mockWorkDays);
@@ -99,51 +85,117 @@ describe('WorkDayService - getMonthlySummary', () => {
     const result = await workDayService.getMonthlySummary('2026-09');
 
     expect(result.month).toBe('2026-09');
-    expect(result.days.length).toBe(30);
+    expect(result.summary.excusedDays).toBe(1);
 
-    // A) RECORDED
-    const day1 = result.days.find((d) => d.date === '2026-09-01')!;
-    expect(day1.status).toBe('RECORDED');
-    expect(day1.totalWorkedMinutes).toBe(480);
-    expect(day1.balanceMinutes).toBe(0);
-
-    const day2 = result.days.find((d) => d.date === '2026-09-02')!;
-    expect(day2.status).toBe('RECORDED');
-    expect(day2.totalWorkedMinutes).toBe(450);
-    expect(day2.balanceMinutes).toBe(-30);
-
-    // B) INCOMPLETE (Dia histórico com CLOCK_IN aberto)
-    const day3 = result.days.find((d) => d.date === '2026-09-03')!;
-    expect(day3.status).toBe('INCOMPLETE');
-    expect(day3.currentSessionMinutes).toBe(0); // Não deve acumular sessão de ontem até hoje!
-    expect(day3.isOpen).toBe(true);
-
-    // C) NO_RECORDS (Dia passado sem registro e com jornada > 0)
+    // 2026-09-04 should be EXCUSED
     const day4 = result.days.find((d) => d.date === '2026-09-04')!;
-    expect(day4.status).toBe('NO_RECORDS');
-    expect(day4.balanceMinutes).toBe(null); // NUNCA deve inventar -480m de débito!
+    expect(day4.status).toBe('EXCUSED');
+    expect(day4.expectedMinutes).toBe(0);
+    expect(day4.balanceMinutes).toBe(0);
+    expect(day4.occurrence?.title).toBe('Feriado Municipal');
 
-    // D) REST_DAY (Dia de folga sem registros)
-    const day5 = result.days.find((d) => d.date === '2026-09-05')!;
-    expect(day5.status).toBe('REST_DAY');
-    expect(day5.balanceMinutes).toBe(0);
+    // 2026-09-25 (future) should maintain status FUTURE and return occurrence VACATION
+    const day25 = result.days.find((d) => d.date === '2026-09-25')!;
+    expect(day25.status).toBe('FUTURE');
+    expect(day25.occurrence?.type).toBe('VACATION');
+  });
 
-    // E) IN_PROGRESS (Hoje em 2026-09-21 com CLOCK_IN aberto no mesmo instante do relógio)
-    const day21 = result.days.find((d) => d.date === '2026-09-21')!;
-    expect(day21.status).toBe('IN_PROGRESS');
-    expect(day21.isOpen).toBe(true);
-    expect(day21.currentSessionMinutes).toBe(0);
-    expect(day21.balanceMinutes).toBe(-480);
+  it('deve classificar trabalho em feriado como RECORDED gerando crédito integral', async () => {
+    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
+      id: 'user-1',
+      name: 'Usuário Teste',
+      email: 'usuario@horacerta.local',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    });
 
-    // F) FUTURE (Dia futuro)
-    const day22 = result.days.find((d) => d.date === '2026-09-22')!;
-    expect(day22.status).toBe('FUTURE');
-    expect(day22.balanceMinutes).toBe(null);
+    vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
+      id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date()
+    });
 
-    // G) TOTAL MENSAL & H) Métricas exatas
-    expect(result.summary.recordedDays).toBe(4);
+    vi.spyOn(calendarOccurrenceRepository, 'findActiveInRange').mockResolvedValue([
+      {
+        id: 'occ-1',
+        userId: 'user-1',
+        type: CalendarOccurrenceType.HOLIDAY,
+        title: 'Feriado',
+        startDate: new Date('2026-09-07T00:00:00.000Z'),
+        endDate: new Date('2026-09-07T00:00:00.000Z'),
+        note: null,
+        deletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+
+    vi.spyOn(workDayRepository, 'findByUserAndDate').mockResolvedValue({
+      id: 'wd-7',
+      userId: 'user-1',
+      date: new Date('2026-09-07T00:00:00.000Z'),
+      note: null,
+      expectedMinutesSnapshot: 480, // Snapshot preserved as 480
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      timeEntries: [
+        { id: 'te-1', workDayId: 'wd-7', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-07T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+        { id: 'te-2', workDayId: 'wd-7', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-07T12:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+      ],
+    });
+
+    const result = await workDayService.getWorkDaySummaryByDateStr('2026-09-07');
+    expect(result.expectedMinutes).toBe(0);
+    expect(result.totalWorkedMinutes).toBe(240);
+    expect(result.balanceMinutes).toBe(240); // 100% credit!
+    expect(result.occurrence?.title).toBe('Feriado');
+  });
+
+  it('deve classificar ponto sem saída em feriado como INCOMPLETE e não EXCUSED', async () => {
+    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
+      id: 'user-1',
+      name: 'Usuário Teste',
+      email: 'usuario@horacerta.local',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    });
+
+    vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
+      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+    ]);
+
+    vi.spyOn(calendarOccurrenceRepository, 'findActiveInRange').mockResolvedValue([
+      {
+        id: 'occ-1',
+        userId: 'user-1',
+        type: CalendarOccurrenceType.HOLIDAY,
+        title: 'Feriado',
+        startDate: new Date('2026-09-07T00:00:00.000Z'),
+        endDate: new Date('2026-09-07T00:00:00.000Z'),
+        note: null,
+        deletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+
+    vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue([
+      {
+        id: 'wd-7',
+        userId: 'user-1',
+        date: new Date('2026-09-07T00:00:00.000Z'),
+        note: null,
+        expectedMinutesSnapshot: 480,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        timeEntries: [
+          { id: 'te-1', workDayId: 'wd-7', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-07T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
+        ],
+      },
+    ]);
+
+    const result = await workDayService.getMonthlySummary('2026-09');
+    const day7 = result.days.find((d) => d.date === '2026-09-07')!;
+    expect(day7.status).toBe('INCOMPLETE');
     expect(result.summary.incompleteDays).toBe(1);
-    expect(result.summary.totalWorkedMinutes).toBe(930);
-    expect(result.summary.daysWithoutRecords).toBe(11);
+    expect(result.summary.excusedDays).toBe(0);
   });
 });

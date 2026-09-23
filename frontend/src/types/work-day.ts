@@ -1,3 +1,5 @@
+import { CalendarOccurrence } from './calendar-occurrence';
+
 export type TimeEntryType = 'CLOCK_IN' | 'CLOCK_OUT';
 
 export interface TimeEntry {
@@ -17,6 +19,7 @@ export interface WorkDaySummary {
   isOpen: boolean;
   nextAction: TimeEntryType;
   entries: TimeEntry[];
+  occurrence?: CalendarOccurrence | null;
 }
 
 export type MonthlyDayStatus =
@@ -25,7 +28,8 @@ export type MonthlyDayStatus =
   | 'NO_RECORDS'
   | 'IN_PROGRESS'
   | 'INCOMPLETE'
-  | 'RECORDED';
+  | 'RECORDED'
+  | 'EXCUSED';
 
 export interface MonthlyDaySummary {
   date: string;
@@ -37,6 +41,7 @@ export interface MonthlyDaySummary {
   isOpen: boolean;
   status: MonthlyDayStatus;
   entries: TimeEntry[];
+  occurrence?: CalendarOccurrence | null;
 }
 
 export interface MonthlyHistorySummary {
@@ -44,6 +49,7 @@ export interface MonthlyHistorySummary {
   recordedDays: number;
   incompleteDays: number;
   daysWithoutRecords: number;
+  excusedDays: number;
 }
 
 export interface MonthlyHistoryResponse {

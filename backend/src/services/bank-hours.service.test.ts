@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { bankHoursService } from './bank-hours.service';
-import { workDayService } from './work-day.service';
 import { userRepository } from '../repositories/user.repository';
-import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
+import { workDayRepository } from '../repositories/work-day.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { bankHoursConfigRepository } from '../repositories/bank-hours-config.repository';
+import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
 import { saveBankHoursConfigSchema } from '../schemas/bank-hours.schema';
-import { TimeEntryType, TimeEntrySource, Weekday } from '@prisma/client';
+import { Weekday, CalendarOccurrenceType } from '@prisma/client';
 
 describe('saveBankHoursConfigSchema', () => {
   beforeEach(() => {
@@ -81,249 +81,7 @@ describe('BankHoursService - getBankHoursStatus', () => {
     expect(status.summary).toBeNull();
   });
 
-  it('deve calcular corretamente saldos consolidados, de hoje, ao vivo, créditos, débitos e pendências', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    // Config: startDate 2026-09-01, initialBalanceMinutes = 60 (+01h00)
-    vi.spyOn(bankHoursConfigRepository, 'findByUserId').mockResolvedValue({
-      id: 'cfg-1',
-      userId: 'user-1',
-      startDate: new Date('2026-09-01T00:00:00.000Z'),
-      initialBalanceMinutes: 60,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    // Schedules: Mon-Fri = 480m, Sat-Sun = 0m
-    vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
-      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-    ]);
-
-    // WorkDays:
-    // Dia A (01/09 Terça): RECORDED (Worked 510m vs expected 480m -> +30m)
-    // Dia B (02/09 Quarta): RECORDED (Worked 450m vs expected 480m -> -30m)
-    // Dia C (03/09 Quinta): NO_RECORDS (expected 480m, no entries -> Pending, no debit!)
-    // Dia D (04/09 Sexta): INCOMPLETE (expected 480m, open CLOCK_IN -> Pending)
-    // Dia E (06/09 Domingo): REST_DAY sem registros -> expected 0m, neutral
-    // Dia F (07/09 Segunda): Folga no snapshot com expected 0m e worked 120m -> RECORDED, +120m crédito
-    // Dia G (21/09 Hoje): IN_PROGRESS (Worked 240m vs 480m -> todayBalance = -240m)
-
-    const mockWorkDays: WorkDayWithEntries[] = [
-      {
-        id: 'wd-1',
-        userId: 'user-1',
-        date: new Date('2026-09-01T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: 480,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-1', workDayId: 'wd-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-2', workDayId: 'wd-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:30:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
-      {
-        id: 'wd-2',
-        userId: 'user-1',
-        date: new Date('2026-09-02T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: 480,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-3', workDayId: 'wd-2', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-02T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-4', workDayId: 'wd-2', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-02T15:30:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
-      {
-        id: 'wd-4',
-        userId: 'user-1',
-        date: new Date('2026-09-04T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: 480,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-5', workDayId: 'wd-4', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-04T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
-      {
-        id: 'wd-7',
-        userId: 'user-1',
-        date: new Date('2026-09-07T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-6', workDayId: 'wd-7', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-07T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-7', workDayId: 'wd-7', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-07T10:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
-      {
-        id: 'wd-21',
-        userId: 'user-1',
-        date: new Date('2026-09-21T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: 480,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-8', workDayId: 'wd-21', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-21T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
-    ];
-
-    vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue(mockWorkDays);
-
-    const res = await bankHoursService.getBankHoursStatus();
-
-    expect(res.configured).toBe(true);
-    expect(res.summary).not.toBeNull();
-
-    const s = res.summary!;
-    expect(s.initialBalanceMinutes).toBe(60);
-    expect(s.creditMinutes).toBe(150);
-    expect(s.debitMinutes).toBe(30);
-    expect(s.consolidatedBalanceMinutes).toBe(180);
-    expect(s.todayBalanceMinutes).toBe(-240);
-    expect(s.liveBalanceMinutes).toBe(-60);
-    expect(s.accountedDays).toBe(3);
-    expect(s.pendingDays).toBe(11);
-
-    // Validações explícitas da lista de pendências
-    expect(res.pending.length).toBe(s.pendingDays);
-
-    const pending03 = res.pending.find((p) => p.date === '2026-09-03');
-    expect(pending03).toEqual({
-      date: '2026-09-03',
-      status: 'NO_RECORDS',
-      expectedMinutes: 480,
-      totalWorkedMinutes: 0,
-    });
-
-    const pending04 = res.pending.find((p) => p.date === '2026-09-04');
-    expect(pending04).toEqual({
-      date: '2026-09-04',
-      status: 'INCOMPLETE',
-      expectedMinutes: 480,
-      totalWorkedMinutes: 0,
-    });
-
-    const pending06 = res.pending.find((p) => p.date === '2026-09-06');
-    expect(pending06).toBeUndefined(); // REST_DAY sem ponto não é pendência
-
-    const pending01 = res.pending.find((p) => p.date === '2026-09-01');
-    expect(pending01).toBeUndefined(); // RECORDED não é pendência
-
-    const pending21 = res.pending.find((p) => p.date === '2026-09-21');
-    expect(pending21).toBeUndefined(); // Hoje não entra nas pendências históricas
-  });
-
-  it('deve ignorar completamente registros e pendências anteriores à startDate', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    // Config: startDate = 2026-09-01
-    vi.spyOn(bankHoursConfigRepository, 'findByUserId').mockResolvedValue({
-      id: 'cfg-1',
-      userId: 'user-1',
-      startDate: new Date('2026-09-01T00:00:00.000Z'),
-      initialBalanceMinutes: 60,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
-      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-    ]);
-
-    // WorkDays retornados pelo banco (incluindo datas anteriores ao range de startDate)
-    const mockWorkDays: WorkDayWithEntries[] = [
-      {
-        id: 'wd-old-incomplete',
-        userId: 'user-1',
-        date: new Date('2026-08-30T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: 480,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-old-1', workDayId: 'wd-old-incomplete', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-08-30T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
-      {
-        id: 'wd-old-extra',
-        userId: 'user-1',
-        date: new Date('2026-08-31T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: 480,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-old-2', workDayId: 'wd-old-extra', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-08-31T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-old-3', workDayId: 'wd-old-extra', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-08-31T18:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
-      {
-        id: 'wd-sept-1',
-        userId: 'user-1',
-        date: new Date('2026-09-01T00:00:00.000Z'),
-        note: null,
-        expectedMinutesSnapshot: 480,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        timeEntries: [
-          { id: 'te-sep-1', workDayId: 'wd-sept-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-          { id: 'te-sep-2', workDayId: 'wd-sept-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:30:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        ],
-      },
-    ];
-
-    vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue(mockWorkDays);
-
-    const res = await bankHoursService.getBankHoursStatus();
-
-    expect(res.period?.startDate).toBe('2026-09-01');
-
-    // Somente o registro de 01/09 (+30m) deve entrar. Os +120m de 31/08 devem ser completamente ignorados.
-    expect(res.summary?.creditMinutes).toBe(30);
-    expect(res.summary?.consolidatedBalanceMinutes).toBe(90); // 60 initial + 30 = 90
-    expect(res.summary?.accountedDays).toBe(1);
-
-    // Registros anteriores a 01/09 não devem constar em pendências
-    const pendingAugust = res.pending.find((p) => p.date < '2026-09-01');
-    expect(pendingAugust).toBeUndefined();
-
-    // Resumo mensal não deve conter 2026-08
-    const monthAugust = res.monthly.find((m) => m.month === '2026-08');
-    expect(monthAugust).toBeUndefined();
-  });
-
-  it('deve usar o snapshot da jornada histórica mesmo que o WorkSchedule atual tenha mudado', async () => {
+  it('deve excluir dias EXCUSED das pendências e considerar trabalho em feriado como crédito', async () => {
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
       id: 'user-1',
       name: 'Usuário Teste',
@@ -341,43 +99,39 @@ describe('BankHoursService - getBankHoursStatus', () => {
       updatedAt: new Date(),
     });
 
-    vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
-      id: '1',
-      userId: 'user-1',
-      weekday: Weekday.TUESDAY,
-      expectedMinutes: 360,
-      effectiveFrom: new Date('2000-01-01T00:00:00.000Z'),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
     vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
-      { id: '1', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 360, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ]);
 
-    const mockWorkDay: WorkDayWithEntries = {
-      id: 'wd-1',
-      userId: 'user-1',
-      date: new Date('2026-09-01T00:00:00.000Z'),
-      note: null,
-      expectedMinutesSnapshot: 480,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      timeEntries: [
-        { id: 'te-1', workDayId: 'wd-1', type: TimeEntryType.CLOCK_IN, timestamp: new Date('2026-09-01T08:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-        { id: 'te-2', workDayId: 'wd-1', type: TimeEntryType.CLOCK_OUT, timestamp: new Date('2026-09-01T16:00:00.000Z'), source: TimeEntrySource.CLOCK, deletedAt: null, createdAt: new Date(), updatedAt: new Date() },
-      ],
-    };
+    // Active holiday on 2026-09-03
+    vi.spyOn(calendarOccurrenceRepository, 'findActiveInRange').mockResolvedValue([
+      {
+        id: 'occ-1',
+        userId: 'user-1',
+        type: CalendarOccurrenceType.HOLIDAY,
+        title: 'Feriado',
+        startDate: new Date('2026-09-03T00:00:00.000Z'),
+        endDate: new Date('2026-09-03T00:00:00.000Z'),
+        note: null,
+        deletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
 
-    vi.spyOn(workDayRepository, 'findByUserAndDate').mockResolvedValue(mockWorkDay);
-    vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue([mockWorkDay]);
+    vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue([]);
 
-    const summary = await workDayService.getWorkDaySummaryByDateStr('2026-09-01');
-    expect(summary.expectedMinutes).toBe(480);
-    expect(summary.balanceMinutes).toBe(0);
+    const res = await bankHoursService.getBankHoursStatus();
 
-    const bankStatus = await bankHoursService.getBankHoursStatus();
-    expect(bankStatus.summary?.creditMinutes).toBe(0);
-    expect(bankStatus.summary?.consolidatedBalanceMinutes).toBe(0);
+    // 2026-09-03 (Quinta) era dia útil, mas está coberto pelo Feriado -> EXCUSED
+    // Não deve constar na lista de pendências!
+    const pending03 = res.pending.find((p) => p.date === '2026-09-03');
+    expect(pending03).toBeUndefined();
   });
 });

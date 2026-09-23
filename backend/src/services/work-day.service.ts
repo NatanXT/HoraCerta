@@ -4,6 +4,7 @@ import { AppError } from '../errors/app-error';
 import { userRepository } from '../repositories/user.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
+import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
 import {
   getLocalDateString,
   parseDateToUtcMidnight,
@@ -13,6 +14,11 @@ import {
 import { calculateDaySummary } from '../utils/time-calculation';
 import { resolveWorkDayState, WorkDayStatus } from '../utils/work-day-status';
 import { WorkScheduleResolver } from '../utils/work-schedule-resolver';
+import { CalendarOccurrenceResolver } from '../utils/calendar-occurrence-resolver';
+import {
+  CalendarOccurrenceDTO,
+  formatCalendarOccurrenceDTO,
+} from '../types/calendar-occurrence.dto';
 
 export interface TimeEntryDto {
   id: string;
@@ -31,6 +37,7 @@ export interface WorkDaySummaryDto {
   isOpen: boolean;
   nextAction: TimeEntryType;
   entries: TimeEntryDto[];
+  occurrence?: CalendarOccurrenceDTO | null;
 }
 
 export type MonthlyDayStatus = WorkDayStatus;
@@ -45,6 +52,7 @@ export interface MonthlyDaySummaryDto {
   isOpen: boolean;
   status: MonthlyDayStatus;
   entries: TimeEntryDto[];
+  occurrence?: CalendarOccurrenceDTO | null;
 }
 
 export interface MonthlySummaryDto {
@@ -52,6 +60,7 @@ export interface MonthlySummaryDto {
   recordedDays: number;
   incompleteDays: number;
   daysWithoutRecords: number;
+  excusedDays: number;
 }
 
 export interface MonthlyHistoryResponseDto {
@@ -81,6 +90,13 @@ export class WorkDayService {
       dateUtcMidnight
     );
     const workDay = await workDayRepository.findByUserAndDate(user.id, dateUtcMidnight);
+    const activeOccurrences = await calendarOccurrenceRepository.findActiveInRange(
+      user.id,
+      dateUtcMidnight,
+      dateUtcMidnight
+    );
+    const occurrence = activeOccurrences[0] ?? null;
+
     const defaultExpected = schedule ? schedule.expectedMinutes : 0;
     const todayStr = getLocalDateString(new Date(), env.APP_TIMEZONE);
 
@@ -89,6 +105,7 @@ export class WorkDayService {
       todayStr,
       defaultExpectedMinutes: defaultExpected,
       workDay,
+      occurrence,
     });
 
     let nextAction: TimeEntryType = TimeEntryType.CLOCK_IN;
@@ -119,6 +136,7 @@ export class WorkDayService {
             source: e.source,
           }))
         : [],
+      occurrence: formatCalendarOccurrenceDTO(state.occurrence),
     };
   }
 
@@ -130,14 +148,17 @@ export class WorkDayService {
 
     const { startDate, endDate, daysInMonth, year, month } = getMonthDateRange(monthStr);
 
-    // Single batch query for all WorkDays in the month
     const workDays = await workDayRepository.findByUserAndDateRange(user.id, startDate, endDate);
-
-    // Single batch query for all User WorkSchedules versions up to month end
     const schedules = await workScheduleRepository.findAllVersionsByUserUntilDate(user.id, endDate);
     const scheduleResolver = new WorkScheduleResolver(schedules);
 
-    // Map WorkDays by YYYY-MM-DD date string
+    const occurrences = await calendarOccurrenceRepository.findActiveInRange(
+      user.id,
+      startDate,
+      endDate
+    );
+    const occurrenceResolver = new CalendarOccurrenceResolver(occurrences);
+
     const workDayMap = new Map<string, WorkDayWithEntries>();
     for (const wd of workDays) {
       const dateStr = wd.date.toISOString().substring(0, 10);
@@ -151,12 +172,14 @@ export class WorkDayService {
     let recordedDays = 0;
     let incompleteDays = 0;
     let daysWithoutRecords = 0;
+    let excusedDays = 0;
 
     for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
       const weekday = getWeekdayFromDate(dateStr, env.APP_TIMEZONE);
       const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
       const workDay = workDayMap.get(dateStr);
+      const occurrence = occurrenceResolver.getForDate(dateStr);
 
       const defaultExpected = scheduleResolver.getExpectedMinutesForDate(weekday, dateUtcMidnight);
 
@@ -165,6 +188,7 @@ export class WorkDayService {
         todayStr,
         defaultExpectedMinutes: defaultExpected,
         workDay,
+        occurrence,
       });
 
       if (state.hasEntries) {
@@ -172,7 +196,9 @@ export class WorkDayService {
         totalWorkedMinutes += state.totalWorkedMinutes;
       }
 
-      if (state.status === 'INCOMPLETE') {
+      if (state.status === 'EXCUSED') {
+        excusedDays++;
+      } else if (state.status === 'INCOMPLETE') {
         incompleteDays++;
       } else if (state.status === 'NO_RECORDS') {
         daysWithoutRecords++;
@@ -195,6 +221,7 @@ export class WorkDayService {
               source: e.source,
             }))
           : [],
+        occurrence: formatCalendarOccurrenceDTO(state.occurrence),
       });
     }
 
@@ -205,6 +232,7 @@ export class WorkDayService {
         recordedDays,
         incompleteDays,
         daysWithoutRecords,
+        excusedDays,
       },
       days,
     };
@@ -212,4 +240,3 @@ export class WorkDayService {
 }
 
 export const workDayService = new WorkDayService();
-

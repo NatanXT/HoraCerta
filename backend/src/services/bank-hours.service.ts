@@ -4,14 +4,15 @@ import { userRepository } from '../repositories/user.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
 import { bankHoursConfigRepository } from '../repositories/bank-hours-config.repository';
+import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
 import {
   getLocalDateString,
   parseDateToUtcMidnight,
   getWeekdayFromDate,
 } from '../utils/date';
 import { resolveWorkDayState } from '../utils/work-day-status';
-
 import { WorkScheduleResolver } from '../utils/work-schedule-resolver';
+import { CalendarOccurrenceResolver } from '../utils/calendar-occurrence-resolver';
 
 export interface BankHoursConfigDto {
   startDate: string;
@@ -95,6 +96,13 @@ export class BankHoursService {
     const schedules = await workScheduleRepository.findAllVersionsByUserUntilDate(user.id, endDateUtc);
     const scheduleResolver = new WorkScheduleResolver(schedules);
 
+    const occurrences = await calendarOccurrenceRepository.findActiveInRange(
+      user.id,
+      startDateUtc,
+      endDateUtc
+    );
+    const occurrenceResolver = new CalendarOccurrenceResolver(occurrences);
+
     const workDayMap = new Map<string, WorkDayWithEntries>();
     for (const wd of workDays) {
       const dateStr = wd.date.toISOString().substring(0, 10);
@@ -134,6 +142,7 @@ export class BankHoursService {
       const weekday = getWeekdayFromDate(dateStr, env.APP_TIMEZONE);
       const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
       const workDay = workDayMap.get(dateStr);
+      const occurrence = occurrenceResolver.getForDate(dateStr);
 
       const defaultExpected = scheduleResolver.getExpectedMinutesForDate(weekday, dateUtcMidnight);
       const state = resolveWorkDayState({
@@ -141,6 +150,7 @@ export class BankHoursService {
         todayStr,
         defaultExpectedMinutes: defaultExpected,
         workDay,
+        occurrence,
       });
 
       if (state.status === 'IN_PROGRESS' || dateStr === todayStr) {
@@ -249,4 +259,3 @@ export class BankHoursService {
 }
 
 export const bankHoursService = new BankHoursService();
-

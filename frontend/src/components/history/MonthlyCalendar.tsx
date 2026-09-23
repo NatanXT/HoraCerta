@@ -68,6 +68,10 @@ export function MonthlyCalendar({
               statusClass = 'bg-amber-950/20 border-amber-500/30 hover:border-amber-500/50';
               badgeColor = 'bg-amber-400';
               break;
+            case 'EXCUSED':
+              statusClass = 'bg-slate-900/80 border-indigo-900/40 hover:border-indigo-700/50 text-slate-300';
+              badgeColor = 'bg-indigo-400';
+              break;
             case 'NO_RECORDS':
               statusClass = 'bg-slate-900/40 border-slate-800/40 text-slate-400';
               break;
@@ -75,7 +79,7 @@ export function MonthlyCalendar({
               statusClass = 'bg-slate-950/40 border-slate-900 text-slate-500';
               break;
             case 'FUTURE':
-              statusClass = 'bg-slate-950/20 border-transparent text-slate-600 opacity-40';
+              statusClass = 'bg-slate-950/20 border-transparent text-slate-600 opacity-60';
               break;
           }
 
@@ -134,6 +138,12 @@ export function MonthlyCalendar({
                   </div>
                 )}
 
+                {daySummary.status === 'EXCUSED' && (
+                  <span className="text-[9px] sm:text-[10px] text-indigo-300 font-medium block truncate">
+                    {daySummary.occurrence?.title || 'Abonado'}
+                  </span>
+                )}
+
                 {daySummary.status === 'IN_PROGRESS' && (
                   <span className="text-[9px] sm:text-[10px] text-emerald-400 font-medium block truncate">
                     <span className="hidden sm:inline">Em andamento</span>
@@ -162,8 +172,8 @@ export function MonthlyCalendar({
                 )}
 
                 {daySummary.status === 'FUTURE' && (
-                  <span className="text-[9px] sm:text-[10px] text-slate-600 font-medium block truncate">
-                    Futuro
+                  <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium block truncate">
+                    {daySummary.occurrence?.title || 'Futuro'}
                   </span>
                 )}
               </div>

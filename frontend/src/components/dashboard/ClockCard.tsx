@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LogIn, LogOut } from 'lucide-react';
+import { LogIn, LogOut, CalendarOff } from 'lucide-react';
 import { WorkDaySummary } from '../../types/work-day';
 import { formatClockTime } from '../../utils/date';
 
@@ -43,7 +43,14 @@ export function ClockCard({ summary, submitting, onClockIn, onClockOut }: ClockC
       />
 
       {/* Status Badge */}
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center gap-2">
+        {summary.occurrence && (
+          <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 shadow-sm">
+            <CalendarOff className="w-3.5 h-3.5 text-indigo-400" />
+            <span>{summary.occurrence.title} — Jornada esperada hoje: 00h00</span>
+          </span>
+        )}
+
         {summary.isOpen ? (
           <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />

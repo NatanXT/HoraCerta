@@ -27,15 +27,24 @@ enum TimeEntrySource {
   MANUAL
 }
 
+enum CalendarOccurrenceType {
+  HOLIDAY
+  VACATION
+  MEDICAL_LEAVE
+  JUSTIFIED_ABSENCE
+  EXCEPTIONAL_DAY_OFF
+}
+
 model User {
-  id              String           @id @default(cuid())
-  name            String
-  email           String           @unique
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  workSchedules   WorkSchedule[]
-  workDays        WorkDay[]
-  bankHoursConfig BankHoursConfig?
+  id                  String               @id @default(cuid())
+  name                String
+  email               String               @unique
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  workSchedules       WorkSchedule[]
+  workDays            WorkDay[]
+  bankHoursConfig     BankHoursConfig?
+  calendarOccurrences CalendarOccurrence[]
 
   @@map("users")
 }
@@ -109,3 +118,21 @@ model BankHoursConfig {
 
   @@map("bank_hours_configs")
 }
+
+model CalendarOccurrence {
+  id        String                 @id @default(cuid())
+  userId    String
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      CalendarOccurrenceType
+  title     String
+  startDate DateTime               @db.Date
+  endDate   DateTime               @db.Date
+  note      String?
+  deletedAt DateTime?
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+
+  @@index([userId, startDate, endDate])
+  @@map("calendar_occurrences")
+}
+

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { CheckCircle2, TriangleAlert, Wrench, PencilLine } from 'lucide-react';
+import { CheckCircle2, TriangleAlert, Wrench, PencilLine, CalendarOff } from 'lucide-react';
 import { MonthlyDaySummary } from '../../types/work-day';
+import { CALENDAR_OCCURRENCE_TYPE_LABELS } from '../../types/calendar-occurrence';
 import { formatMinutes, formatBalance, formatTime } from '../../utils/time';
 import { formatFullDate, getTodayDateStr } from '../../utils/date';
 import { ManualAdjustmentPanel } from './ManualAdjustmentPanel';
@@ -51,6 +52,12 @@ export function DayDetails({ day, onDayUpdated }: DayDetailsProps) {
           <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap">
             {/* Status Badge */}
             <div>
+              {day.status === 'EXCUSED' && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 inline-flex items-center gap-1.5">
+                  <CalendarOff className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>{day.occurrence?.title || 'Jornada abonada'}</span>
+                </span>
+              )}
               {day.status === 'RECORDED' && (
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
@@ -113,6 +120,22 @@ export function DayDetails({ day, onDayUpdated }: DayDetailsProps) {
           </div>
         </div>
 
+        {/* Occurrence Banner */}
+        {day.occurrence && (
+          <div className="p-4 rounded-xl bg-indigo-950/40 border border-indigo-800/60 text-indigo-200 text-xs space-y-1">
+            <div className="flex items-center gap-2 font-semibold text-white">
+              <CalendarOff className="w-4 h-4 text-indigo-400" />
+              <span>
+                {CALENDAR_OCCURRENCE_TYPE_LABELS[day.occurrence.type] || day.occurrence.type}: {day.occurrence.title}
+              </span>
+            </div>
+            <p className="text-indigo-300/80">Jornada esperada zerada por esta ocorrência.</p>
+            {day.occurrence.note && (
+              <p className="text-slate-400 italic pt-1 font-sans">"{day.occurrence.note}"</p>
+            )}
+          </div>
+        )}
+
         {/* Metrics Row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
           <div>
@@ -152,52 +175,6 @@ export function DayDetails({ day, onDayUpdated }: DayDetailsProps) {
             </div>
           )}
         </div>
-
-        {/* Explanatory Banner for Specific Statuses */}
-        {day.status === 'INCOMPLETE' && (
-          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <TriangleAlert className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span>Este dia possui uma entrada sem saída correspondente.</span>
-            </div>
-            {canAdjust && !isAdjusting && (
-              <button
-                type="button"
-                onClick={() => setIsAdjusting(true)}
-                className="text-xs font-semibold underline text-amber-200 hover:text-amber-100 shrink-0"
-              >
-                Resolver agora
-              </button>
-            )}
-          </div>
-        )}
-
-        {day.status === 'NO_RECORDS' && (
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-slate-400 text-xs flex items-center justify-between gap-2">
-            <span>Nenhum ponto registrado neste dia. (Jornada configurada: {formatMinutes(day.expectedMinutes)})</span>
-            {canAdjust && !isAdjusting && (
-              <button
-                type="button"
-                onClick={() => setIsAdjusting(true)}
-                className="text-xs font-semibold underline text-indigo-300 hover:text-indigo-200 shrink-0"
-              >
-                Resolver pendência
-              </button>
-            )}
-          </div>
-        )}
-
-        {day.status === 'REST_DAY' && (
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 text-slate-400 text-xs">
-            Folga programada.
-          </div>
-        )}
-
-        {day.status === 'FUTURE' && (
-          <div className="p-3.5 rounded-xl bg-slate-950/40 border border-slate-800/40 text-slate-500 text-xs">
-            Data futura.
-          </div>
-        )}
 
         {/* Time Entries List */}
         {sortedEntries.length > 0 && (
