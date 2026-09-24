@@ -10,11 +10,20 @@ import {
   PiggyBank,
   CalendarOff,
   Search,
+  Timer,
+  ClipboardList,
+  Scale,
+  TriangleAlert,
+  Info,
 } from 'lucide-react';
 import { useReports } from '../hooks/useReports';
 import { formatMinutes, formatBalance } from '../utils/time';
 import { getTodayDateStr } from '../utils/date';
 import { CALENDAR_OCCURRENCE_TYPE_LABELS } from '../types/calendar-occurrence';
+import { CustomDatePicker } from '../components/common/CustomDatePicker';
+import { MetricCard } from '../components/common/MetricCard';
+import { ReportDayDetailModal } from '../components/reports/ReportDayDetailModal';
+import { ReportDay } from '../types/report';
 
 function getDefaultPeriod(): { from: string; to: string } {
   const today = getTodayDateStr(); // YYYY-MM-DD
@@ -41,6 +50,7 @@ export function ReportsPage() {
   const [fromDate, setFromDate] = useState(defaultPeriod.from);
   const [toDate, setToDate] = useState(defaultPeriod.to);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [selectedDetailDay, setSelectedDetailDay] = useState<ReportDay | null>(null);
 
   const {
     report,
@@ -207,27 +217,19 @@ export function ReportsPage() {
 
           <form onSubmit={handleGenerateReport} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Data inicial</label>
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500"
-                  required
-                />
-              </div>
+              <CustomDatePicker
+                label="Data inicial"
+                value={fromDate}
+                onChange={(val) => setFromDate(val)}
+                required
+              />
 
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Data final</label>
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-indigo-500"
-                  required
-                />
-              </div>
+              <CustomDatePicker
+                label="Data final"
+                value={toDate}
+                onChange={(val) => setToDate(val)}
+                required
+              />
             </div>
 
             {/* Presets and Submit */}
@@ -288,67 +290,47 @@ export function ReportsPage() {
           <div className="space-y-6 sm:space-y-8 print:space-y-6">
             {/* 1. Summary Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-lg print:bg-slate-50 print:border-slate-300 print:shadow-none">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block print:text-slate-600">
-                  Horas trabalhadas
-                </span>
-                <span className="text-2xl sm:text-3xl font-mono font-extrabold text-white mt-1 block print:text-slate-900">
-                  {formatMinutes(report.summary.workedMinutes)}
-                </span>
-                <span className="text-[10px] text-slate-500 mt-1 block print:text-slate-600">
-                  {report.summary.recordedDays} dias com registro
-                </span>
-              </div>
+              <MetricCard
+                title="Horas trabalhadas"
+                value={formatMinutes(report.summary.workedMinutes)}
+                subtitle={`${report.summary.recordedDays} dias com registro`}
+                icon={Timer}
+                variant="indigo"
+              />
 
-              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-lg print:bg-slate-50 print:border-slate-300 print:shadow-none">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block print:text-slate-600">
-                  Carga prevista
-                </span>
-                <span className="text-2xl sm:text-3xl font-mono font-extrabold text-slate-200 mt-1 block print:text-slate-800">
-                  {formatMinutes(report.summary.scheduledMinutes)}
-                </span>
-                <span className="text-[10px] text-slate-500 mt-1 block print:text-slate-600">
-                  {report.summary.calendarDays} dias no período
-                </span>
-              </div>
+              <MetricCard
+                title="Carga prevista"
+                value={formatMinutes(report.summary.scheduledMinutes)}
+                subtitle={`${report.summary.calendarDays} dias no período`}
+                icon={ClipboardList}
+                variant="slate"
+              />
 
-              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-lg print:bg-slate-50 print:border-slate-300 print:shadow-none">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block print:text-slate-600">
-                  Saldo apurado
-                </span>
-                <span
-                  className={`text-2xl sm:text-3xl font-mono font-extrabold mt-1 block ${
-                    report.bankHours.configured
-                      ? (report.bankHours.periodConsolidatedBalanceMinutes ?? 0) >= 0
-                        ? 'text-emerald-400 print:text-emerald-700'
-                        : 'text-amber-400 print:text-amber-700'
-                      : 'text-slate-500 print:text-slate-400'
-                  }`}
-                >
-                  {report.bankHours.configured && report.bankHours.periodConsolidatedBalanceMinutes !== null
+              <MetricCard
+                title="Saldo apurado"
+                value={
+                  report.bankHours.configured && report.bankHours.periodConsolidatedBalanceMinutes !== null
                     ? formatBalance(report.bankHours.periodConsolidatedBalanceMinutes)
-                    : '--'}
-                </span>
-                <span className="text-[10px] text-slate-500 mt-1 block print:text-slate-600">
-                  {report.bankHours.configured ? 'No período selecionado' : 'Banco não configurado'}
-                </span>
-              </div>
+                    : '--'
+                }
+                subtitle={report.bankHours.configured ? 'No período selecionado' : 'Banco não configurado'}
+                icon={Scale}
+                variant={
+                  !report.bankHours.configured
+                    ? 'slate'
+                    : (report.bankHours.periodConsolidatedBalanceMinutes ?? 0) >= 0
+                    ? 'emerald'
+                    : 'amber'
+                }
+              />
 
-              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-lg print:bg-slate-50 print:border-slate-300 print:shadow-none">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block print:text-slate-600">
-                  Pendências
-                </span>
-                <span
-                  className={`text-2xl sm:text-3xl font-mono font-extrabold mt-1 block ${
-                    report.summary.pendingDays > 0 ? 'text-amber-400 print:text-amber-700' : 'text-slate-300 print:text-slate-800'
-                  }`}
-                >
-                  {report.summary.pendingDays}
-                </span>
-                <span className="text-[10px] text-slate-500 mt-1 block print:text-slate-600">
-                  {report.summary.noRecordsDays} sem registro + {report.summary.incompleteDays} incompleto
-                </span>
-              </div>
+              <MetricCard
+                title="Pendências"
+                value={report.summary.pendingDays}
+                subtitle={`${report.summary.noRecordsDays} sem registro + ${report.summary.incompleteDays} incompleto`}
+                icon={TriangleAlert}
+                variant={report.summary.pendingDays > 0 ? 'amber' : 'slate'}
+              />
             </div>
 
             {/* 2. Bank Hours Section */}
@@ -453,9 +435,15 @@ export function ReportsPage() {
 
             {/* 4. Daily Details Section */}
             <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 backdrop-blur-sm print:bg-white print:border-none print:shadow-none print:p-0">
-              <h3 className="text-base font-bold text-white print:text-slate-900 pb-2 border-b border-slate-800/80 print:border-slate-300">
-                Detalhamento Diário da Jornada
-              </h3>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-800/80 print:border-slate-300 gap-2">
+                <h3 className="text-base font-bold text-white print:text-slate-900">
+                  Detalhamento Diário da Jornada
+                </h3>
+                <p className="text-[11px] text-indigo-300 font-medium flex items-center gap-1.5 print:hidden">
+                  <Info className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <span>Dê um duplo clique em qualquer linha para visualizar os detalhes completos do dia.</span>
+                </p>
+              </div>
 
               {/* Desktop Table View */}
               <div className="overflow-x-auto">
@@ -474,7 +462,12 @@ export function ReportsPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-800/50 print:divide-slate-200">
                     {report.days.map((day) => (
-                      <tr key={day.date} className="hover:bg-slate-800/40 transition-colors print:hover:bg-transparent">
+                      <tr
+                        key={day.date}
+                        onDoubleClick={() => setSelectedDetailDay(day)}
+                        title="Duplo clique para abrir detalhes do dia"
+                        className="hover:bg-slate-800/70 cursor-pointer transition-colors print:hover:bg-transparent"
+                      >
                         <td className="py-2.5 px-3 font-mono text-white font-medium whitespace-nowrap print:text-slate-900">
                           {day.date}
                         </td>
@@ -536,6 +529,14 @@ export function ReportsPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Day Detail Modal on double click */}
+        {selectedDetailDay && (
+          <ReportDayDetailModal
+            day={selectedDetailDay}
+            onClose={() => setSelectedDetailDay(null)}
+          />
         )}
       </div>
     </main>

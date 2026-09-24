@@ -21,15 +21,19 @@ export function useSettings() {
   const [scheduleSuccessMessage, setScheduleSuccessMessage] = useState<string | null>(null);
   const [scheduleErrorMessage, setScheduleErrorMessage] = useState<string | null>(null);
 
+  const isFetchingRef = useRef<boolean>(false);
   const isSavingProfileRef = useRef<boolean>(false);
   const isSavingScheduleRef = useRef<boolean>(false);
 
   const fetchSettings = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     setLoading(true);
     setError(null);
     try {
       const data = await settingsService.getSettings();
       setSettings(data);
+      setError(null);
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && !err.response) {
         setError('Não foi possível conectar ao servidor. Verifique se o backend está em execução.');
@@ -39,6 +43,7 @@ export function useSettings() {
         setError('Erro ao carregar configurações.');
       }
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
     }
   }, []);

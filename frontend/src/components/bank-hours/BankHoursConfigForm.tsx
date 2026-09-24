@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { TriangleAlert } from 'lucide-react';
 import { formatBalanceInput } from '../../utils/time';
+import { CustomDatePicker } from '../common/CustomDatePicker';
 
 interface BankHoursConfigFormProps {
   initialStartDate?: string;
@@ -47,21 +48,15 @@ export function BankHoursConfigForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Data Inicial */}
-        <div className="space-y-1.5">
-          <label htmlFor="startDateInput" className="text-xs font-semibold text-slate-300 block">
-            Data inicial da apuração <span className="text-rose-400">*</span>
-          </label>
-          <input
-            id="startDateInput"
-            type="date"
-            max={todayStr}
-            required
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            disabled={saving}
-            className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-mono"
-          />
-        </div>
+        <CustomDatePicker
+          id="startDateInput"
+          label="Data inicial da apuração *"
+          max={todayStr}
+          required
+          value={startDate}
+          onChange={(val) => setStartDate(val)}
+          disabled={saving}
+        />
 
         {/* Saldo Inicial HH:MM */}
         <div className="space-y-1.5">

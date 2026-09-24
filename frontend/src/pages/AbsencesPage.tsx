@@ -16,6 +16,16 @@ import {
   CalendarOccurrenceType,
   CALENDAR_OCCURRENCE_TYPE_LABELS,
 } from '../types/calendar-occurrence';
+import { CustomDatePicker } from '../components/common/CustomDatePicker';
+import { AppSelect } from '../components/ui/AppSelect';
+
+const OCCURRENCE_OPTIONS = [
+  { value: 'HOLIDAY', label: 'Feriado' },
+  { value: 'VACATION', label: 'Férias' },
+  { value: 'MEDICAL_LEAVE', label: 'Atestado / afastamento médico' },
+  { value: 'JUSTIFIED_ABSENCE', label: 'Ausência justificada' },
+  { value: 'EXCEPTIONAL_DAY_OFF', label: 'Folga excepcional' },
+];
 
 function formatMonthTitle(monthStr: string): string {
   const [yearStr, monthNumStr] = monthStr.split('-');
@@ -320,60 +330,40 @@ export function AbsencesPage() {
             )}
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Tipo</label>
-                <select
-                  value={formType}
-                  onChange={(e) => setFormType(e.target.value as CalendarOccurrenceType)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="HOLIDAY">Feriado</option>
-                  <option value="VACATION">Férias</option>
-                  <option value="MEDICAL_LEAVE">Atestado / afastamento médico</option>
-                  <option value="JUSTIFIED_ABSENCE">Ausência justificada</option>
-                  <option value="EXCEPTIONAL_DAY_OFF">Folga excepcional</option>
-                </select>
-              </div>
+              <AppSelect
+                label="Tipo da ocorrência *"
+                value={formType}
+                options={OCCURRENCE_OPTIONS}
+                onChange={(val) => setFormType(val as CalendarOccurrenceType)}
+              />
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Título</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5 tracking-wide">Título</label>
                 <input
                   type="text"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   placeholder="Ex: Feriado municipal, Férias regulamentares"
                   maxLength={100}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-slate-600 transition-all duration-150 shadow-inner"
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Data inicial
-                  </label>
-                  <input
-                    type="date"
-                    value={formStartDate}
-                    onChange={(e) => setFormStartDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 font-mono"
-                    required
-                  />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <CustomDatePicker
+                  label="Data inicial *"
+                  value={formStartDate}
+                  onChange={(val) => setFormStartDate(val)}
+                  required
+                />
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Data final
-                  </label>
-                  <input
-                    type="date"
-                    value={formEndDate}
-                    onChange={(e) => setFormEndDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 font-mono"
-                    required
-                  />
-                </div>
+                <CustomDatePicker
+                  label="Data final *"
+                  value={formEndDate}
+                  onChange={(val) => setFormEndDate(val)}
+                  required
+                />
               </div>
 
               <div>

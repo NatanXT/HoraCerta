@@ -31,16 +31,16 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="w-full space-y-8 pb-12">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
               <Settings className="w-6 h-6" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Configurações</h1>
+            <h1 className="text-xl font-bold text-slate-100 tracking-tight">Configurações</h1>
           </div>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-xs text-slate-400">
             Gerencie seu perfil e personalize sua jornada de trabalho semanal.
           </p>
         </div>
@@ -54,10 +54,11 @@ export const SettingsPage: React.FC = () => {
           </div>
           <button
             onClick={fetchSettings}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-xs font-semibold rounded-lg transition-colors"
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 active:bg-rose-500/40 text-rose-200 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Tentar novamente</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>{loading ? 'Carregando...' : 'Tentar novamente'}</span>
           </button>
         </div>
       )}

@@ -90,9 +90,9 @@ export function MonthlyCalendar({
               onClick={() => onSelectDay(daySummary.date)}
               aria-label={`Dia ${dayNumber}, ${daySummary.status}`}
               aria-pressed={isSelected}
-              className={`h-16 sm:h-20 p-1.5 sm:p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all duration-150 relative cursor-pointer ${statusClass} ${
+              className={`h-16 sm:h-20 p-1.5 sm:p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 relative cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-500/50 hover:bg-slate-800/90 group ${statusClass} ${
                 isSelected
-                  ? 'ring-2 ring-indigo-500 border-indigo-500 bg-slate-800/90 shadow-lg'
+                  ? 'ring-2 ring-indigo-500 border-indigo-500 bg-slate-800/90 shadow-lg shadow-indigo-500/10'
                   : ''
               }`}
             >

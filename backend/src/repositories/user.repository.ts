@@ -8,6 +8,17 @@ export class UserRepository {
     });
   }
 
+  async findOrCreateDefaultUser(email: string): Promise<User> {
+    const existing = await this.findByEmail(email);
+    if (existing) return existing;
+    return prisma.user.create({
+      data: {
+        email,
+        name: 'Usuário HoraCerta',
+      },
+    });
+  }
+
   async updateName(id: string, name: string): Promise<User> {
     return prisma.user.update({
       where: { id },

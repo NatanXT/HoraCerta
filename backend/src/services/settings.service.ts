@@ -1,6 +1,5 @@
 import { Weekday } from '@prisma/client';
 import { env } from '../config/env';
-import { AppError } from '../errors/app-error';
 import { userRepository } from '../repositories/user.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { getLocalDateString, parseDateToUtcMidnight } from '../utils/date';
@@ -43,10 +42,7 @@ const WEEKDAY_ORDER: Weekday[] = [
 
 export class SettingsService {
   async getSettings(): Promise<SettingsResponseDto> {
-    const user = await userRepository.findByEmail(env.DEFAULT_USER_EMAIL);
-    if (!user) {
-      throw new AppError('Usuário padrão não encontrado.', 404, 'DEFAULT_USER_NOT_FOUND');
-    }
+    const user = await userRepository.findOrCreateDefaultUser(env.DEFAULT_USER_EMAIL);
 
     const latestVersionDate = await workScheduleRepository.findLatestScheduleVersionDate(user.id);
     const effectiveFromStr = latestVersionDate
@@ -64,7 +60,9 @@ export class SettingsService {
 
     const days: WorkScheduleDayDto[] = WEEKDAY_ORDER.map((weekday) => ({
       weekday,
-      expectedMinutes: scheduleMap.get(weekday) ?? 0,
+      expectedMinutes:
+        scheduleMap.get(weekday) ??
+        (weekday === Weekday.SATURDAY || weekday === Weekday.SUNDAY ? 0 : 480),
     }));
 
     const weeklyExpectedMinutes = days.reduce((sum, d) => sum + d.expectedMinutes, 0);
@@ -86,10 +84,7 @@ export class SettingsService {
   }
 
   async updateProfile(data: { name: string }): Promise<ProfileDto> {
-    const user = await userRepository.findByEmail(env.DEFAULT_USER_EMAIL);
-    if (!user) {
-      throw new AppError('Usuário padrão não encontrado.', 404, 'DEFAULT_USER_NOT_FOUND');
-    }
+    const user = await userRepository.findOrCreateDefaultUser(env.DEFAULT_USER_EMAIL);
 
     const updatedUser = await userRepository.updateName(user.id, data.name);
 
@@ -102,10 +97,7 @@ export class SettingsService {
   async updateWorkSchedule(
     days: { weekday: Weekday; expectedMinutes: number }[]
   ): Promise<SettingsResponseDto> {
-    const user = await userRepository.findByEmail(env.DEFAULT_USER_EMAIL);
-    if (!user) {
-      throw new AppError('Usuário padrão não encontrado.', 404, 'DEFAULT_USER_NOT_FOUND');
-    }
+    const user = await userRepository.findOrCreateDefaultUser(env.DEFAULT_USER_EMAIL);
 
     const todayStr = getLocalDateString(new Date(), env.APP_TIMEZONE);
     const effectiveFromDate = parseDateToUtcMidnight(todayStr);

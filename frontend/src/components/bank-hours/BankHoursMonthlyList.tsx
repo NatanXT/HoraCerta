@@ -32,7 +32,7 @@ export function BankHoursMonthlyList({ monthly }: BankHoursMonthlyListProps) {
           return (
             <div
               key={m.month}
-              className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              className="bg-slate-950/40 border border-slate-800/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all duration-200 hover:bg-slate-900/70 hover:border-slate-700/80 hover:shadow-sm hover:-translate-y-0.5"
             >
               <div>
                 <h4 className="text-sm font-bold text-white">
