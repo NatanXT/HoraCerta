@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { X, Calendar, Clock, AlertCircle, Coffee, Utensils } from 'lucide-react';
 import { ReportDay } from '../../types/report';
 
 export interface ReportDayDetailModalProps {
@@ -194,6 +194,45 @@ export const ReportDayDetailModal: React.FC<ReportDayDetailModalProps> = ({ day,
               </span>
             </div>
           </div>
+
+          {/* Pausas List */}
+          {day.workBreaks && day.workBreaks.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <Coffee className="w-4 h-4 text-amber-400" />
+                <span>Pausas ({day.workBreaks.length})</span>
+              </h3>
+              <div className="space-y-1.5">
+                {day.workBreaks.map((b) => (
+                  <div
+                    key={b.id}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/60 text-xs font-mono"
+                  >
+                    <div className="flex items-center gap-2">
+                      {b.type === 'SNACK' ? (
+                        <Coffee className="w-3.5 h-3.5 text-amber-400" />
+                      ) : (
+                        <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                      )}
+                      <span className="text-slate-200 font-medium">
+                        {b.type === 'SNACK' ? 'Lanche' : 'Almoço'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-400">
+                        {b.startedAt.includes('T') ? new Date(b.startedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : b.startedAt}
+                        {' → '}
+                        {b.endedAt ? (b.endedAt.includes('T') ? new Date(b.endedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : b.endedAt) : 'em andamento'}
+                      </span>
+                      <span className="text-amber-300 font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                        {Math.floor(b.durationMinutes / 60)}h{String(b.durationMinutes % 60).padStart(2, '0')}m
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Registros de Ponto List */}
           <div className="space-y-2">

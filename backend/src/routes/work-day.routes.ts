@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import { workDayController } from '../controllers/work-day.controller';
 import { manualAdjustmentController } from '../controllers/manual-adjustment.controller';
+import { requireAuth } from '../middlewares/auth.middleware';
 
 const workDayRouter = Router();
+
+workDayRouter.use(requireAuth);
 
 workDayRouter.get('/today', (req, res, next) => workDayController.getToday(req, res, next));
 workDayRouter.get('/monthly', (req, res, next) => workDayController.getMonthly(req, res, next));

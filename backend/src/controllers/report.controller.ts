@@ -6,8 +6,9 @@ import { generateWorkHoursCsv } from '../utils/csv-serializer';
 export class ReportController {
   async getWorkHoursReport(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const { from, to } = validateReportQuery(req.query);
-      const report = await reportService.getWorkHoursReport(from, to);
+      const report = await reportService.getWorkHoursReport(userId, from, to);
       res.status(200).json(report);
     } catch (error) {
       next(error);
@@ -16,8 +17,9 @@ export class ReportController {
 
   async downloadWorkHoursCsv(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const { from, to } = validateReportQuery(req.query);
-      const report = await reportService.getWorkHoursReport(from, to);
+      const report = await reportService.getWorkHoursReport(userId, from, to);
       const csvContent = generateWorkHoursCsv(report);
 
       const filename = `horacerta-relatorio-${from}-a-${to}.csv`;

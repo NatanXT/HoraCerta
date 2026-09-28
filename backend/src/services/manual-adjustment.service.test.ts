@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { manualAdjustmentService } from './manual-adjustment.service';
 import { manualAdjustmentSchema } from '../schemas/manual-adjustment.schema';
 import { dateParamSchema } from '../schemas/work-day.schema';
-import { userRepository } from '../repositories/user.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
 import { timeEntryRepository } from '../repositories/time-entry.repository';
@@ -152,17 +151,9 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
   });
 
   it('deve bloquear ajuste manual para o dia atual (hoje) e para datas futuras', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
     // Hoje = 2026-09-21
     await expect(
-      manualAdjustmentService.saveAdjustment('2026-09-21', {
+      manualAdjustmentService.saveAdjustment('user-1', '2026-09-21', {
         reason: 'Ajuste de hoje',
         intervals: [{ clockIn: '08:00', clockOut: '12:00' }],
       })
@@ -170,7 +161,7 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
 
     // Futuro = 2026-09-22
     await expect(
-      manualAdjustmentService.saveAdjustment('2026-09-22', {
+      manualAdjustmentService.saveAdjustment('user-1', '2026-09-22', {
         reason: 'Ajuste futuro',
         intervals: [{ clockIn: '08:00', clockOut: '12:00' }],
       })
@@ -178,21 +169,15 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
   });
 
   it('deve resolver um dia NO_RECORDS histórico criando WorkDay, aplicando snapshot e gerando auditoria', async () => {
-    const mockUser = {
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue(mockUser);
-
     vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
       id: 'sched-1',
       userId: 'user-1',
       weekday: Weekday.TUESDAY,
       expectedMinutes: 480,
+      plannedStartMinutes: 480,
+      plannedEndMinutes: 1035,
+      snackBreakMinutes: 15,
+      lunchBreakMinutes: 60,
       effectiveFrom: new Date('2000-01-01T00:00:00.000Z'),
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -239,12 +224,13 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
       createdAt: new Date('2026-09-21T12:00:00.000Z'),
     });
 
-    vi.spyOn(workDayRepository, 'findByUserAndDate').mockResolvedValue({
+    vi.spyOn(prisma.workDay, 'findUnique').mockResolvedValue({
       ...mockWorkDayCreated,
       timeEntries: createdManualEntries,
-    });
+      workBreaks: [],
+    } as any);
 
-    const res = await manualAdjustmentService.saveAdjustment('2026-09-15', {
+    const res = await manualAdjustmentService.saveAdjustment('user-1', '2026-09-15', {
       reason: 'Esqueci de bater o ponto.',
       intervals: [
         { clockIn: '08:00', clockOut: '12:00' },
@@ -268,16 +254,6 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
   });
 
   it('deve resolver um dia INCOMPLETE realizando soft delete dos registros antigos e salvando nova auditoria', async () => {
-    const mockUser = {
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue(mockUser);
-
     const existingWorkDay: WorkDayWithEntries = {
       id: 'wd-incomplete',
       userId: 'user-1',
@@ -327,12 +303,13 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
       createdAt: new Date('2026-09-21T12:00:00.000Z'),
     });
 
-    vi.spyOn(workDayRepository, 'findByUserAndDate').mockResolvedValue({
+    vi.spyOn(prisma.workDay, 'findUnique').mockResolvedValue({
       ...existingWorkDay,
       timeEntries: createdManualEntries,
-    });
+      workBreaks: [],
+    } as any);
 
-    const res = await manualAdjustmentService.saveAdjustment('2026-09-16', {
+    const res = await manualAdjustmentService.saveAdjustment('user-1', '2026-09-16', {
       reason: 'Completando horário de saída.',
       intervals: [
         { clockIn: '08:00', clockOut: '12:00' },
@@ -351,14 +328,6 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
   });
 
   it('deve tratar erro de concorrência P2034 retornando HTTP 409 CONCURRENCY_CONFLICT', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
     const p2034Error = new Prisma.PrismaClientKnownRequestError(
       'Transaction failed due to a write conflict or a deadlock',
       { code: 'P2034', clientVersion: '6.0.0' }
@@ -367,7 +336,7 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
     vi.spyOn(prisma, '$transaction').mockRejectedValue(p2034Error);
 
     try {
-      await manualAdjustmentService.saveAdjustment('2026-09-15', {
+      await manualAdjustmentService.saveAdjustment('user-1', '2026-09-15', {
         reason: 'Conflito simulado',
         intervals: [{ clockIn: '08:00', clockOut: '12:00' }],
       });
@@ -384,19 +353,15 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
   });
 
   it('deve simular falha na transação e propagar erro sem concluir ajuste', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
     vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
       id: 'sched-1',
       userId: 'user-1',
       weekday: Weekday.TUESDAY,
       expectedMinutes: 480,
+      plannedStartMinutes: 480,
+      plannedEndMinutes: 1035,
+      snackBreakMinutes: 15,
+      lunchBreakMinutes: 60,
       effectiveFrom: new Date('2000-01-01T00:00:00.000Z'),
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -416,13 +381,12 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
     vi.spyOn(timeEntryRepository, 'findActiveByWorkDayId').mockResolvedValue([]);
     vi.spyOn(timeEntryRepository, 'softDeleteActiveByWorkDayId').mockResolvedValue({ count: 0 });
 
-    // Erro ao tentar criar as novas entradas dentro da transação
     vi.spyOn(timeEntryRepository, 'createManyManual').mockRejectedValue(
       new Error('Erro de banco simulado pós soft-delete')
     );
 
     await expect(
-      manualAdjustmentService.saveAdjustment('2026-09-15', {
+      manualAdjustmentService.saveAdjustment('user-1', '2026-09-15', {
         reason: 'Ajuste com falha interna',
         intervals: [{ clockIn: '08:00', clockOut: '12:00' }],
       })
@@ -430,14 +394,6 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
   });
 
   it('deve retornar a lista de auditoria de um dia por ordem decrescente de criação', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
     const mockWorkDay: WorkDayWithEntries = {
       id: 'wd-audit',
       userId: 'user-1',
@@ -473,7 +429,7 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
       },
     ]);
 
-    const res = await manualAdjustmentService.getAdjustments('2026-09-15');
+    const res = await manualAdjustmentService.getAdjustments('user-1', '2026-09-15');
 
     expect(res.date).toBe('2026-09-15');
     expect(res.adjustments.length).toBe(2);

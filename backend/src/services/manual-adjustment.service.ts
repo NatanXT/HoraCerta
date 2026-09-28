@@ -2,7 +2,6 @@ import { TimeEntryType, Prisma } from '@prisma/client';
 import { env } from '../config/env';
 import { AppError } from '../errors/app-error';
 import { prisma } from '../lib/prisma';
-import { userRepository } from '../repositories/user.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { workDayRepository } from '../repositories/work-day.repository';
 import { timeEntryRepository } from '../repositories/time-entry.repository';
@@ -10,7 +9,7 @@ import { workDayAdjustmentRepository } from '../repositories/work-day-adjustment
 import {
   getLocalDateString,
   parseDateToUtcMidnight,
-  getWeekdayFromDate,
+  getWeekdayFromCivilDate,
   parseDateTimeInTimezone,
 } from '../utils/date';
 import { workDayService, WorkDaySummaryDto } from './work-day.service';
@@ -71,14 +70,10 @@ export function parseAdjustmentSnapshot(
 
 export class ManualAdjustmentService {
   async saveAdjustment(
+    userId: string,
     dateStr: string,
     payload: ManualAdjustmentInput
   ): Promise<SaveManualAdjustmentResponseDto> {
-    const user = await userRepository.findByEmail(env.DEFAULT_USER_EMAIL);
-    if (!user) {
-      throw new AppError('Usuário padrão não encontrado.', 404, 'DEFAULT_USER_NOT_FOUND');
-    }
-
     const todayStr = getLocalDateString(new Date(), env.APP_TIMEZONE);
 
     if (dateStr === todayStr) {
@@ -98,7 +93,7 @@ export class ManualAdjustmentService {
     }
 
     const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
-    const weekday = getWeekdayFromDate(dateStr, env.APP_TIMEZONE);
+    const weekday = getWeekdayFromCivilDate(dateStr);
 
     let savedAdjustmentDto: WorkDayAdjustmentDto | null = null;
 
@@ -106,7 +101,7 @@ export class ManualAdjustmentService {
       await prisma.$transaction(
         async (tx) => {
           const schedule = await workScheduleRepository.findEffectiveByUserWeekdayAndDate(
-            user.id,
+            userId,
             weekday,
             dateUtcMidnight,
             tx
@@ -114,7 +109,7 @@ export class ManualAdjustmentService {
           const defaultExpectedMinutes = schedule ? schedule.expectedMinutes : 0;
 
           const workDay = await workDayRepository.findOrCreateByUserAndDate(
-            user.id,
+            userId,
             dateUtcMidnight,
             defaultExpectedMinutes,
             tx
@@ -135,6 +130,17 @@ export class ManualAdjustmentService {
 
           const now = new Date();
           await timeEntryRepository.softDeleteActiveByWorkDayId(workDay.id, now, tx);
+
+          // Soft-delete active WorkBreaks for this day
+          await tx.workBreak.updateMany({
+            where: {
+              workDayId: workDay.id,
+              deletedAt: null,
+            },
+            data: {
+              deletedAt: now,
+            },
+          });
 
           const sortedIntervals = [...payload.intervals].sort((a, b) =>
             a.clockIn.localeCompare(b.clockIn)
@@ -219,7 +225,7 @@ export class ManualAdjustmentService {
       throw error;
     }
 
-    const summary = await workDayService.getWorkDaySummaryByDateStr(dateStr);
+    const summary = await workDayService.getWorkDaySummaryByDateStr(userId, dateStr);
 
     return {
       summary,
@@ -227,14 +233,9 @@ export class ManualAdjustmentService {
     };
   }
 
-  async getAdjustments(dateStr: string): Promise<GetAdjustmentsResponseDto> {
-    const user = await userRepository.findByEmail(env.DEFAULT_USER_EMAIL);
-    if (!user) {
-      throw new AppError('Usuário padrão não encontrado.', 404, 'DEFAULT_USER_NOT_FOUND');
-    }
-
+  async getAdjustments(userId: string, dateStr: string): Promise<GetAdjustmentsResponseDto> {
     const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
-    const workDay = await workDayRepository.findByUserAndDate(user.id, dateUtcMidnight);
+    const workDay = await workDayRepository.findByUserAndDate(userId, dateUtcMidnight);
 
     if (!workDay) {
       return {

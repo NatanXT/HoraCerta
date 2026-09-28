@@ -4,9 +4,10 @@ import { updateProfileSchema, updateWorkScheduleSchema } from '../schemas/settin
 import { AppError } from '../errors/app-error';
 
 export class SettingsController {
-  async getSettings(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getSettings(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const response = await settingsService.getSettings();
+      const userId = req.auth!.userId;
+      const response = await settingsService.getSettings(userId);
       res.status(200).json(response);
     } catch (error) {
       next(error);
@@ -15,6 +16,7 @@ export class SettingsController {
 
   async updateProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const parseResult = updateProfileSchema.safeParse(req.body);
       if (!parseResult.success) {
         throw new AppError(
@@ -24,7 +26,7 @@ export class SettingsController {
         );
       }
 
-      const response = await settingsService.updateProfile(parseResult.data);
+      const response = await settingsService.updateProfile(userId, parseResult.data);
       res.status(200).json(response);
     } catch (error) {
       next(error);
@@ -33,6 +35,7 @@ export class SettingsController {
 
   async updateWorkSchedule(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const parseResult = updateWorkScheduleSchema.safeParse(req.body);
       if (!parseResult.success) {
         throw new AppError(
@@ -42,7 +45,7 @@ export class SettingsController {
         );
       }
 
-      const response = await settingsService.updateWorkSchedule(parseResult.data.days);
+      const response = await settingsService.updateWorkSchedule(userId, parseResult.data.days);
       res.status(200).json(response);
     } catch (error) {
       next(error);

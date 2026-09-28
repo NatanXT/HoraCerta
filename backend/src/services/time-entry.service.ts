@@ -2,27 +2,21 @@ import { TimeEntryType, Prisma } from '@prisma/client';
 import { env } from '../config/env';
 import { AppError } from '../errors/app-error';
 import { prisma } from '../lib/prisma';
-import { userRepository } from '../repositories/user.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { workDayRepository } from '../repositories/work-day.repository';
 import { timeEntryRepository } from '../repositories/time-entry.repository';
-import { getLocalDateString, parseDateToUtcMidnight, getWeekdayFromDate } from '../utils/date';
+import { getLocalDateString, parseDateToUtcMidnight, getWeekdayFromCivilDate } from '../utils/date';
 import { workDayService, WorkDaySummaryDto } from './work-day.service';
 
 export class TimeEntryService {
-  async clockIn(): Promise<WorkDaySummaryDto> {
-    const user = await userRepository.findByEmail(env.DEFAULT_USER_EMAIL);
-    if (!user) {
-      throw new AppError('Usuário padrão não encontrado.', 404, 'DEFAULT_USER_NOT_FOUND');
-    }
-
+  async clockIn(userId: string): Promise<WorkDaySummaryDto> {
     const now = new Date();
     const todayStr = getLocalDateString(now, env.APP_TIMEZONE);
     const dateUtcMidnight = parseDateToUtcMidnight(todayStr);
-    const weekday = getWeekdayFromDate(todayStr, env.APP_TIMEZONE);
+    const weekday = getWeekdayFromCivilDate(todayStr);
 
     const schedule = await workScheduleRepository.findEffectiveByUserWeekdayAndDate(
-      user.id,
+      userId,
       weekday,
       dateUtcMidnight
     );
@@ -32,7 +26,7 @@ export class TimeEntryService {
       await prisma.$transaction(
         async (tx) => {
           const workDay = await workDayRepository.findOrCreateByUserAndDate(
-            user.id,
+            userId,
             dateUtcMidnight,
             expectedMinutesSnapshot,
             tx
@@ -75,15 +69,10 @@ export class TimeEntryService {
       throw error;
     }
 
-    return workDayService.getWorkDaySummaryByDateStr(todayStr);
+    return workDayService.getWorkDaySummaryByDateStr(userId, todayStr);
   }
 
-  async clockOut(): Promise<WorkDaySummaryDto> {
-    const user = await userRepository.findByEmail(env.DEFAULT_USER_EMAIL);
-    if (!user) {
-      throw new AppError('Usuário padrão não encontrado.', 404, 'DEFAULT_USER_NOT_FOUND');
-    }
-
+  async clockOut(userId: string): Promise<WorkDaySummaryDto> {
     const now = new Date();
     const todayStr = getLocalDateString(now, env.APP_TIMEZONE);
     const dateUtcMidnight = parseDateToUtcMidnight(todayStr);
@@ -92,7 +81,7 @@ export class TimeEntryService {
       await prisma.$transaction(
         async (tx) => {
           const workDay = await workDayRepository.findByUserAndDate(
-            user.id,
+            userId,
             dateUtcMidnight,
             tx
           );
@@ -139,7 +128,7 @@ export class TimeEntryService {
       throw error;
     }
 
-    return workDayService.getWorkDaySummaryByDateStr(todayStr);
+    return workDayService.getWorkDaySummaryByDateStr(userId, todayStr);
   }
 }
 

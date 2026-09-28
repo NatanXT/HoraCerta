@@ -10,6 +10,7 @@ import { AppError } from '../errors/app-error';
 export class CalendarOccurrenceController {
   async list(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const parseResult = calendarOccurrenceQuerySchema.safeParse(req.query);
       if (!parseResult.success) {
         const issue = parseResult.error.issues[0];
@@ -20,7 +21,7 @@ export class CalendarOccurrenceController {
         );
       }
       const { from, to } = parseResult.data;
-      const occurrences = await calendarOccurrenceService.list(from, to);
+      const occurrences = await calendarOccurrenceService.list(userId, from, to);
       res.status(200).json(occurrences);
     } catch (error) {
       next(error);
@@ -29,6 +30,7 @@ export class CalendarOccurrenceController {
 
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const parseResult = createCalendarOccurrenceSchema.safeParse(req.body);
       if (!parseResult.success) {
         const issue = parseResult.error.issues[0];
@@ -38,7 +40,7 @@ export class CalendarOccurrenceController {
           'INVALID_INPUT'
         );
       }
-      const created = await calendarOccurrenceService.create(parseResult.data);
+      const created = await calendarOccurrenceService.create(userId, parseResult.data);
       res.status(201).json(created);
     } catch (error) {
       next(error);
@@ -47,6 +49,7 @@ export class CalendarOccurrenceController {
 
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const idParam = req.params.id;
       const id = Array.isArray(idParam) ? idParam[0] : idParam;
       if (!id) {
@@ -61,7 +64,7 @@ export class CalendarOccurrenceController {
           'INVALID_INPUT'
         );
       }
-      const updated = await calendarOccurrenceService.update(id, parseResult.data);
+      const updated = await calendarOccurrenceService.update(userId, id, parseResult.data);
       res.status(200).json(updated);
     } catch (error) {
       next(error);
@@ -70,12 +73,13 @@ export class CalendarOccurrenceController {
 
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const idParam = req.params.id;
       const id = Array.isArray(idParam) ? idParam[0] : idParam;
       if (!id) {
         throw new AppError('ID da ocorrência é obrigatório.', 400, 'INVALID_INPUT');
       }
-      await calendarOccurrenceService.softDelete(id);
+      await calendarOccurrenceService.softDelete(userId, id);
       res.status(204).send();
     } catch (error) {
       next(error);

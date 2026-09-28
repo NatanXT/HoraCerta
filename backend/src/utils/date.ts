@@ -27,10 +27,25 @@ export function getLocalDateString(
 }
 
 /**
+ * Returns today's date string in YYYY-MM-DD format for APP_TIMEZONE.
+ */
+export function getTodayDateStr(): string {
+  return getLocalDateString(new Date(), env.APP_TIMEZONE);
+}
+
+/**
  * Converts a YYYY-MM-DD string into a Date object at 00:00:00.000 UTC for Prisma @db.Date fields.
  */
 export function parseDateToUtcMidnight(dateString: string): Date {
   return new Date(`${dateString}T00:00:00.000Z`);
+}
+
+/**
+ * Returns today's date as a UTC midnight Date object for APP_TIMEZONE.
+ */
+export function getTodayUtcMidnight(): Date {
+  const todayStr = getTodayDateStr();
+  return parseDateToUtcMidnight(todayStr);
 }
 
 /**
@@ -79,33 +94,50 @@ export function parseDateTimeInTimezone(
   return new Date(dummyUtc.getTime() + diffMs);
 }
 
+const weekdaysByIndex: Weekday[] = [
+  Weekday.SUNDAY,
+  Weekday.MONDAY,
+  Weekday.TUESDAY,
+  Weekday.WEDNESDAY,
+  Weekday.THURSDAY,
+  Weekday.FRIDAY,
+  Weekday.SATURDAY,
+];
+
 /**
- * Determines the Prisma Weekday enum for a given date string (YYYY-MM-DD) or Date object.
+ * Determines the Prisma Weekday enum for a civil date string in YYYY-MM-DD format.
+ * Since civil dates represent calendar dates, no timezone shifts are applied.
+ */
+export function getWeekdayFromCivilDate(dateStr: string): Weekday {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const dayIndex = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return weekdaysByIndex[dayIndex];
+}
+
+/**
+ * Determines the Prisma Weekday enum for a timestamp (instant Date object) in the given timezone.
+ */
+export function getWeekdayFromInstant(
+  instant: Date = new Date(),
+  timeZone: string = env.APP_TIMEZONE
+): Weekday {
+  const civilDateStr = getLocalDateString(instant, timeZone);
+  return getWeekdayFromCivilDate(civilDateStr);
+}
+
+/**
+ * Legacy compatibility wrapper:
+ * If date is a string (YYYY-MM-DD), treats as a civil date.
+ * If date is a Date object, treats as a timestamp instant in timeZone.
  */
 export function getWeekdayFromDate(
   date: Date | string,
   timeZone: string = env.APP_TIMEZONE
 ): Weekday {
-  const weekdaysByIndex: Weekday[] = [
-    Weekday.SUNDAY,
-    Weekday.MONDAY,
-    Weekday.TUESDAY,
-    Weekday.WEDNESDAY,
-    Weekday.THURSDAY,
-    Weekday.FRIDAY,
-    Weekday.SATURDAY,
-  ];
-
   if (typeof date === 'string') {
-    const [year, month, day] = date.split('-').map(Number);
-    const dayIndex = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-    return weekdaysByIndex[dayIndex];
+    return getWeekdayFromCivilDate(date);
   }
-
-  const localDateStr = getLocalDateString(date, timeZone);
-  const [year, month, day] = localDateStr.split('-').map(Number);
-  const dayIndex = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-  return weekdaysByIndex[dayIndex];
+  return getWeekdayFromInstant(date, timeZone);
 }
 
 /**

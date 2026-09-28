@@ -1,7 +1,5 @@
 import { TimeEntryType, TimeEntrySource, CalendarOccurrenceType } from '@prisma/client';
 import { env } from '../config/env';
-import { AppError } from '../errors/app-error';
-import { userRepository } from '../repositories/user.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
 import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
@@ -9,7 +7,7 @@ import { bankHoursConfigRepository } from '../repositories/bank-hours-config.rep
 import {
   getLocalDateString,
   parseDateToUtcMidnight,
-  getWeekdayFromDate,
+  getWeekdayFromCivilDate,
 } from '../utils/date';
 import { resolveWorkDayState, WorkDayStatus } from '../utils/work-day-status';
 import { WorkScheduleResolver } from '../utils/work-schedule-resolver';
@@ -93,21 +91,16 @@ export interface WorkHoursReportDto {
 }
 
 export class ReportService {
-  async getWorkHoursReport(fromStr: string, toStr: string): Promise<WorkHoursReportDto> {
-    const user = await userRepository.findByEmail(env.DEFAULT_USER_EMAIL);
-    if (!user) {
-      throw new AppError('Usuário padrão não encontrado.', 404, 'DEFAULT_USER_NOT_FOUND');
-    }
-
+  async getWorkHoursReport(userId: string, fromStr: string, toStr: string): Promise<WorkHoursReportDto> {
     const fromUtc = parseDateToUtcMidnight(fromStr);
     const toUtc = parseDateToUtcMidnight(toStr);
     const todayStr = getLocalDateString(new Date(), env.APP_TIMEZONE);
 
     // Single batch queries
-    const workDays = await workDayRepository.findByUserAndDateRange(user.id, fromUtc, toUtc);
-    const schedules = await workScheduleRepository.findAllVersionsByUserUntilDate(user.id, toUtc);
-    const occurrences = await calendarOccurrenceRepository.findActiveInRange(user.id, fromUtc, toUtc);
-    const bankConfig = await bankHoursConfigRepository.findByUserId(user.id);
+    const workDays = await workDayRepository.findByUserAndDateRange(userId, fromUtc, toUtc);
+    const schedules = await workScheduleRepository.findAllVersionsByUserUntilDate(userId, toUtc);
+    const occurrences = await calendarOccurrenceRepository.findActiveInRange(userId, fromUtc, toUtc);
+    const bankConfig = await bankHoursConfigRepository.findByUserId(userId);
 
     const scheduleResolver = new WorkScheduleResolver(schedules);
     const occurrenceResolver = new CalendarOccurrenceResolver(occurrences);
@@ -172,7 +165,7 @@ export class ReportService {
     while (currentIter <= toUtc) {
       calendarDays++;
       const dateStr = currentIter.toISOString().substring(0, 10);
-      const weekday = getWeekdayFromDate(dateStr, env.APP_TIMEZONE);
+      const weekday = getWeekdayFromCivilDate(dateStr);
       const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
       const workDay = workDayMap.get(dateStr);
       const occurrence = occurrenceResolver.getForDate(dateStr);

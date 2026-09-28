@@ -8,17 +8,17 @@ import {
 
 export class SettingsService {
   async getSettings(): Promise<SettingsResponse> {
-    const response = await api.get<SettingsResponse>('/settings');
+    const response = await api.get<SettingsResponse>('/api/settings');
     return response.data;
   }
 
   async saveProfile(payload: SaveProfilePayload): Promise<SettingsProfile> {
-    const response = await api.put<SettingsProfile>('/settings/profile', payload);
+    const response = await api.put<SettingsProfile>('/api/settings/profile', payload);
     return response.data;
   }
 
   async saveWorkSchedule(payload: SaveWorkSchedulePayload): Promise<SettingsResponse> {
-    const response = await api.put<SettingsResponse>('/settings/work-schedule', payload);
+    const response = await api.put<SettingsResponse>('/api/settings/work-schedule', payload);
     return response.data;
   }
 }

@@ -7,6 +7,7 @@ import { AppError } from '../errors/app-error';
 export class ManualAdjustmentController {
   async saveAdjustment(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const dateParse = dateParamSchema.safeParse(req.params.date);
       if (!dateParse.success) {
         throw new AppError(
@@ -22,7 +23,7 @@ export class ManualAdjustmentController {
         throw new AppError(firstError, 400, 'INVALID_MANUAL_ADJUSTMENT');
       }
 
-      const result = await manualAdjustmentService.saveAdjustment(dateParse.data, parseResult.data);
+      const result = await manualAdjustmentService.saveAdjustment(userId, dateParse.data, parseResult.data);
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -31,6 +32,7 @@ export class ManualAdjustmentController {
 
   async getAdjustments(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const dateParse = dateParamSchema.safeParse(req.params.date);
       if (!dateParse.success) {
         throw new AppError(
@@ -40,7 +42,7 @@ export class ManualAdjustmentController {
         );
       }
 
-      const result = await manualAdjustmentService.getAdjustments(dateParse.data);
+      const result = await manualAdjustmentService.getAdjustments(userId, dateParse.data);
       res.status(200).json(result);
     } catch (error) {
       next(error);

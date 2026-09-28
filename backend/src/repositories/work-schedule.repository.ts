@@ -1,6 +1,15 @@
 import { WorkSchedule, Weekday, Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 
+export interface WorkScheduleDayInput {
+  weekday: Weekday;
+  expectedMinutes: number;
+  plannedStartMinutes?: number | null;
+  plannedEndMinutes?: number | null;
+  snackBreakMinutes?: number;
+  lunchBreakMinutes?: number;
+}
+
 export class WorkScheduleRepository {
   async findEffectiveByUserWeekdayAndDate(
     userId: string,
@@ -71,7 +80,7 @@ export class WorkScheduleRepository {
   async upsertVersionSchedules(
     userId: string,
     effectiveFrom: Date,
-    days: { weekday: Weekday; expectedMinutes: number }[]
+    days: WorkScheduleDayInput[]
   ): Promise<WorkSchedule[]> {
     return prisma.$transaction(async (tx) => {
       const results: WorkSchedule[] = [];
@@ -86,11 +95,19 @@ export class WorkScheduleRepository {
           },
           update: {
             expectedMinutes: day.expectedMinutes,
+            plannedStartMinutes: day.plannedStartMinutes ?? null,
+            plannedEndMinutes: day.plannedEndMinutes ?? null,
+            snackBreakMinutes: day.snackBreakMinutes ?? 0,
+            lunchBreakMinutes: day.lunchBreakMinutes ?? 0,
           },
           create: {
             userId,
             weekday: day.weekday,
             expectedMinutes: day.expectedMinutes,
+            plannedStartMinutes: day.plannedStartMinutes ?? null,
+            plannedEndMinutes: day.plannedEndMinutes ?? null,
+            snackBreakMinutes: day.snackBreakMinutes ?? 0,
+            lunchBreakMinutes: day.lunchBreakMinutes ?? 0,
             effectiveFrom,
           },
         });

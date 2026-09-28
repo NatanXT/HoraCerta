@@ -16,10 +16,19 @@ function validateTimezone(tz: string): string {
 const rawTimezone = process.env.APP_TIMEZONE || 'America/Sao_Paulo';
 const APP_TIMEZONE = validateTimezone(rawTimezone);
 
+const AUTH_SECRET = process.env.AUTH_SECRET;
+if (!AUTH_SECRET || AUTH_SECRET.trim() === '') {
+  throw new Error(
+    '[Configuração Inválida] AUTH_SECRET não configurado nas variáveis de ambiente. Defina AUTH_SECRET no arquivo .env.'
+  );
+}
+
 export const env = {
   PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : 3333,
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
   DATABASE_URL: process.env.DATABASE_URL || '',
   APP_TIMEZONE,
   DEFAULT_USER_EMAIL: process.env.DEFAULT_USER_EMAIL || 'usuario@horacerta.local',
+  AUTH_SECRET,
 };
+

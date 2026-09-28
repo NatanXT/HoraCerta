@@ -1,6 +1,6 @@
 import { Weekday } from '@prisma/client';
 import { env } from '../config/env';
-import { userRepository } from '../repositories/user.repository';
+import { prisma } from '../lib/prisma';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { getLocalDateString, parseDateToUtcMidnight } from '../utils/date';
 
@@ -41,13 +41,21 @@ const WEEKDAY_ORDER: Weekday[] = [
 ];
 
 export class SettingsService {
-  async getSettings(): Promise<SettingsResponseDto> {
-    const user = await userRepository.findOrCreateDefaultUser(env.DEFAULT_USER_EMAIL);
+  async getSettings(userId: string): Promise<SettingsResponseDto> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      const err: any = new Error('Usuário não encontrado.');
+      err.statusCode = 404;
+      throw err;
+    }
 
     const latestVersionDate = await workScheduleRepository.findLatestScheduleVersionDate(user.id);
     const effectiveFromStr = latestVersionDate
       ? latestVersionDate.toISOString().substring(0, 10)
-      : '2000-01-01';
+      : getLocalDateString(new Date(), env.APP_TIMEZONE);
 
     let schedules = latestVersionDate
       ? await workScheduleRepository.findSchedulesByVersionDate(user.id, latestVersionDate)
@@ -83,10 +91,11 @@ export class SettingsService {
     };
   }
 
-  async updateProfile(data: { name: string }): Promise<ProfileDto> {
-    const user = await userRepository.findOrCreateDefaultUser(env.DEFAULT_USER_EMAIL);
-
-    const updatedUser = await userRepository.updateName(user.id, data.name);
+  async updateProfile(userId: string, data: { name: string }): Promise<ProfileDto> {
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { name: data.name.trim() },
+    });
 
     return {
       name: updatedUser.name,
@@ -95,16 +104,15 @@ export class SettingsService {
   }
 
   async updateWorkSchedule(
+    userId: string,
     days: { weekday: Weekday; expectedMinutes: number }[]
   ): Promise<SettingsResponseDto> {
-    const user = await userRepository.findOrCreateDefaultUser(env.DEFAULT_USER_EMAIL);
-
     const todayStr = getLocalDateString(new Date(), env.APP_TIMEZONE);
     const effectiveFromDate = parseDateToUtcMidnight(todayStr);
 
-    await workScheduleRepository.upsertVersionSchedules(user.id, effectiveFromDate, days);
+    await workScheduleRepository.upsertVersionSchedules(userId, effectiveFromDate, days);
 
-    return this.getSettings();
+    return this.getSettings(userId);
   }
 }
 

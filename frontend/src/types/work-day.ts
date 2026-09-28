@@ -9,6 +9,14 @@ export interface TimeEntry {
   source?: 'CLOCK' | 'MANUAL';
 }
 
+export interface WorkBreak {
+  id: string;
+  type: 'SNACK' | 'LUNCH';
+  startedAt: string;
+  endedAt: string | null;
+  durationMinutes: number;
+}
+
 export interface WorkDaySummary {
   date: string;
   expectedMinutes: number;
@@ -19,6 +27,7 @@ export interface WorkDaySummary {
   isOpen: boolean;
   nextAction: TimeEntryType;
   entries: TimeEntry[];
+  workBreaks?: WorkBreak[];
   occurrence?: CalendarOccurrence | null;
 }
 
@@ -41,6 +50,7 @@ export interface MonthlyDaySummary {
   isOpen: boolean;
   status: MonthlyDayStatus;
   entries: TimeEntry[];
+  workBreaks?: WorkBreak[];
   occurrence?: CalendarOccurrence | null;
 }
 

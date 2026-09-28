@@ -13,6 +13,7 @@ import { workDayAdjustmentRepository } from '../repositories/work-day-adjustment
 import { updateProfileSchema, updateWorkScheduleSchema } from '../schemas/settings.schema';
 import { WorkScheduleResolver } from '../utils/work-schedule-resolver';
 import { Weekday, TimeEntryType, TimeEntrySource } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 
 describe('ETAPA 08 — Settings Schemas Validation', () => {
   it('updateProfileSchema: deve aceitar nome válido e rejeitar vazio ou menor que 2 caracteres', () => {
@@ -71,8 +72,8 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
 
   it('WorkScheduleResolver: deve selecionar a versão vigente na data (effectiveFrom <= date DESC)', () => {
     const schedules = [
-      { id: '1', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 360, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '1', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '2', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 360, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ];
     const resolver = new WorkScheduleResolver(schedules);
 
@@ -86,37 +87,37 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
   });
 
   it('WorkDay Snapshot: expectedMinutesSnapshot deve ter PRIORIDADE ABSOLUTA sobre a jornada versionada', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', createdAt: new Date(), updatedAt: new Date(),
+    vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
-      id: '2', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 360, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date(),
+      id: '2', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 360, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date(),
     });
 
     // WorkDay com snapshot = 480
-    const mockWorkDay: WorkDayWithEntries = {
-      id: 'wd-1', userId: 'u1', date: new Date('2026-09-28T00:00:00.000Z'), note: null, expectedMinutesSnapshot: 480, createdAt: new Date(), updatedAt: new Date(), timeEntries: [],
+    const mockWorkDay = {
+      id: 'wd-1', userId: 'u1', date: new Date('2026-09-28T00:00:00.000Z'), note: null, expectedMinutesSnapshot: 480, createdAt: new Date(), updatedAt: new Date(), timeEntries: [], workBreaks: [],
     };
-    vi.spyOn(workDayRepository, 'findByUserAndDate').mockResolvedValue(mockWorkDay);
+    vi.spyOn(prisma.workDay, 'findUnique').mockResolvedValue(mockWorkDay as any);
 
-    const summary = await workDayService.getWorkDaySummaryByDateStr('2026-09-28');
+    const summary = await workDayService.getWorkDaySummaryByDateStr('u1', '2026-09-28');
     expect(summary.expectedMinutes).toBe(480); // Snapshot de 480 vence a jornada atual de 360
   });
 
   it('NO_RECORDS histórico: dia sem registro em 21/09 deve manter 480m e não virar 360m retroativamente', async () => {
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
     });
 
     const schedules = [
-      { id: '1', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 360, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '1', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '2', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 360, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ];
     vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue(schedules);
     vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue([]);
 
-    const history = await workDayService.getMonthlySummary('2026-09');
+    const history = await workDayService.getMonthlySummary('u1', '2026-09');
     const day21 = history.days.find((d) => d.date === '2026-09-21');
     expect(day21).toBeDefined();
     expect(day21?.expectedMinutes).toBe(480);
@@ -129,11 +130,11 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
 
   it('Ajuste Manual Histórico: ao corrigir dia histórico 21/09 sem WorkDay, deve aplicar snapshot de 480m', async () => {
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
-      id: '1', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date(),
+      id: '1', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date(),
     });
 
     const mockWorkDayCreated: WorkDayWithEntries = {
@@ -158,7 +159,7 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
       date: '2026-09-21', expectedMinutes: 480, workedMinutes: 480, currentSessionMinutes: 0, totalWorkedMinutes: 480, balanceMinutes: 0, isOpen: false, nextAction: TimeEntryType.CLOCK_IN, entries: [],
     });
 
-    await manualAdjustmentService.saveAdjustment('2026-09-21', {
+    await manualAdjustmentService.saveAdjustment('u1', '2026-09-21', {
       reason: 'Correção de dia histórico sem registro',
       intervals: [{ clockIn: '08:00', clockOut: '17:00' }],
     });
@@ -169,7 +170,7 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
 
   it('Banco de Horas: pendência histórica em 21/09 continua utilizando a jornada antiga (480m)', async () => {
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(bankHoursConfigRepository, 'findByUserId').mockResolvedValue({
@@ -177,13 +178,13 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
     });
 
     const schedules = [
-      { id: '1', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 360, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '1', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '2', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 360, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ];
     vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue(schedules);
     vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue([]);
 
-    const status = await bankHoursService.getBankHoursStatus();
+    const status = await bankHoursService.getBankHoursStatus('u1');
     const pending21 = status.pending.find((p) => p.date === '2026-09-21');
     expect(pending21).toBeDefined();
     expect(pending21?.expectedMinutes).toBe(480);
@@ -191,11 +192,11 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
 
   it('TimeEntry: no primeiro CLOCK_IN posterior à mudança de jornada, deve persistir snapshot com a nova jornada', async () => {
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
-      id: '2', userId: 'u1', weekday: Weekday.TUESDAY, expectedMinutes: 360, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date(),
+      id: '2', userId: 'u1', weekday: Weekday.TUESDAY, expectedMinutes: 360, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date(),
     });
 
     const mockWorkDayCreated: WorkDayWithEntries = {
@@ -210,7 +211,7 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
       date: '2026-09-22', expectedMinutes: 360, workedMinutes: 0, currentSessionMinutes: 0, totalWorkedMinutes: 0, balanceMinutes: -360, isOpen: true, nextAction: TimeEntryType.CLOCK_OUT, entries: [],
     });
 
-    await timeEntryService.clockIn();
+    await timeEntryService.clockIn('u1');
     expect(findOrCreateSpy).toHaveBeenCalledWith('u1', expect.any(Date), 360, expect.anything());
   });
 });
@@ -227,22 +228,22 @@ describe('ETAPA 08 — SettingsService', () => {
   });
 
   it('getSettings: deve retornar perfil, email, timezone, 7 dias e total semanal', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', createdAt: new Date(), updatedAt: new Date(),
+    vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(workScheduleRepository, 'findLatestScheduleVersionDate').mockResolvedValue(new Date('2026-09-22T00:00:00.000Z'));
     vi.spyOn(workScheduleRepository, 'findSchedulesByVersionDate').mockResolvedValue([
-      { id: '1', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'u1', weekday: Weekday.TUESDAY, expectedMinutes: 480, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '3', userId: 'u1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '4', userId: 'u1', weekday: Weekday.THURSDAY, expectedMinutes: 480, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '5', userId: 'u1', weekday: Weekday.FRIDAY, expectedMinutes: 480, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '6', userId: 'u1', weekday: Weekday.SATURDAY, expectedMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '7', userId: 'u1', weekday: Weekday.SUNDAY, expectedMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '1', userId: 'u1', weekday: Weekday.MONDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '2', userId: 'u1', weekday: Weekday.TUESDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '3', userId: 'u1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '4', userId: 'u1', weekday: Weekday.THURSDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '5', userId: 'u1', weekday: Weekday.FRIDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '6', userId: 'u1', weekday: Weekday.SATURDAY, expectedMinutes: 0, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '7', userId: 'u1', weekday: Weekday.SUNDAY, expectedMinutes: 0, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2026-09-22T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ]);
 
-    const res = await settingsService.getSettings();
+    const res = await settingsService.getSettings('u1');
 
     expect(res.profile.name).toBe('Natan');
     expect(res.profile.email).toBe('usuario@horacerta.local');
@@ -253,22 +254,22 @@ describe('ETAPA 08 — SettingsService', () => {
   });
 
   it('updateProfile: deve atualizar e retornar o nome', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', createdAt: new Date(), updatedAt: new Date(),
+    vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
     });
 
-    vi.spyOn(userRepository, 'updateName').mockResolvedValue({
-      id: 'u1', name: 'Natan Santos', email: 'usuario@horacerta.local', createdAt: new Date(), updatedAt: new Date(),
+    vi.spyOn(prisma.user, 'update').mockResolvedValue({
+      id: 'u1', name: 'Natan Santos', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
     });
 
-    const res = await settingsService.updateProfile({ name: 'Natan Santos' });
+    const res = await settingsService.updateProfile('u1', { name: 'Natan Santos' });
     expect(res.name).toBe('Natan Santos');
     expect(res.email).toBe('usuario@horacerta.local');
   });
 
   it('updateWorkSchedule: ao salvar duas vezes no mesmo dia (2026-09-22), deve utilizar o mesmo effectiveFrom e efetuar upsert', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', createdAt: new Date(), updatedAt: new Date(),
+    vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
     });
 
     const upsertSpy = vi.spyOn(workScheduleRepository, 'upsertVersionSchedules').mockResolvedValue([]);
@@ -296,11 +297,11 @@ describe('ETAPA 08 — SettingsService', () => {
     ];
 
     // Primeiro save no mesmo dia
-    await settingsService.updateWorkSchedule(daysV1);
+    await settingsService.updateWorkSchedule('u1', daysV1);
     expect(upsertSpy).toHaveBeenNthCalledWith(1, 'u1', new Date('2026-09-22T00:00:00.000Z'), daysV1);
 
     // Segundo save no mesmo dia
-    await settingsService.updateWorkSchedule(daysV2);
+    await settingsService.updateWorkSchedule('u1', daysV2);
     expect(upsertSpy).toHaveBeenNthCalledWith(2, 'u1', new Date('2026-09-22T00:00:00.000Z'), daysV2);
   });
 
@@ -316,7 +317,7 @@ describe('ETAPA 08 — SettingsService', () => {
     );
 
     await expect(
-      settingsService.updateWorkSchedule(days)
+      settingsService.updateWorkSchedule('u1', days)
     ).rejects.toThrow('Transaction failed on intermediate upsert');
   });
 });

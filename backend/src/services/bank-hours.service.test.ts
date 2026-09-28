@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { bankHoursService } from './bank-hours.service';
-import { userRepository } from '../repositories/user.repository';
 import { workDayRepository } from '../repositories/work-day.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { bankHoursConfigRepository } from '../repositories/bank-hours-config.repository';
@@ -63,18 +62,10 @@ describe('BankHoursService - getBankHoursStatus', () => {
   });
 
   it('deve retornar configured: false quando não existir configuração do usuário', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
     vi.spyOn(bankHoursConfigRepository, 'findByUserId').mockResolvedValue(null);
     vi.spyOn(workDayRepository, 'findOldestByUser').mockResolvedValue(null);
 
-    const status = await bankHoursService.getBankHoursStatus();
+    const status = await bankHoursService.getBankHoursStatus('user-1');
 
     expect(status.configured).toBe(false);
     expect(status.suggestedStartDate).toBe('2026-09-21');
@@ -82,14 +73,6 @@ describe('BankHoursService - getBankHoursStatus', () => {
   });
 
   it('deve excluir dias EXCUSED das pendências e considerar trabalho em feriado como crédito', async () => {
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
     vi.spyOn(bankHoursConfigRepository, 'findByUserId').mockResolvedValue({
       id: 'cfg-1',
       userId: 'user-1',
@@ -100,13 +83,13 @@ describe('BankHoursService - getBankHoursStatus', () => {
     });
 
     vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
-      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, plannedStartMinutes: 480, plannedEndMinutes: 1035, snackBreakMinutes: 15, lunchBreakMinutes: 60, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, plannedStartMinutes: 480, plannedEndMinutes: 1035, snackBreakMinutes: 15, lunchBreakMinutes: 60, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, plannedStartMinutes: 480, plannedEndMinutes: 1035, snackBreakMinutes: 15, lunchBreakMinutes: 60, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, plannedStartMinutes: 480, plannedEndMinutes: 1035, snackBreakMinutes: 15, lunchBreakMinutes: 60, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, plannedStartMinutes: 480, plannedEndMinutes: 1035, snackBreakMinutes: 15, lunchBreakMinutes: 60, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ]);
 
     // Active holiday on 2026-09-03
@@ -127,7 +110,7 @@ describe('BankHoursService - getBankHoursStatus', () => {
 
     vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue([]);
 
-    const res = await bankHoursService.getBankHoursStatus();
+    const res = await bankHoursService.getBankHoursStatus('user-1');
 
     // 2026-09-03 (Quinta) era dia útil, mas está coberto pelo Feriado -> EXCUSED
     // Não deve constar na lista de pendências!

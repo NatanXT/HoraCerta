@@ -15,8 +15,11 @@ export function DashboardPage() {
     error,
     feedback,
     fetchToday,
-    handleClockIn,
-    handleClockOut,
+    handleStart,
+    handlePauseSnack,
+    handlePauseLunch,
+    handleResume,
+    handleFinish,
   } = useTodayWorkDay();
 
   return (
@@ -37,11 +40,14 @@ export function DashboardPage() {
             <ClockCard
               summary={data}
               submitting={submitting}
-              onClockIn={handleClockIn}
-              onClockOut={handleClockOut}
+              onStart={handleStart}
+              onPauseSnack={handlePauseSnack}
+              onPauseLunch={handlePauseLunch}
+              onResume={handleResume}
+              onFinish={handleFinish}
             />
 
-            <SummaryCard summary={data} />
+            <SummaryCard summary={data as any} />
 
             <TodayEntries entries={data.entries} />
           </div>

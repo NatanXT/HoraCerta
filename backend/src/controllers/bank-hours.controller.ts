@@ -4,9 +4,10 @@ import { saveBankHoursConfigSchema } from '../schemas/bank-hours.schema';
 import { AppError } from '../errors/app-error';
 
 export class BankHoursController {
-  async getStatus(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const response = await bankHoursService.getBankHoursStatus();
+      const userId = req.auth!.userId;
+      const response = await bankHoursService.getBankHoursStatus(userId);
       res.status(200).json(response);
     } catch (error) {
       next(error);
@@ -15,6 +16,7 @@ export class BankHoursController {
 
   async saveConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const userId = req.auth!.userId;
       const parseResult = saveBankHoursConfigSchema.safeParse(req.body);
       if (!parseResult.success) {
         throw new AppError(
@@ -24,7 +26,7 @@ export class BankHoursController {
         );
       }
       const { startDate, initialBalanceMinutes } = parseResult.data;
-      const response = await bankHoursService.saveConfig(startDate, initialBalanceMinutes);
+      const response = await bankHoursService.saveConfig(userId, startDate, initialBalanceMinutes);
       res.status(200).json(response);
     } catch (error) {
       next(error);

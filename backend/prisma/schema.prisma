@@ -35,10 +35,16 @@ enum CalendarOccurrenceType {
   EXCEPTIONAL_DAY_OFF
 }
 
+enum WorkBreakType {
+  SNACK
+  LUNCH
+}
+
 model User {
   id                  String               @id @default(cuid())
   name                String
   email               String               @unique
+  passwordHash        String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   workSchedules       WorkSchedule[]
@@ -50,14 +56,18 @@ model User {
 }
 
 model WorkSchedule {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  weekday         Weekday
-  expectedMinutes Int
-  effectiveFrom   DateTime @db.Date
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekday             Weekday
+  expectedMinutes     Int
+  plannedStartMinutes Int?
+  plannedEndMinutes   Int?
+  snackBreakMinutes   Int      @default(0)
+  lunchBreakMinutes   Int      @default(0)
+  effectiveFrom       DateTime @db.Date
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   @@unique([userId, weekday, effectiveFrom])
   @@index([userId, effectiveFrom])
@@ -74,6 +84,7 @@ model WorkDay {
   createdAt               DateTime            @default(now())
   updatedAt               DateTime            @updatedAt
   timeEntries             TimeEntry[]
+  workBreaks              WorkBreak[]
   adjustments             WorkDayAdjustment[]
 
   @@unique([userId, date])
@@ -92,6 +103,21 @@ model TimeEntry {
   updatedAt DateTime        @updatedAt
 
   @@map("time_entries")
+}
+
+model WorkBreak {
+  id        String        @id @default(cuid())
+  workDayId String
+  workDay   WorkDay       @relation(fields: [workDayId], references: [id], onDelete: Cascade)
+  type      WorkBreakType
+  startedAt DateTime
+  endedAt   DateTime?
+  deletedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([workDayId, startedAt])
+  @@map("work_breaks")
 }
 
 model WorkDayAdjustment {
@@ -135,4 +161,3 @@ model CalendarOccurrence {
   @@index([userId, startDate, endDate])
   @@map("calendar_occurrences")
 }
-

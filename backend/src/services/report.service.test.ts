@@ -23,6 +23,7 @@ describe('ReportService', () => {
       id: 'user-1',
       name: 'Usuário Teste',
       email: 'usuario@horacerta.local',
+      passwordHash: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -37,13 +38,13 @@ describe('ReportService', () => {
     });
 
     vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
-      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
-      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '2', userId: 'user-1', weekday: Weekday.TUESDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '3', userId: 'user-1', weekday: Weekday.WEDNESDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '4', userId: 'user-1', weekday: Weekday.THURSDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '5', userId: 'user-1', weekday: Weekday.FRIDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '6', userId: 'user-1', weekday: Weekday.SATURDAY, expectedMinutes: 0, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '7', userId: 'user-1', weekday: Weekday.SUNDAY, expectedMinutes: 0, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ]);
 
     // CalendarOccurrences:
@@ -94,7 +95,7 @@ describe('ReportService', () => {
 
     vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue(mockWorkDays);
 
-    const report = await reportService.getWorkHoursReport('2026-09-01', '2026-09-30');
+    const report = await reportService.getWorkHoursReport('user-1', '2026-09-01', '2026-09-30');
 
     expect(report.summary.calendarDays).toBe(30);
     expect(report.summary.incompleteDays).toBe(1); // 04/09 incomplete
@@ -121,6 +122,7 @@ describe('ReportService', () => {
       id: 'user-1',
       name: 'Usuário Teste',
       email: 'usuario@horacerta.local',
+      passwordHash: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -135,7 +137,7 @@ describe('ReportService', () => {
     });
 
     vi.spyOn(workScheduleRepository, 'findAllVersionsByUserUntilDate').mockResolvedValue([
-      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
+      { id: '1', userId: 'user-1', weekday: Weekday.MONDAY, expectedMinutes: 480, plannedStartMinutes: null, plannedEndMinutes: null, snackBreakMinutes: 0, lunchBreakMinutes: 0, effectiveFrom: new Date('2000-01-01T00:00:00.000Z'), createdAt: new Date(), updatedAt: new Date() },
     ]);
 
     vi.spyOn(calendarOccurrenceRepository, 'findActiveInRange').mockResolvedValue([]);
@@ -160,7 +162,7 @@ describe('ReportService', () => {
 
     vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue(mockWorkDays);
 
-    const report = await reportService.getWorkHoursReport('2026-09-01', '2026-09-21');
+    const report = await reportService.getWorkHoursReport('user-1', '2026-09-01', '2026-09-21');
 
     // O dia de hoje NÃO entra no consolidado do período (periodConsolidatedBalanceMinutes = 0)
     expect(report.bankHours.periodConsolidatedBalanceMinutes).toBe(0);
@@ -176,6 +178,7 @@ describe('ReportService', () => {
       id: 'user-1',
       name: 'Usuário Teste',
       email: 'usuario@horacerta.local',
+      passwordHash: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -204,7 +207,7 @@ describe('ReportService', () => {
 
     vi.spyOn(workDayRepository, 'findByUserAndDateRange').mockResolvedValue(mockWorkDays);
 
-    const report = await reportService.getWorkHoursReport('2026-09-01', '2026-09-01');
+    const report = await reportService.getWorkHoursReport('user-1', '2026-09-01', '2026-09-01');
 
     const day1 = report.days[0];
     expect(day1.entries.length).toBe(2); // Apenas as 2 entradas ativas

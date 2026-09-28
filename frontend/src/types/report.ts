@@ -1,5 +1,5 @@
 import { CalendarOccurrenceType } from './calendar-occurrence';
-import { TimeEntry, MonthlyDayStatus } from './work-day';
+import { TimeEntry, MonthlyDayStatus, WorkBreak } from './work-day';
 
 export interface ReportOccurrenceInfo {
   id: string;
@@ -25,6 +25,7 @@ export interface ReportDay {
   occurrence: ReportOccurrenceInfo | null;
   entrySource: 'CLOCK' | 'MANUAL' | 'MIXED' | null;
   entries: TimeEntry[];
+  workBreaks?: WorkBreak[];
 }
 
 export interface ReportPeriod {

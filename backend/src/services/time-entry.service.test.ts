@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { timeEntryService } from './time-entry.service';
-import { userRepository } from '../repositories/user.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
 import { timeEntryRepository } from '../repositories/time-entry.repository';
@@ -24,21 +23,15 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
   });
 
   it('deve persistir expectedMinutesSnapshot ao criar primeiro WorkDay no primeiro CLOCK_IN', async () => {
-    const mockUser = {
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue(mockUser);
-
     vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
       id: 'sched-1',
       userId: 'user-1',
       weekday: Weekday.MONDAY,
       expectedMinutes: 480,
+      plannedStartMinutes: 480,
+      plannedEndMinutes: 1035,
+      snackBreakMinutes: 15,
+      lunchBreakMinutes: 60,
       effectiveFrom: new Date('2000-01-01T00:00:00.000Z'),
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -84,7 +77,7 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
       entries: [],
     });
 
-    await timeEntryService.clockIn();
+    await timeEntryService.clockIn('user-1');
 
     expect(findOrCreateSpy).toHaveBeenCalledWith(
       'user-1',
@@ -102,21 +95,15 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
   });
 
   it('não deve alterar expectedMinutesSnapshot quando já existir WorkDay criado, mesmo se o WorkSchedule mudar', async () => {
-    const mockUser = {
-      id: 'user-1',
-      name: 'Usuário Teste',
-      email: 'usuario@horacerta.local',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue(mockUser);
-
     vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
       id: 'sched-1',
       userId: 'user-1',
       weekday: Weekday.MONDAY,
       expectedMinutes: 360,
+      plannedStartMinutes: 480,
+      plannedEndMinutes: 915,
+      snackBreakMinutes: 15,
+      lunchBreakMinutes: 60,
       effectiveFrom: new Date('2000-01-01T00:00:00.000Z'),
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -179,7 +166,7 @@ describe('TimeEntryService - clockIn & snapshot persistence', () => {
       entries: [],
     });
 
-    await timeEntryService.clockIn();
+    await timeEntryService.clockIn('user-1');
 
     expect(existingWorkDay.expectedMinutesSnapshot).toBe(480);
   });

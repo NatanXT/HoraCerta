@@ -1,6 +1,4 @@
 import { env } from '../config/env';
-import { AppError } from '../errors/app-error';
-import { userRepository } from '../repositories/user.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
 import { bankHoursConfigRepository } from '../repositories/bank-hours-config.repository';
@@ -8,7 +6,7 @@ import { calendarOccurrenceRepository } from '../repositories/calendar-occurrenc
 import {
   getLocalDateString,
   parseDateToUtcMidnight,
-  getWeekdayFromDate,
+  getWeekdayFromCivilDate,
 } from '../utils/date';
 import { resolveWorkDayState } from '../utils/work-day-status';
 import { WorkScheduleResolver } from '../utils/work-schedule-resolver';
@@ -62,17 +60,12 @@ export interface BankHoursResponseDto {
 }
 
 export class BankHoursService {
-  async getBankHoursStatus(): Promise<BankHoursResponseDto> {
-    const user = await userRepository.findByEmail(env.DEFAULT_USER_EMAIL);
-    if (!user) {
-      throw new AppError('Usuário padrão não encontrado.', 404, 'DEFAULT_USER_NOT_FOUND');
-    }
-
-    const config = await bankHoursConfigRepository.findByUserId(user.id);
+  async getBankHoursStatus(userId: string): Promise<BankHoursResponseDto> {
+    const config = await bankHoursConfigRepository.findByUserId(userId);
     const todayStr = getLocalDateString(new Date(), env.APP_TIMEZONE);
 
     if (!config) {
-      const oldestWorkDay = await workDayRepository.findOldestByUser(user.id);
+      const oldestWorkDay = await workDayRepository.findOldestByUser(userId);
       const suggestedStartDate = oldestWorkDay
         ? oldestWorkDay.date.toISOString().substring(0, 10)
         : todayStr;
@@ -92,12 +85,12 @@ export class BankHoursService {
     const startDateUtc = parseDateToUtcMidnight(startDateStr);
     const endDateUtc = parseDateToUtcMidnight(todayStr);
 
-    const workDays = await workDayRepository.findByUserAndDateRange(user.id, startDateUtc, endDateUtc);
-    const schedules = await workScheduleRepository.findAllVersionsByUserUntilDate(user.id, endDateUtc);
+    const workDays = await workDayRepository.findByUserAndDateRange(userId, startDateUtc, endDateUtc);
+    const schedules = await workScheduleRepository.findAllVersionsByUserUntilDate(userId, endDateUtc);
     const scheduleResolver = new WorkScheduleResolver(schedules);
 
     const occurrences = await calendarOccurrenceRepository.findActiveInRange(
-      user.id,
+      userId,
       startDateUtc,
       endDateUtc
     );
@@ -139,7 +132,7 @@ export class BankHoursService {
     while (currentIter <= endIter) {
       const dateStr = currentIter.toISOString().substring(0, 10);
       const monthKey = dateStr.substring(0, 7);
-      const weekday = getWeekdayFromDate(dateStr, env.APP_TIMEZONE);
+      const weekday = getWeekdayFromCivilDate(dateStr);
       const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
       const workDay = workDayMap.get(dateStr);
       const occurrence = occurrenceResolver.getForDate(dateStr);
@@ -243,18 +236,14 @@ export class BankHoursService {
   }
 
   async saveConfig(
+    userId: string,
     startDateStr: string,
     initialBalanceMinutes: number
   ): Promise<BankHoursResponseDto> {
-    const user = await userRepository.findByEmail(env.DEFAULT_USER_EMAIL);
-    if (!user) {
-      throw new AppError('Usuário padrão não encontrado.', 404, 'DEFAULT_USER_NOT_FOUND');
-    }
-
     const startDateUtc = parseDateToUtcMidnight(startDateStr);
-    await bankHoursConfigRepository.upsert(user.id, startDateUtc, initialBalanceMinutes);
+    await bankHoursConfigRepository.upsert(userId, startDateUtc, initialBalanceMinutes);
 
-    return this.getBankHoursStatus();
+    return this.getBankHoursStatus(userId);
   }
 }
 

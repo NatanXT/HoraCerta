@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, TriangleAlert, Wrench, PencilLine, CalendarOff } from 'lucide-react';
+import { CheckCircle2, TriangleAlert, Wrench, PencilLine, CalendarOff, Coffee, Utensils } from 'lucide-react';
 import { MonthlyDaySummary } from '../../types/work-day';
 import { CALENDAR_OCCURRENCE_TYPE_LABELS } from '../../types/calendar-occurrence';
 import { formatMinutes, formatBalance, formatTime } from '../../utils/time';
@@ -175,6 +175,39 @@ export function DayDetails({ day, onDayUpdated }: DayDetailsProps) {
             </div>
           )}
         </div>
+
+        {/* Pausas List */}
+        {day.workBreaks && day.workBreaks.length > 0 && (
+          <div className="space-y-3 pt-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Pausas ({day.workBreaks.length})
+            </h4>
+            <div className="divide-y divide-slate-800/50 bg-slate-950/40 rounded-xl border border-slate-800/60 px-3">
+              {day.workBreaks.map((b) => (
+                <div key={b.id} className="py-2.5 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    {b.type === 'SNACK' ? (
+                      <Coffee className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
+                    ) : (
+                      <Utensils className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
+                    )}
+                    <span className="font-medium text-slate-200">
+                      {b.type === 'SNACK' ? 'Pausa lanche' : 'Pausa almoço'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 font-mono">
+                    <span className="text-slate-400">
+                      {formatTime(b.startedAt)} → {b.endedAt ? formatTime(b.endedAt) : 'em andamento'}
+                    </span>
+                    <span className="bg-slate-900 text-amber-300 font-bold px-2 py-0.5 rounded border border-slate-800">
+                      {formatMinutes(b.durationMinutes)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Time Entries List */}
         {sortedEntries.length > 0 && (

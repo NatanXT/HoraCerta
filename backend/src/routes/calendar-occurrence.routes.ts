@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { calendarOccurrenceController } from '../controllers/calendar-occurrence.controller';
+import { requireAuth } from '../middlewares/auth.middleware';
 
 const calendarOccurrenceRouter = Router();
+
+calendarOccurrenceRouter.use(requireAuth);
 
 calendarOccurrenceRouter.get('/', (req, res, next) =>
   calendarOccurrenceController.list(req, res, next)

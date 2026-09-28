@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-import { WorkDaySummary } from '../types/work-day';
-import { workDayService } from '../services/work-day.service';
-import { timeEntryService } from '../services/time-entry.service';
+import { workSessionService, WorkDayWithSession } from '../services/work-session.service';
 
 export interface FeedbackState {
   type: 'success' | 'error';
@@ -10,7 +8,7 @@ export interface FeedbackState {
 }
 
 export function useTodayWorkDay() {
-  const [data, setData] = useState<WorkDaySummary | null>(null);
+  const [data, setData] = useState<WorkDayWithSession | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +32,7 @@ export function useTodayWorkDay() {
       if (!isPolling) {
         setLoading(true);
       }
-      const summary = await workDayService.getTodayWorkDay();
+      const summary = await workSessionService.getToday();
       setData(summary);
       setError(null);
     } catch (err: unknown) {
@@ -42,7 +40,8 @@ export function useTodayWorkDay() {
         if (axios.isAxiosError(err) && !err.response) {
           setError('Não foi possível conectar ao servidor. Verifique se o backend está em execução.');
         } else {
-          setError('Erro ao carregar dados da jornada.');
+          const apiMsg = axios.isAxiosError(err) ? (err.response?.data?.error?.message || err.response?.data?.message) : null;
+          setError(apiMsg || 'Erro ao carregar dados da jornada.');
         }
       }
     } finally {
@@ -66,69 +65,77 @@ export function useTodayWorkDay() {
     };
   }, [fetchToday]);
 
-  const handleClockIn = async () => {
+  const executeAction = async (
+    actionFn: () => Promise<WorkDayWithSession>,
+    successMsg: string,
+    errorDefaultMsg: string
+  ) => {
     if (actionInFlightRef.current) return;
     actionInFlightRef.current = true;
     setSubmitting(true);
 
     try {
-      const updatedSummary = await timeEntryService.clockIn();
-      setData(updatedSummary);
-      showFeedback('success', 'Entrada registrada com sucesso!');
+      const updatedSummary = await actionFn();
+      setData(updatedSummary || (await workSessionService.getToday()));
+      showFeedback('success', successMsg);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
+        const apiMsg = err.response?.data?.error?.message || err.response?.data?.message;
         if (err.response?.status === 409) {
           showFeedback(
             'error',
-            'Não foi possível registrar a entrada porque o estado atual mudou. Atualizamos os dados para você.'
+            apiMsg || 'Conflito de estado do expediente. Atualizamos os dados para você.'
           );
-          fetchToday(true);
         } else if (!err.response) {
           showFeedback('error', 'Não foi possível conectar ao servidor. Verifique sua conexão.');
         } else {
-          const apiMsg = err.response.data?.error?.message;
-          showFeedback('error', apiMsg || 'Erro ao registrar entrada.');
+          showFeedback('error', apiMsg || errorDefaultMsg);
         }
       } else {
-        showFeedback('error', 'Erro ao registrar entrada.');
+        showFeedback('error', errorDefaultMsg);
       }
+      // Always re-sync state with server after an action error
+      await fetchToday(true);
     } finally {
       setSubmitting(false);
       actionInFlightRef.current = false;
     }
   };
 
-  const handleClockOut = async () => {
-    if (actionInFlightRef.current) return;
-    actionInFlightRef.current = true;
-    setSubmitting(true);
+  const handleStart = () =>
+    executeAction(
+      () => workSessionService.startSession(),
+      'Expediente iniciado com sucesso!',
+      'Erro ao iniciar expediente.'
+    );
 
-    try {
-      const updatedSummary = await timeEntryService.clockOut();
-      setData(updatedSummary);
-      showFeedback('success', 'Saída registrada com sucesso!');
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 409) {
-          showFeedback(
-            'error',
-            'Não foi possível registrar a saída porque o estado atual mudou. Atualizamos os dados para você.'
-          );
-          fetchToday(true);
-        } else if (!err.response) {
-          showFeedback('error', 'Não foi possível conectar ao servidor. Verifique sua conexão.');
-        } else {
-          const apiMsg = err.response.data?.error?.message;
-          showFeedback('error', apiMsg || 'Erro ao registrar saída.');
-        }
-      } else {
-        showFeedback('error', 'Erro ao registrar saída.');
-      }
-    } finally {
-      setSubmitting(false);
-      actionInFlightRef.current = false;
-    }
-  };
+  const handlePauseSnack = () =>
+    executeAction(
+      () => workSessionService.pauseSession('SNACK'),
+      'Pausa para lanche iniciada.',
+      'Erro ao iniciar pausa de lanche.'
+    );
+
+  const handlePauseLunch = () =>
+    executeAction(
+      () => workSessionService.pauseSession('LUNCH'),
+      'Pausa para almoço iniciada.',
+      'Erro ao iniciar pausa de almoço.'
+    );
+
+  const handleResume = () =>
+    executeAction(
+      () => workSessionService.resumeSession(),
+      'Expediente retomado!',
+      'Erro ao retomar expediente.'
+    );
+
+  const handleFinish = () =>
+    executeAction(
+      () => workSessionService.finishSession(),
+      'Expediente encerrado com sucesso.',
+      'Erro ao encerrar expediente.'
+    );
 
   return {
     data,
@@ -137,7 +144,10 @@ export function useTodayWorkDay() {
     error,
     feedback,
     fetchToday: () => fetchToday(false),
-    handleClockIn,
-    handleClockOut,
+    handleStart,
+    handlePauseSnack,
+    handlePauseLunch,
+    handleResume,
+    handleFinish,
   };
 }

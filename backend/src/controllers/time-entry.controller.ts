@@ -2,18 +2,20 @@ import { Request, Response, NextFunction } from 'express';
 import { timeEntryService } from '../services/time-entry.service';
 
 export class TimeEntryController {
-  async clockIn(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  async clockIn(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const summary = await timeEntryService.clockIn();
+      const userId = req.auth!.userId;
+      const summary = await timeEntryService.clockIn(userId);
       res.status(201).json(summary);
     } catch (error) {
       next(error);
     }
   }
 
-  async clockOut(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  async clockOut(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const summary = await timeEntryService.clockOut();
+      const userId = req.auth!.userId;
+      const summary = await timeEntryService.clockOut(userId);
       res.status(201).json(summary);
     } catch (error) {
       next(error);
