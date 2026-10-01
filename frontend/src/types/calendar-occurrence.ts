@@ -3,7 +3,8 @@ export type CalendarOccurrenceType =
   | 'VACATION'
   | 'MEDICAL_LEAVE'
   | 'JUSTIFIED_ABSENCE'
-  | 'EXCEPTIONAL_DAY_OFF';
+  | 'EXCEPTIONAL_DAY_OFF'
+  | 'BANK_HOURS_LEAVE';
 
 export interface CalendarOccurrence {
   id: string;
@@ -36,4 +37,5 @@ export const CALENDAR_OCCURRENCE_TYPE_LABELS: Record<CalendarOccurrenceType, str
   MEDICAL_LEAVE: 'Atestado / afastamento médico',
   JUSTIFIED_ABSENCE: 'Ausência justificada',
   EXCEPTIONAL_DAY_OFF: 'Folga excepcional',
+  BANK_HOURS_LEAVE: 'Folga por banco de horas',
 };

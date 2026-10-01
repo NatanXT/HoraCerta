@@ -24,6 +24,9 @@ export interface ActiveBreakDTO {
   type: 'SNACK' | 'LUNCH';
   startedAt: string;
   elapsedMinutes: number;
+  plannedDurationMinutes?: number | null;
+  autoResumeAt?: string | null;
+  resumedAutomatically?: boolean;
 }
 
 export interface AvailableActionsDTO {
@@ -36,6 +39,7 @@ export interface AvailableActionsDTO {
 
 export interface WorkSessionStatusDTO {
   state: WorkSessionState;
+  reconciliationRequired: boolean;
   activeBreak: ActiveBreakDTO | null;
   availableActions: AvailableActionsDTO;
 }
@@ -148,6 +152,7 @@ export class WorkSessionService {
       return {
         session: {
           state: 'NOT_STARTED',
+          reconciliationRequired: false,
           activeBreak: null,
           availableActions: {
             start: true,
@@ -187,14 +192,32 @@ export class WorkSessionService {
     }
 
     let activeBreakDTO: ActiveBreakDTO | null = null;
+    let reconciliationRequired = false;
+
     if (activeBreak) {
       const startMs = new Date(activeBreak.startedAt).getTime();
       const elapsed = Math.max(0, Math.floor((now.getTime() - startMs) / 60000));
+      const autoResumeAtDate = (activeBreak as any).autoResumeAt
+        ? new Date((activeBreak as any).autoResumeAt)
+        : null;
+
+      if (
+        state === 'ON_LUNCH_BREAK' &&
+        activeBreak.type === 'LUNCH' &&
+        autoResumeAtDate !== null &&
+        autoResumeAtDate.getTime() <= now.getTime()
+      ) {
+        reconciliationRequired = true;
+      }
+
       activeBreakDTO = {
         id: activeBreak.id,
         type: activeBreak.type as 'SNACK' | 'LUNCH',
         startedAt: activeBreak.startedAt.toISOString(),
         elapsedMinutes: elapsed,
+        plannedDurationMinutes: (activeBreak as any).plannedDurationMinutes ?? null,
+        autoResumeAt: autoResumeAtDate ? autoResumeAtDate.toISOString() : null,
+        resumedAutomatically: (activeBreak as any).resumedAutomatically ?? false,
       };
     }
 
@@ -213,6 +236,7 @@ export class WorkSessionService {
     return {
       session: {
         state,
+        reconciliationRequired,
         activeBreak: activeBreakDTO,
         availableActions,
       },
@@ -304,7 +328,8 @@ export class WorkSessionService {
   }
 
   async pauseSession(userId: string, breakType: 'SNACK' | 'LUNCH'): Promise<any> {
-    const todayDate = getTodayUtcMidnight();
+    const todayStr = getTodayDateStr();
+    const todayDate = parseDateToUtcMidnight(todayStr);
     const now = new Date();
 
     await prisma.$transaction(async (tx) => {
@@ -333,6 +358,24 @@ export class WorkSessionService {
         );
       }
 
+      let plannedDurationMinutes: number | null = null;
+      let autoResumeAt: Date | null = null;
+
+      if (breakType === 'LUNCH') {
+        const weekday = getWeekdayFromCivilDate(todayStr);
+        const schedule = await workScheduleRepository.findEffectiveByUserWeekdayAndDate(
+          userId,
+          weekday,
+          todayDate,
+          tx
+        );
+        const lunchMins = schedule?.lunchBreakMinutes ?? 60;
+        if (lunchMins > 0) {
+          plannedDurationMinutes = lunchMins;
+          autoResumeAt = new Date(now.getTime() + lunchMins * 60 * 1000);
+        }
+      }
+
       // 1. Create CLOCK_OUT time entry
       await tx.timeEntry.create({
         data: {
@@ -350,6 +393,9 @@ export class WorkSessionService {
           type: breakType,
           startedAt: now,
           endedAt: null,
+          plannedDurationMinutes,
+          autoResumeAt,
+          resumedAutomatically: false,
         },
       });
     });
@@ -385,7 +431,10 @@ export class WorkSessionService {
       // 1. Close active break
       await tx.workBreak.update({
         where: { id: activeBreak.id },
-        data: { endedAt: now },
+        data: {
+          endedAt: now,
+          resumedAutomatically: false,
+        },
       });
 
       // 2. Create CLOCK_IN time entry
@@ -428,7 +477,10 @@ export class WorkSessionService {
         // Finishing while on break: Close active break, do NOT add new entries.
         await tx.workBreak.update({
           where: { id: activeBreak.id },
-          data: { endedAt: now },
+          data: {
+            endedAt: now,
+            resumedAutomatically: false,
+          },
         });
       } else if (state === 'WORKING') {
         // Finishing while working: Create CLOCK_OUT entry.
@@ -444,6 +496,131 @@ export class WorkSessionService {
         throw new AppError('O expediente já está encerrado.', 409, 'SESSION_ALREADY_ENDED');
       }
     });
+
+    return this.getTodayWithSession(userId);
+  }
+
+  async reconcileSession(userId: string): Promise<any> {
+    const todayDate = getTodayUtcMidnight();
+    const now = new Date();
+
+    try {
+      await prisma.$transaction(
+        async (tx) => {
+          // Re-query WorkDay with active TimeEntries and WorkBreaks inside transaction
+          const workDay = await tx.workDay.findUnique({
+            where: { userId_date: { userId, date: todayDate } },
+            include: {
+              timeEntries: {
+                where: { deletedAt: null },
+                orderBy: { timestamp: 'asc' },
+              },
+              workBreaks: {
+                where: { deletedAt: null },
+                orderBy: { startedAt: 'asc' },
+              },
+            },
+          });
+
+          if (!workDay) {
+            // No workday exists for today: nothing to reconcile
+            return;
+          }
+
+          const activeBreaks = workDay.workBreaks.filter(
+            (b) => b.deletedAt === null && b.endedAt === null
+          );
+
+          // If multiple open breaks exist, data is inconsistent
+          if (activeBreaks.length > 1) {
+            throw new AppError(
+              'Não foi possível sincronizar o estado do expediente.',
+              409,
+              'WORK_SESSION_INCONSISTENT'
+            );
+          }
+
+          const openBreak = activeBreaks[0];
+
+          // If no open break, or break is not LUNCH, or no autoResumeAt: nothing to reconcile (idempotent)
+          if (!openBreak || openBreak.type !== 'LUNCH' || !openBreak.autoResumeAt) {
+            return;
+          }
+
+          const autoResumeTime = new Date(openBreak.autoResumeAt).getTime();
+          if (autoResumeTime > now.getTime()) {
+            // Lunch break has not expired yet: idempotent return
+            return;
+          }
+
+          // At this point, we have an active expired LUNCH break.
+          // Validate active time entries:
+          const activeEntries = workDay.timeEntries.filter((e) => e.deletedAt === null);
+          if (activeEntries.length === 0) {
+            throw new AppError(
+              'Não foi possível sincronizar o estado do expediente.',
+              409,
+              'WORK_SESSION_INCONSISTENT'
+            );
+          }
+
+          const lastEntry = activeEntries[activeEntries.length - 1];
+          // Last entry MUST be CLOCK_OUT. If last entry is CLOCK_IN or incompatible:
+          if (lastEntry.type !== 'CLOCK_OUT') {
+            throw new AppError(
+              'Não foi possível sincronizar o estado do expediente.',
+              409,
+              'WORK_SESSION_INCONSISTENT'
+            );
+          }
+
+          // Incompatibility check: if last entry timestamp is after autoResumeAt
+          if (new Date(lastEntry.timestamp).getTime() > autoResumeTime) {
+            throw new AppError(
+              'Não foi possível sincronizar o estado do expediente.',
+              409,
+              'WORK_SESSION_INCONSISTENT'
+            );
+          }
+
+          // 1. Close active break at exact autoResumeAt
+          await tx.workBreak.update({
+            where: { id: openBreak.id },
+            data: {
+              endedAt: openBreak.autoResumeAt,
+              resumedAutomatically: true,
+            },
+          });
+
+          // 2. Create CLOCK_IN at exact autoResumeAt
+          await tx.timeEntry.create({
+            data: {
+              workDayId: workDay.id,
+              type: 'CLOCK_IN',
+              timestamp: openBreak.autoResumeAt,
+              source: 'CLOCK',
+            },
+          });
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        }
+      );
+    } catch (error: unknown) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: string }).code === 'P2034'
+      ) {
+        // Concurrency conflict handled cleanly (the concurrent transaction already committed or is committing)
+      } else {
+        throw error;
+      }
+    }
 
     return this.getTodayWithSession(userId);
   }

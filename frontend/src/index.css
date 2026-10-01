@@ -47,3 +47,9 @@
   background: #4f46e5;
 }
 
+@media print {
+  .report-print-hidden {
+    display: none !important;
+  }
+}
+

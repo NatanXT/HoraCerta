@@ -20,7 +20,7 @@ import { useReports } from '../hooks/useReports';
 import { formatMinutes, formatBalance } from '../utils/time';
 import { getTodayDateStr } from '../utils/date';
 import { CALENDAR_OCCURRENCE_TYPE_LABELS } from '../types/calendar-occurrence';
-import { CustomDatePicker } from '../components/common/CustomDatePicker';
+import { AppDatePicker } from '../components/ui/AppDatePicker';
 import { MetricCard } from '../components/common/MetricCard';
 import { ReportDayDetailModal } from '../components/reports/ReportDayDetailModal';
 import { ReportDay } from '../types/report';
@@ -217,14 +217,14 @@ export function ReportsPage() {
 
           <form onSubmit={handleGenerateReport} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <CustomDatePicker
+              <AppDatePicker
                 label="Data inicial"
                 value={fromDate}
                 onChange={(val) => setFromDate(val)}
                 required
               />
 
-              <CustomDatePicker
+              <AppDatePicker
                 label="Data final"
                 value={toDate}
                 onChange={(val) => setToDate(val)}
@@ -452,12 +452,12 @@ export function ReportsPage() {
                     <tr className="border-b border-slate-800/80 text-slate-400 font-semibold uppercase text-[10px] tracking-wider print:border-slate-300 print:text-slate-700">
                       <th className="py-2.5 px-3">Data</th>
                       <th className="py-2.5 px-3">Dia da semana</th>
-                      <th className="py-2.5 px-3">Status</th>
+                      <th className="py-2.5 px-3 report-print-hidden print:hidden">Status</th>
                       <th className="py-2.5 px-3">Ocorrência</th>
                       <th className="py-2.5 px-3 text-right">Previsto</th>
                       <th className="py-2.5 px-3 text-right">Trabalhado</th>
                       <th className="py-2.5 px-3 text-right">Saldo</th>
-                      <th className="py-2.5 px-3 text-center">Origem</th>
+                      <th className="py-2.5 px-3 text-center report-print-hidden print:hidden">Origem</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/50 print:divide-slate-200">
@@ -474,7 +474,7 @@ export function ReportsPage() {
                         <td className="py-2.5 px-3 whitespace-nowrap print:text-slate-700">
                           {formatWeekdayPt(day.weekday)}
                         </td>
-                        <td className="py-2.5 px-3 whitespace-nowrap">
+                        <td className="py-2.5 px-3 whitespace-nowrap report-print-hidden print:hidden">
                           {day.status === 'RECORDED' && (
                             <span className="text-emerald-400 font-semibold print:text-emerald-800">Registrado</span>
                           )}
@@ -519,7 +519,7 @@ export function ReportsPage() {
                         >
                           {day.balanceMinutes !== null ? formatBalance(day.balanceMinutes) : '-'}
                         </td>
-                        <td className="py-2.5 px-3 text-center font-mono text-[10px] text-slate-400 print:text-slate-600">
+                        <td className="py-2.5 px-3 text-center font-mono text-[10px] text-slate-400 print:text-slate-600 report-print-hidden print:hidden">
                           {day.entrySource || '-'}
                         </td>
                       </tr>

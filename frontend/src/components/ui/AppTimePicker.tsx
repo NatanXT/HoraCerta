@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Clock, Check, X } from 'lucide-react';
+import { PopoverPortal } from './PopoverPortal';
+import { normalizeTimeInput, isValidTimeFormat } from '../../utils/time-input';
 
 export interface AppTimePickerProps {
   id?: string;
@@ -27,7 +29,7 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>(value || '');
-  const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const hoursContainerRef = useRef<HTMLDivElement>(null);
   const minutesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -35,21 +37,6 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
   useEffect(() => {
     setInputValue(value || '');
   }, [value]);
-
-  // Click outside to close
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
 
   // Auto-scroll hour and minute lists when popover opens
   useEffect(() => {
@@ -90,22 +77,56 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
     const val = e.target.value;
     setInputValue(val);
 
-    // If matches HH:mm format, propagate
-    if (/^([01]\d|2[0-3]):[0-5]\d$/.test(val)) {
+    // Fast normalization on 4 raw digits e.g. "1824" -> "18:24"
+    const digitsOnly = val.replace(/\D/g, '');
+    if (!val.includes(':') && digitsOnly.length === 4) {
+      const normalized = normalizeTimeInput(digitsOnly);
+      if (normalized) {
+        setInputValue(normalized);
+        onChange(normalized);
+        return;
+      }
+    }
+
+    // If strictly valid HH:mm format, propagate
+    if (isValidTimeFormat(val)) {
       onChange(val);
+    }
+  };
+
+  const handleBlur = () => {
+    if (!inputValue.trim()) {
+      if (value) onChange('');
+      return;
+    }
+
+    const normalized = normalizeTimeInput(inputValue);
+    if (normalized) {
+      setInputValue(normalized);
+      onChange(normalized);
+    } else {
+      // Restore previous valid value if invalid
+      setInputValue(value || '');
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       setIsOpen(false);
-    } else if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+    } else if (e.key === 'Enter') {
+      const normalized = normalizeTimeInput(inputValue);
+      if (normalized) {
+        setInputValue(normalized);
+        onChange(normalized);
+        setIsOpen(false);
+      }
+    } else if (e.key === ' ' && !disabled) {
       setIsOpen((prev) => !prev);
     }
   };
 
   return (
-    <div className={`space-y-1.5 relative ${className}`} ref={containerRef}>
+    <div className={`space-y-1.5 relative ${className}`} ref={triggerRef}>
       {label && (
         <label
           htmlFor={id}
@@ -136,6 +157,7 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
             disabled={disabled}
             required={required}
             onChange={handleManualInputChange}
+            onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             onClick={(e) => {
               e.stopPropagation();
@@ -153,7 +175,7 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
               setInputValue('');
               onChange('');
             }}
-            className="text-slate-500 hover:text-slate-300 p-0.5 rounded transition-colors"
+            className="text-slate-500 hover:text-slate-300 p-0.5 rounded transition-colors cursor-pointer"
             title="Limpar horário"
           >
             <X className="w-3.5 h-3.5" />
@@ -161,12 +183,13 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
         )}
       </div>
 
-      {/* Custom Time Picker Popover */}
-      {isOpen && (
-        <div
-          className="absolute left-0 mt-2 z-50 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 space-y-3 backdrop-blur-md animate-fadeIn"
-          onClick={(e) => e.stopPropagation()}
-        >
+      {/* Custom Time Picker Popover via Portal */}
+      <PopoverPortal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        triggerRef={triggerRef}
+      >
+        <div className="w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 space-y-3 backdrop-blur-md animate-fadeIn">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs font-semibold text-slate-400 font-mono">
             <span className="w-1/2 text-center">Hora</span>
             <span className="w-1/2 text-center">Minuto</span>
@@ -229,13 +252,13 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors"
+              className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
             >
               Ok
             </button>
           </div>
         </div>
-      )}
+      </PopoverPortal>
     </div>
   );
 };

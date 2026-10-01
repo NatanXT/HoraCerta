@@ -10,5 +10,6 @@ workSessionRouter.post('/start', (req, res, next) => workSessionController.start
 workSessionRouter.post('/pause', (req, res, next) => workSessionController.pause(req, res, next));
 workSessionRouter.post('/resume', (req, res, next) => workSessionController.resume(req, res, next));
 workSessionRouter.post('/finish', (req, res, next) => workSessionController.finish(req, res, next));
+workSessionRouter.post('/reconcile', (req, res, next) => workSessionController.reconcile(req, res, next));
 
 export { workSessionRouter };

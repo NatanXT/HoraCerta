@@ -32,6 +32,9 @@ export interface WorkBreakDto {
   startedAt: string;
   endedAt: string | null;
   durationMinutes: number;
+  plannedDurationMinutes?: number | null;
+  autoResumeAt?: string | null;
+  resumedAutomatically?: boolean;
 }
 
 export interface WorkDaySummaryDto {
@@ -156,6 +159,9 @@ export class WorkDayService {
             startedAt: b.startedAt.toISOString(),
             endedAt: b.endedAt ? b.endedAt.toISOString() : null,
             durationMinutes,
+            plannedDurationMinutes: b.plannedDurationMinutes,
+            autoResumeAt: b.autoResumeAt ? b.autoResumeAt.toISOString() : null,
+            resumedAutomatically: b.resumedAutomatically,
           };
         })
       : [];
@@ -271,6 +277,9 @@ export class WorkDayService {
               startedAt: b.startedAt.toISOString(),
               endedAt: b.endedAt ? b.endedAt.toISOString() : null,
               durationMinutes: Math.max(0, Math.floor((endMs - startMs) / 60000)),
+              plannedDurationMinutes: b.plannedDurationMinutes,
+              autoResumeAt: b.autoResumeAt ? b.autoResumeAt.toISOString() : null,
+              resumedAutomatically: b.resumedAutomatically,
             };
           })
         : [];

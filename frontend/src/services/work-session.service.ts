@@ -13,6 +13,9 @@ export interface ActiveBreak {
   type: 'SNACK' | 'LUNCH';
   startedAt: string;
   elapsedMinutes: number;
+  plannedDurationMinutes?: number | null;
+  autoResumeAt?: string | null;
+  resumedAutomatically?: boolean;
 }
 
 export interface AvailableActions {
@@ -25,6 +28,7 @@ export interface AvailableActions {
 
 export interface SessionStatus {
   state: WorkSessionState;
+  reconciliationRequired?: boolean;
   activeBreak: ActiveBreak | null;
   availableActions: AvailableActions;
 }
@@ -73,6 +77,11 @@ export const workSessionService = {
 
   async finishSession(): Promise<WorkDayWithSession> {
     const response = await api.post<WorkDayWithSession>('/api/work-session/finish');
+    return response.data;
+  },
+
+  async reconcileSession(): Promise<WorkDayWithSession> {
+    const response = await api.post<WorkDayWithSession>('/api/work-session/reconcile');
     return response.data;
   },
 };

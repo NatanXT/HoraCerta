@@ -131,7 +131,15 @@ export class ProfileService {
     }[] = [];
 
     for (const day of data.days) {
-      if (day.isWorkDay) {
+      const isWorkDay =
+        day.isWorkDay ??
+        (day.plannedStartMinutes !== null &&
+          day.plannedStartMinutes !== undefined &&
+          day.plannedEndMinutes !== null &&
+          day.plannedEndMinutes !== undefined &&
+          (day.expectedMinutes === undefined || day.expectedMinutes > 0));
+
+      if (isWorkDay) {
         if (
           day.plannedStartMinutes === null ||
           day.plannedStartMinutes === undefined ||

@@ -9,6 +9,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Clock,
 } from 'lucide-react';
 import { useCalendarOccurrences } from '../hooks/useCalendarOccurrences';
 import {
@@ -16,7 +17,7 @@ import {
   CalendarOccurrenceType,
   CALENDAR_OCCURRENCE_TYPE_LABELS,
 } from '../types/calendar-occurrence';
-import { CustomDatePicker } from '../components/common/CustomDatePicker';
+import { AppDatePicker } from '../components/ui/AppDatePicker';
 import { AppSelect } from '../components/ui/AppSelect';
 
 const OCCURRENCE_OPTIONS = [
@@ -25,6 +26,7 @@ const OCCURRENCE_OPTIONS = [
   { value: 'MEDICAL_LEAVE', label: 'Atestado / afastamento médico' },
   { value: 'JUSTIFIED_ABSENCE', label: 'Ausência justificada' },
   { value: 'EXCEPTIONAL_DAY_OFF', label: 'Folga excepcional' },
+  { value: 'BANK_HOURS_LEAVE', label: 'Folga por banco de horas' },
 ];
 
 function formatMonthTitle(monthStr: string): string {
@@ -337,6 +339,20 @@ export function AbsencesPage() {
                 onChange={(val) => setFormType(val as CalendarOccurrenceType)}
               />
 
+              {formType === 'BANK_HOURS_LEAVE' && (
+                <div className="flex items-start gap-2.5 p-3 text-xs bg-amber-950/30 border border-amber-800/50 rounded-xl text-amber-200">
+                  <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-medium text-amber-200">
+                      Esta ocorrência utilizará a jornada prevista do período como débito do seu banco de horas.
+                    </p>
+                    <p className="text-[11px] text-amber-300/80">
+                      Impacto estimado: débito equivalente à jornada prevista de cada dia útil abrangido (ex: -08h00 para jornada padrão).
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5 tracking-wide">Título</label>
                 <input
@@ -351,14 +367,14 @@ export function AbsencesPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <CustomDatePicker
+                <AppDatePicker
                   label="Data inicial *"
                   value={formStartDate}
                   onChange={(val) => setFormStartDate(val)}
                   required
                 />
 
-                <CustomDatePicker
+                <AppDatePicker
                   label="Data final *"
                   value={formEndDate}
                   onChange={(val) => setFormEndDate(val)}

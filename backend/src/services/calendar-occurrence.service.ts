@@ -1,6 +1,7 @@
 import { AppError } from '../errors/app-error';
 import { prisma } from '../lib/prisma';
 import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
+import { bankHoursConfigRepository } from '../repositories/bank-hours-config.repository';
 import { parseDateToUtcMidnight } from '../utils/date';
 import {
   CreateCalendarOccurrenceInput,
@@ -30,6 +31,24 @@ export class CalendarOccurrenceService {
   async create(userId: string, dto: CreateCalendarOccurrenceInput): Promise<CalendarOccurrenceDTO> {
     const startDate = parseDateToUtcMidnight(dto.startDate);
     const endDate = parseDateToUtcMidnight(dto.endDate);
+
+    if (dto.type === 'BANK_HOURS_LEAVE') {
+      const bankConfig = await bankHoursConfigRepository.findByUserId(userId);
+      if (!bankConfig) {
+        throw new AppError(
+          'Configure o banco de horas antes de registrar uma folga usando saldo.',
+          400,
+          'BANK_HOURS_NOT_CONFIGURED'
+        );
+      }
+      if (startDate.getTime() < bankConfig.startDate.getTime()) {
+        throw new AppError(
+          'A data da folga por banco de horas não pode ser anterior à data de início do banco de horas configurado.',
+          400,
+          'BANK_HOURS_LEAVE_BEFORE_START_DATE'
+        );
+      }
+    }
 
     const created = await prisma.$transaction(async (tx) => {
       const conflict = await calendarOccurrenceRepository.findConflicting(
@@ -67,6 +86,24 @@ export class CalendarOccurrenceService {
   async update(userId: string, id: string, dto: UpdateCalendarOccurrenceInput): Promise<CalendarOccurrenceDTO> {
     const startDate = parseDateToUtcMidnight(dto.startDate);
     const endDate = parseDateToUtcMidnight(dto.endDate);
+
+    if (dto.type === 'BANK_HOURS_LEAVE') {
+      const bankConfig = await bankHoursConfigRepository.findByUserId(userId);
+      if (!bankConfig) {
+        throw new AppError(
+          'Configure o banco de horas antes de registrar uma folga usando saldo.',
+          400,
+          'BANK_HOURS_NOT_CONFIGURED'
+        );
+      }
+      if (startDate.getTime() < bankConfig.startDate.getTime()) {
+        throw new AppError(
+          'A data da folga por banco de horas não pode ser anterior à data de início do banco de horas configurado.',
+          400,
+          'BANK_HOURS_LEAVE_BEFORE_START_DATE'
+        );
+      }
+    }
 
     const updated = await prisma.$transaction(async (tx) => {
       const existing = await calendarOccurrenceRepository.findById(id, userId);

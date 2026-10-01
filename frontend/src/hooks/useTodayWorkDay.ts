@@ -16,6 +16,7 @@ export function useTodayWorkDay() {
 
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const actionInFlightRef = useRef<boolean>(false);
+  const reconcileDispatchedRef = useRef<boolean>(false);
 
   const showFeedback = useCallback((type: 'success' | 'error', message: string) => {
     if (feedbackTimeoutRef.current) {
@@ -64,6 +65,33 @@ export function useTodayWorkDay() {
       }
     };
   }, [fetchToday]);
+
+  const handleReconcile = useCallback(async () => {
+    if (actionInFlightRef.current) return;
+    actionInFlightRef.current = true;
+    setSubmitting(true);
+    try {
+      const updated = await workSessionService.reconcileSession();
+      setData(updated || (await workSessionService.getToday()));
+    } catch (err: unknown) {
+      showFeedback('error', 'Não foi possível sincronizar o retorno automático.');
+    } finally {
+      setSubmitting(false);
+      actionInFlightRef.current = false;
+    }
+  }, [showFeedback]);
+
+  // Automatically trigger reconcile exactly once when reconciliationRequired is flagged by backend
+  useEffect(() => {
+    if (data?.session?.reconciliationRequired) {
+      if (!reconcileDispatchedRef.current && !actionInFlightRef.current) {
+        reconcileDispatchedRef.current = true;
+        handleReconcile();
+      }
+    } else {
+      reconcileDispatchedRef.current = false;
+    }
+  }, [data?.session?.reconciliationRequired, handleReconcile]);
 
   const executeAction = async (
     actionFn: () => Promise<WorkDayWithSession>,
@@ -149,5 +177,6 @@ export function useTodayWorkDay() {
     handlePauseLunch,
     handleResume,
     handleFinish,
+    handleReconcile,
   };
 }

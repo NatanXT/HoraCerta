@@ -43,6 +43,16 @@ export class WorkSessionController {
       next(err);
     }
   }
+
+  async reconcile(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.auth!.userId;
+      const result = await workSessionService.reconcileSession(userId);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const workSessionController = new WorkSessionController();

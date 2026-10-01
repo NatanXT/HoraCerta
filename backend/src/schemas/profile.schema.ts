@@ -13,7 +13,8 @@ const weekdayEnum = z.nativeEnum(Weekday);
 
 export const workScheduleDayInputSchema = z.object({
   weekday: weekdayEnum,
-  isWorkDay: z.boolean(),
+  isWorkDay: z.boolean().optional(),
+  expectedMinutes: z.number().int().nonnegative().optional(),
   plannedStartMinutes: z.number().int().nullable().optional(),
   plannedEndMinutes: z.number().int().nullable().optional(),
   snackBreakMinutes: z.number().int().nonnegative().default(0),

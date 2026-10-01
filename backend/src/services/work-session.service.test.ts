@@ -121,8 +121,8 @@ describe('WorkSessionService - State Machine & Atomic Operations (Mocked DB)', (
   describe('Session Status & Actions', () => {
     it('should compute availableActions correctly for NOT_STARTED, WORKING, ON_LUNCH_BREAK, and ENDED', async () => {
       // NOT_STARTED
-      vi.mocked(prisma.workDay.findUnique).mockResolvedValueOnce(null as any);
-      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValueOnce({
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(null as any);
+      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
         snackBreakMinutes: 15,
         lunchBreakMinutes: 60,
       } as any);
@@ -146,8 +146,8 @@ describe('WorkSessionService - State Machine & Atomic Operations (Mocked DB)', (
           { id: 'wb-1', type: 'LUNCH', startedAt: new Date(), endedAt: null, deletedAt: null },
         ],
       };
-      vi.mocked(prisma.workDay.findUnique).mockResolvedValueOnce(lunchWorkDay as any);
-      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValueOnce({
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(lunchWorkDay as any);
+      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
         snackBreakMinutes: 0,
         lunchBreakMinutes: 0,
       } as any);
@@ -169,8 +169,8 @@ describe('WorkSessionService - State Machine & Atomic Operations (Mocked DB)', (
         ],
         workBreaks: [],
       };
-      vi.mocked(prisma.workDay.findUnique).mockResolvedValueOnce(endedWorkDay as any);
-      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValueOnce({
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(endedWorkDay as any);
+      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
         snackBreakMinutes: 15,
         lunchBreakMinutes: 60,
       } as any);
@@ -206,7 +206,10 @@ describe('WorkSessionService - State Machine & Atomic Operations (Mocked DB)', (
 
       expect(prisma.workBreak.update).toHaveBeenCalledWith({
         where: { id: 'wb-1' },
-        data: { endedAt: expect.any(Date) },
+        data: {
+          endedAt: expect.any(Date),
+          resumedAutomatically: false,
+        },
       });
       expect(prisma.timeEntry.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -241,7 +244,10 @@ describe('WorkSessionService - State Machine & Atomic Operations (Mocked DB)', (
       // Verify workBreak was updated with endedAt
       expect(prisma.workBreak.update).toHaveBeenCalledWith({
         where: { id: 'wb-1' },
-        data: { endedAt: expect.any(Date) },
+        data: {
+          endedAt: expect.any(Date),
+          resumedAutomatically: false,
+        },
       });
       // Verify NO new timeEntry was created during break finish
       expect(prisma.timeEntry.create).not.toHaveBeenCalled();
@@ -339,5 +345,509 @@ describe('WorkSessionService - State Machine & Atomic Operations (Mocked DB)', (
       );
     });
   });
+
+  describe('Auto Lunch Break & Reconciliation (Parte H)', () => {
+    it('12:00 PAUSE LUNCH (60 min) snapshots plannedDurationMinutes and autoResumeAt = 13:00', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T12:00:00.000Z'));
+
+      const workingWorkDay = {
+        id: 'wd-auto-lunch',
+        userId,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        timeEntries: [
+          { id: 'te-1', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T08:00:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [],
+      };
+
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(workingWorkDay as any);
+      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
+        lunchBreakMinutes: 60,
+        snackBreakMinutes: 15,
+      } as any);
+
+      await workSessionService.pauseSession(userId, 'LUNCH');
+
+      expect(prisma.timeEntry.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          workDayId: 'wd-auto-lunch',
+          type: 'CLOCK_OUT',
+          timestamp: new Date('2026-10-01T12:00:00.000Z'),
+        }),
+      });
+
+      expect(prisma.workBreak.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          workDayId: 'wd-auto-lunch',
+          type: 'LUNCH',
+          startedAt: new Date('2026-10-01T12:00:00.000Z'),
+          plannedDurationMinutes: 60,
+          autoResumeAt: new Date('2026-10-01T13:00:00.000Z'),
+          resumedAutomatically: false,
+        }),
+      });
+
+      vi.useRealTimers();
+    });
+
+    it('12:59 remains ON_LUNCH_BREAK with reconciliationRequired false without reconciling early', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T12:59:00.000Z'));
+
+      const lunchWorkDay = {
+        id: 'wd-auto-lunch',
+        userId,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        timeEntries: [
+          { id: 'te-1', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T08:00:00.000Z'), deletedAt: null },
+          { id: 'te-2', type: 'CLOCK_OUT', timestamp: new Date('2026-10-01T12:00:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [
+          {
+            id: 'wb-1',
+            type: 'LUNCH',
+            startedAt: new Date('2026-10-01T12:00:00.000Z'),
+            endedAt: null,
+            plannedDurationMinutes: 60,
+            autoResumeAt: new Date('2026-10-01T13:00:00.000Z'),
+            resumedAutomatically: false,
+            deletedAt: null,
+          },
+        ],
+      };
+
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(lunchWorkDay as any);
+      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
+        lunchBreakMinutes: 60,
+        snackBreakMinutes: 15,
+      } as any);
+
+      const status = await workSessionService.getSessionStatus(userId);
+      expect(status.session.state).toBe('ON_LUNCH_BREAK');
+      expect(status.session.reconciliationRequired).toBe(false);
+      expect(prisma.timeEntry.create).not.toHaveBeenCalled();
+      expect(prisma.workBreak.update).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+
+    it('GET today is strictly READ-ONLY: 13:05 returns state ON_LUNCH_BREAK with reconciliationRequired true and ZERO DB mutations', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T13:05:00.000Z'));
+
+      const lunchWorkDay = {
+        id: 'wd-auto-lunch',
+        userId,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        timeEntries: [
+          { id: 'te-1', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T08:00:00.000Z'), deletedAt: null },
+          { id: 'te-2', type: 'CLOCK_OUT', timestamp: new Date('2026-10-01T12:00:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [
+          {
+            id: 'wb-1',
+            type: 'LUNCH',
+            startedAt: new Date('2026-10-01T12:00:00.000Z'),
+            endedAt: null,
+            plannedDurationMinutes: 60,
+            autoResumeAt: new Date('2026-10-01T13:00:00.000Z'),
+            resumedAutomatically: false,
+            deletedAt: null,
+          },
+        ],
+      };
+
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(lunchWorkDay as any);
+      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
+        lunchBreakMinutes: 60,
+        snackBreakMinutes: 15,
+      } as any);
+
+      const status = await workSessionService.getSessionStatus(userId);
+      expect(status.session.state).toBe('ON_LUNCH_BREAK');
+      expect(status.session.reconciliationRequired).toBe(true);
+      expect(status.session.availableActions.resume).toBe(true);
+      expect(status.session.availableActions.finish).toBe(true);
+      expect(status.session.availableActions.start).toBe(false);
+
+      // Verify ZERO mutations happened on GET
+      expect(prisma.workBreak.update).not.toHaveBeenCalled();
+      expect(prisma.timeEntry.create).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+
+    it('13:00 reconcile automatically closes break with endedAt 13:00, resumedAutomatically true, and CLOCK_IN at 13:00', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T13:00:00.000Z'));
+
+      const lunchWorkDay = {
+        id: 'wd-auto-lunch',
+        userId,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        timeEntries: [
+          { id: 'te-1', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T08:00:00.000Z'), deletedAt: null },
+          { id: 'te-2', type: 'CLOCK_OUT', timestamp: new Date('2026-10-01T12:00:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [
+          {
+            id: 'wb-1',
+            type: 'LUNCH',
+            startedAt: new Date('2026-10-01T12:00:00.000Z'),
+            endedAt: null,
+            plannedDurationMinutes: 60,
+            autoResumeAt: new Date('2026-10-01T13:00:00.000Z'),
+            resumedAutomatically: false,
+            deletedAt: null,
+          },
+        ],
+      };
+
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(lunchWorkDay as any);
+
+      await workSessionService.reconcileSession(userId);
+
+      expect(prisma.workBreak.update).toHaveBeenCalledWith({
+        where: { id: 'wb-1' },
+        data: {
+          endedAt: new Date('2026-10-01T13:00:00.000Z'),
+          resumedAutomatically: true,
+        },
+      });
+
+      expect(prisma.timeEntry.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          workDayId: 'wd-auto-lunch',
+          type: 'CLOCK_IN',
+          timestamp: new Date('2026-10-01T13:00:00.000Z'),
+        }),
+      });
+
+      vi.useRealTimers();
+    });
+
+    it('H.2 Backend down: reconcile occurs at 14:30, but CLOCK_IN is created at autoResumeAt 13:00 (NOT 14:30)', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T14:30:00.000Z'));
+
+      const lunchWorkDay = {
+        id: 'wd-auto-lunch',
+        userId,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        timeEntries: [
+          { id: 'te-1', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T08:00:00.000Z'), deletedAt: null },
+          { id: 'te-2', type: 'CLOCK_OUT', timestamp: new Date('2026-10-01T12:00:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [
+          {
+            id: 'wb-1',
+            type: 'LUNCH',
+            startedAt: new Date('2026-10-01T12:00:00.000Z'),
+            endedAt: null,
+            plannedDurationMinutes: 60,
+            autoResumeAt: new Date('2026-10-01T13:00:00.000Z'),
+            resumedAutomatically: false,
+            deletedAt: null,
+          },
+        ],
+      };
+
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(lunchWorkDay as any);
+
+      await workSessionService.reconcileSession(userId);
+
+      // Verify CLOCK_IN created with 13:00:00 (autoResumeAt), NOT 14:30:00!
+      expect(prisma.timeEntry.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          workDayId: 'wd-auto-lunch',
+          type: 'CLOCK_IN',
+          timestamp: new Date('2026-10-01T13:00:00.000Z'),
+        }),
+      });
+
+      expect(prisma.workBreak.update).toHaveBeenCalledWith({
+        where: { id: 'wb-1' },
+        data: {
+          endedAt: new Date('2026-10-01T13:00:00.000Z'),
+          resumedAutomatically: true,
+        },
+      });
+
+      vi.useRealTimers();
+    });
+
+    it('H.3 Manual resume at 12:45 before autoResumeAt 13:00: sets resumedAutomatically false, subsequent reconcile does nothing', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T12:45:00.000Z'));
+
+      const lunchWorkDay = {
+        id: 'wd-auto-lunch',
+        userId,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        timeEntries: [
+          { id: 'te-1', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T08:00:00.000Z'), deletedAt: null },
+          { id: 'te-2', type: 'CLOCK_OUT', timestamp: new Date('2026-10-01T12:00:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [
+          {
+            id: 'wb-1',
+            type: 'LUNCH',
+            startedAt: new Date('2026-10-01T12:00:00.000Z'),
+            endedAt: null,
+            plannedDurationMinutes: 60,
+            autoResumeAt: new Date('2026-10-01T13:00:00.000Z'),
+            resumedAutomatically: false,
+            deletedAt: null,
+          },
+        ],
+      };
+
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(lunchWorkDay as any);
+      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
+        lunchBreakMinutes: 60,
+        snackBreakMinutes: 15,
+      } as any);
+
+      // Manual resume at 12:45
+      await workSessionService.resumeSession(userId);
+
+      expect(prisma.workBreak.update).toHaveBeenCalledWith({
+        where: { id: 'wb-1' },
+        data: {
+          endedAt: new Date('2026-10-01T12:45:00.000Z'),
+          resumedAutomatically: false,
+        },
+      });
+
+      expect(prisma.timeEntry.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          workDayId: 'wd-auto-lunch',
+          type: 'CLOCK_IN',
+          timestamp: new Date('2026-10-01T12:45:00.000Z'),
+        }),
+      });
+
+      // At 13:00, when break is already ended, reconcile does nothing
+      vi.setSystemTime(new Date('2026-10-01T13:00:00.000Z'));
+      vi.clearAllMocks();
+
+      const resumedWorkDay = {
+        ...lunchWorkDay,
+        timeEntries: [
+          ...lunchWorkDay.timeEntries,
+          { id: 'te-3', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T12:45:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [
+          { ...lunchWorkDay.workBreaks[0], endedAt: new Date('2026-10-01T12:45:00.000Z') },
+        ],
+      };
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(resumedWorkDay as any);
+
+      await workSessionService.reconcileSession(userId);
+
+      expect(prisma.workBreak.update).not.toHaveBeenCalled();
+      expect(prisma.timeEntry.create).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+
+    it('H.4 Finish during lunch at 12:30: closes break at 12:30, no subsequent auto CLOCK_IN', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T12:30:00.000Z'));
+
+      const lunchWorkDay = {
+        id: 'wd-auto-lunch',
+        userId,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        timeEntries: [
+          { id: 'te-1', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T08:00:00.000Z'), deletedAt: null },
+          { id: 'te-2', type: 'CLOCK_OUT', timestamp: new Date('2026-10-01T12:00:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [
+          {
+            id: 'wb-1',
+            type: 'LUNCH',
+            startedAt: new Date('2026-10-01T12:00:00.000Z'),
+            endedAt: null,
+            plannedDurationMinutes: 60,
+            autoResumeAt: new Date('2026-10-01T13:00:00.000Z'),
+            resumedAutomatically: false,
+            deletedAt: null,
+          },
+        ],
+      };
+
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(lunchWorkDay as any);
+      vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
+        lunchBreakMinutes: 60,
+        snackBreakMinutes: 15,
+      } as any);
+
+      await workSessionService.finishSession(userId);
+
+      expect(prisma.workBreak.update).toHaveBeenCalledWith({
+        where: { id: 'wb-1' },
+        data: {
+          endedAt: new Date('2026-10-01T12:30:00.000Z'),
+          resumedAutomatically: false,
+        },
+      });
+      // No CLOCK_IN created
+      expect(prisma.timeEntry.create).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+
+    it('H.5 Concurrency: Tab A and Tab B call reconcile simultaneously -> exactly 1 WorkBreak closed and 1 CLOCK_IN created', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T13:05:00.000Z'));
+
+      let breakEnded = false;
+      const lunchWorkDay = {
+        id: 'wd-auto-lunch',
+        userId,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        timeEntries: [
+          { id: 'te-1', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T08:00:00.000Z'), deletedAt: null },
+          { id: 'te-2', type: 'CLOCK_OUT', timestamp: new Date('2026-10-01T12:00:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [
+          {
+            id: 'wb-1',
+            type: 'LUNCH',
+            startedAt: new Date('2026-10-01T12:00:00.000Z'),
+            endedAt: null,
+            plannedDurationMinutes: 60,
+            autoResumeAt: new Date('2026-10-01T13:00:00.000Z'),
+            resumedAutomatically: false,
+            deletedAt: null,
+          },
+        ],
+      };
+
+      // In a real Serializable transaction, transactions are serialized or throw P2034
+      let txLock = Promise.resolve();
+      (prisma.$transaction as any).mockImplementation(async (callback: any) => {
+        const currentLock = txLock;
+        let releaseLock: () => void;
+        txLock = new Promise<void>((resolve) => {
+          releaseLock = resolve;
+        });
+        await currentLock;
+        try {
+          return await callback(prisma);
+        } finally {
+          releaseLock!();
+        }
+      });
+
+      (prisma.workDay.findUnique as any).mockImplementation(async () => {
+        if (breakEnded) {
+          return {
+            ...lunchWorkDay,
+            timeEntries: [
+              ...lunchWorkDay.timeEntries,
+              { id: 'te-3', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T13:00:00.000Z'), deletedAt: null },
+            ],
+            workBreaks: [
+              { ...lunchWorkDay.workBreaks[0], endedAt: new Date('2026-10-01T13:00:00.000Z'), resumedAutomatically: true },
+            ],
+          } as any;
+        }
+        return lunchWorkDay as any;
+      });
+
+      (prisma.workBreak.update as any).mockImplementation(async () => {
+        breakEnded = true;
+        return {} as any;
+      });
+
+      // Simulate concurrent calls from Tab A and Tab B
+      const [resA, resB] = await Promise.all([
+        workSessionService.reconcileSession(userId),
+        workSessionService.reconcileSession(userId),
+      ]);
+
+      // Exactly 1 update and 1 create
+      expect(prisma.workBreak.update).toHaveBeenCalledTimes(1);
+      expect(prisma.timeEntry.create).toHaveBeenCalledTimes(1);
+      expect(resA.session.state).toBe('WORKING');
+      expect(resB.session.state).toBe('WORKING');
+
+      // Reset transaction mock
+      vi.mocked(prisma.$transaction).mockImplementation(async (callback: any) => callback(prisma));
+
+      vi.useRealTimers();
+    });
+
+    it('H.6 Inconsistent state: throws 409 WORK_SESSION_INCONSISTENT if last entry is CLOCK_IN while break is active', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T13:05:00.000Z'));
+
+      const corruptedWorkDay = {
+        id: 'wd-auto-lunch',
+        userId,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        timeEntries: [
+          { id: 'te-1', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T08:00:00.000Z'), deletedAt: null },
+          { id: 'te-2', type: 'CLOCK_OUT', timestamp: new Date('2026-10-01T12:00:00.000Z'), deletedAt: null },
+          { id: 'te-3', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T12:30:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [
+          {
+            id: 'wb-1',
+            type: 'LUNCH',
+            startedAt: new Date('2026-10-01T12:00:00.000Z'),
+            endedAt: null,
+            plannedDurationMinutes: 60,
+            autoResumeAt: new Date('2026-10-01T13:00:00.000Z'),
+            resumedAutomatically: false,
+            deletedAt: null,
+          },
+        ],
+      };
+
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(corruptedWorkDay as any);
+
+      await expect(workSessionService.reconcileSession(userId)).rejects.toThrow(
+        expect.objectContaining({
+          statusCode: 409,
+          code: 'WORK_SESSION_INCONSISTENT',
+        })
+      );
+
+      vi.useRealTimers();
+    });
+
+    it('H.7 Concurrency conflict: handles P2034 error gracefully and returns current session state', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T13:05:00.000Z'));
+
+      const lunchWorkDay = {
+        id: 'wd-auto-lunch',
+        userId,
+        date: new Date('2026-10-01T00:00:00.000Z'),
+        timeEntries: [
+          { id: 'te-1', type: 'CLOCK_IN', timestamp: new Date('2026-10-01T08:00:00.000Z'), deletedAt: null },
+        ],
+        workBreaks: [],
+      };
+      vi.mocked(prisma.workDay.findUnique).mockResolvedValue(lunchWorkDay as any);
+
+      vi.mocked(prisma.$transaction).mockRejectedValueOnce({
+        code: 'P2034',
+        message: 'Transaction failed due to a write conflict or a deadlock. Please retry your transaction',
+      });
+
+      const res = await workSessionService.reconcileSession(userId);
+      expect(res.session.state).toBe('WORKING');
+
+      // Reset transaction mock
+      vi.mocked(prisma.$transaction).mockImplementation(async (callback: any) => callback(prisma));
+      vi.useRealTimers();
+    });
+  });
 });
+
 

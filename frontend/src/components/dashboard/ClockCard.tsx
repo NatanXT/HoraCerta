@@ -11,6 +11,7 @@ interface ClockCardProps {
   onPauseLunch: () => void;
   onResume: () => void;
   onFinish: () => void;
+  onReconcile?: () => void;
 }
 
 function formatElapsedTimer(startedAtIso: string): string {
@@ -24,6 +25,22 @@ function formatElapsedTimer(startedAtIso: string): string {
   const s = diffSecs % 60;
 
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function formatRemainingTimer(autoResumeAtIso: string): { text: string; isZero: boolean } {
+  if (!autoResumeAtIso) return { text: '00:00:00', isZero: true };
+  const targetMs = new Date(autoResumeAtIso).getTime();
+  const nowMs = Date.now();
+  const diffSecs = Math.max(0, Math.floor((targetMs - nowMs) / 1000));
+
+  const h = Math.floor(diffSecs / 3600);
+  const m = Math.floor((diffSecs % 3600) / 60);
+  const s = diffSecs % 60;
+
+  return {
+    text: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`,
+    isZero: diffSecs <= 0,
+  };
 }
 
 function formatMinutesToHhMm(mins: number): string {
@@ -40,9 +57,12 @@ export const ClockCard: React.FC<ClockCardProps> = ({
   onPauseLunch,
   onResume,
   onFinish,
+  onReconcile,
 }) => {
   const [clockTime, setClockTime] = useState<string>('');
   const [breakTimer, setBreakTimer] = useState<string>('00:00:00');
+  const [remainingTimer, setRemainingTimer] = useState<string>('00:00:00');
+  const reconcileDispatchedRef = React.useRef<boolean>(false);
 
   const session = summary.session;
   const hasEntries = summary.entries && summary.entries.length > 0;
@@ -70,6 +90,11 @@ export const ClockCard: React.FC<ClockCardProps> = ({
               ? activeBreakFromList.startedAt
               : new Date(activeBreakFromList.startedAt).toISOString(),
           elapsedMinutes: activeBreakFromList.durationMinutes || 0,
+          plannedDurationMinutes: (activeBreakFromList as any).plannedDurationMinutes ?? null,
+          autoResumeAt: (activeBreakFromList as any).autoResumeAt
+            ? new Date((activeBreakFromList as any).autoResumeAt).toISOString()
+            : null,
+          resumedAutomatically: (activeBreakFromList as any).resumedAutomatically ?? false,
         }
       : null);
 
@@ -92,6 +117,33 @@ export const ClockCard: React.FC<ClockCardProps> = ({
 
     return () => clearInterval(interval);
   }, [activeBreak?.startedAt]);
+
+  // Lunch auto-resume countdown
+  useEffect(() => {
+    if (state !== 'ON_LUNCH_BREAK' || !activeBreak?.autoResumeAt) {
+      reconcileDispatchedRef.current = false;
+      return;
+    }
+
+    const { text, isZero } = formatRemainingTimer(activeBreak.autoResumeAt);
+    setRemainingTimer(text);
+
+    if (isZero && !reconcileDispatchedRef.current) {
+      reconcileDispatchedRef.current = true;
+      onReconcile?.();
+    }
+
+    const interval = setInterval(() => {
+      const { text: currText, isZero: currZero } = formatRemainingTimer(activeBreak.autoResumeAt!);
+      setRemainingTimer(currText);
+      if (currZero && !reconcileDispatchedRef.current) {
+        reconcileDispatchedRef.current = true;
+        onReconcile?.();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [state, activeBreak?.autoResumeAt, onReconcile]);
 
   const showSnackBtn = breakSummary ? breakSummary.plannedSnackMinutes > 0 : true;
   const showLunchBtn = breakSummary ? breakSummary.plannedLunchMinutes > 0 : true;
@@ -157,20 +209,43 @@ export const ClockCard: React.FC<ClockCardProps> = ({
       {/* Active Break Timer Section */}
       {(state === 'ON_SNACK_BREAK' || state === 'ON_LUNCH_BREAK') && activeBreak && (
         <div className="bg-amber-950/30 border border-amber-800/40 rounded-xl p-4 max-w-sm mx-auto space-y-2">
-          <div className="text-xs text-amber-300 font-medium flex items-center justify-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-amber-400" />
-            <span>Tempo em pausa:</span>
-            <span className="font-mono text-base font-bold text-amber-200">{breakTimer}</span>
-          </div>
-          {breakSummary && (
-            <div className="text-[11px] text-amber-400/80">
-              Previsto:{' '}
-              <span className="font-medium text-amber-300">
-                {state === 'ON_SNACK_BREAK'
-                  ? formatMinutesToHhMm(breakSummary.plannedSnackMinutes)
-                  : formatMinutesToHhMm(breakSummary.plannedLunchMinutes)}
-              </span>
-            </div>
+          {state === 'ON_LUNCH_BREAK' && activeBreak.autoResumeAt ? (
+            <>
+              <div className="text-xs text-amber-300 font-medium flex items-center justify-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-amber-400" />
+                <span>Restante:</span>
+                <span className="font-mono text-base font-bold text-amber-200">{remainingTimer}</span>
+              </div>
+              <div className="text-[11px] text-amber-400/80 flex items-center justify-center gap-3">
+                <span>Tempo decorrido: <span className="font-medium text-amber-300">{breakTimer}</span></span>
+                {breakSummary && (
+                  <span>Previsto: <span className="font-medium text-amber-300">{formatMinutesToHhMm(breakSummary.plannedLunchMinutes)}</span></span>
+                )}
+              </div>
+              {submitting && (
+                <div className="text-xs text-amber-300 font-medium animate-pulse pt-1">
+                  Retomando expediente...
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="text-xs text-amber-300 font-medium flex items-center justify-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-amber-400" />
+                <span>Tempo em pausa:</span>
+                <span className="font-mono text-base font-bold text-amber-200">{breakTimer}</span>
+              </div>
+              {breakSummary && (
+                <div className="text-[11px] text-amber-400/80">
+                  Previsto:{' '}
+                  <span className="font-medium text-amber-300">
+                    {state === 'ON_SNACK_BREAK'
+                      ? formatMinutesToHhMm(breakSummary.plannedSnackMinutes)
+                      : formatMinutesToHhMm(breakSummary.plannedLunchMinutes)}
+                  </span>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

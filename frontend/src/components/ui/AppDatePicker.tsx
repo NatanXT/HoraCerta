@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { PopoverPortal } from './PopoverPortal';
 
 export interface AppDatePickerProps {
   id?: string;
@@ -50,7 +51,7 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
   placeholder = 'DD/MM/YYYY',
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   // Initialize view year & month from value or current date
   const [viewYear, setViewYear] = useState<number>(() => {
@@ -71,21 +72,6 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
       setViewMonth(m - 1);
     }
   }, [value]);
-
-  // Click outside to close
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
 
   // Handle escape key
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -137,7 +123,7 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
   const todayIso = new Date().toISOString().substring(0, 10);
 
   return (
-    <div className={`space-y-1.5 relative ${className}`} ref={containerRef}>
+    <div className={`space-y-1.5 relative ${className}`} ref={triggerRef}>
       {label && (
         <label
           htmlFor={id}
@@ -181,7 +167,7 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
               e.stopPropagation();
               onChange('');
             }}
-            className="text-slate-500 hover:text-slate-300 p-0.5 rounded transition-colors"
+            className="text-slate-500 hover:text-slate-300 p-0.5 rounded transition-colors cursor-pointer"
             title="Limpar data"
           >
             <X className="w-3.5 h-3.5" />
@@ -189,18 +175,19 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
         )}
       </div>
 
-      {/* Custom Dark Theme Popover */}
-      {isOpen && (
-        <div
-          className="absolute left-0 mt-2 z-50 w-72 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 space-y-3 backdrop-blur-md animate-fadeIn"
-          onClick={(e) => e.stopPropagation()}
-        >
+      {/* Custom Dark Theme Popover via Portal */}
+      <PopoverPortal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        triggerRef={triggerRef}
+      >
+        <div className="w-72 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 space-y-3 backdrop-blur-md animate-fadeIn">
           {/* Calendar Header */}
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
               title="Mês anterior"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -213,7 +200,7 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
               title="Próximo mês"
             >
               <ChevronRight className="w-4 h-4" />
@@ -272,7 +259,7 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
             })}
           </div>
         </div>
-      )}
+      </PopoverPortal>
     </div>
   );
 };

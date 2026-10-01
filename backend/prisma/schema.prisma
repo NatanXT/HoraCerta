@@ -33,6 +33,7 @@ enum CalendarOccurrenceType {
   MEDICAL_LEAVE
   JUSTIFIED_ABSENCE
   EXCEPTIONAL_DAY_OFF
+  BANK_HOURS_LEAVE
 }
 
 enum WorkBreakType {
@@ -106,15 +107,18 @@ model TimeEntry {
 }
 
 model WorkBreak {
-  id        String        @id @default(cuid())
-  workDayId String
-  workDay   WorkDay       @relation(fields: [workDayId], references: [id], onDelete: Cascade)
-  type      WorkBreakType
-  startedAt DateTime
-  endedAt   DateTime?
-  deletedAt DateTime?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id                     String        @id @default(cuid())
+  workDayId              String
+  workDay                WorkDay       @relation(fields: [workDayId], references: [id], onDelete: Cascade)
+  type                   WorkBreakType
+  startedAt              DateTime
+  endedAt                DateTime?
+  plannedDurationMinutes Int?
+  autoResumeAt           DateTime?
+  resumedAutomatically   Boolean       @default(false)
+  deletedAt              DateTime?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
 
   @@index([workDayId, startedAt])
   @@map("work_breaks")

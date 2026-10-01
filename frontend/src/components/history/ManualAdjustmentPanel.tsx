@@ -14,7 +14,7 @@ import { ManualInterval, WorkDayAdjustmentSnapshotEntry } from '../../types/manu
 import { useManualAdjustment } from '../../hooks/useManualAdjustment';
 import { formatFullDate, formatDateTime } from '../../utils/date';
 import { formatMinutes, formatTime } from '../../utils/time';
-import { TimeInput } from '../common/TimeInput';
+import { AppTimePicker } from '../ui/AppTimePicker';
 
 interface ManualAdjustmentPanelProps {
   day: MonthlyDaySummary;
@@ -246,7 +246,7 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
                       </span>
                       <div className="flex-1 flex items-center gap-2">
                         <div className="flex-1">
-                          <TimeInput
+                          <AppTimePicker
                             id={`clockIn-${index}`}
                             value={interval.clockIn}
                             onChange={(val) => handleIntervalChange(index, 'clockIn', val)}
@@ -255,7 +255,7 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
                         </div>
                         <span className="text-slate-500 font-mono text-sm sm:pt-4">–</span>
                         <div className="flex-1">
-                          <TimeInput
+                          <AppTimePicker
                             id={`clockOut-${index}`}
                             value={interval.clockOut}
                             onChange={(val) => handleIntervalChange(index, 'clockOut', val)}

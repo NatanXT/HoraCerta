@@ -154,6 +154,7 @@ export const ProfilePage: React.FC = () => {
         if (!d.isWorkDay) {
           return {
             weekday: d.weekday,
+            isWorkDay: false,
             expectedMinutes: 0,
             plannedStartMinutes: null,
             plannedEndMinutes: null,
@@ -170,6 +171,7 @@ export const ProfilePage: React.FC = () => {
 
         return {
           weekday: d.weekday,
+          isWorkDay: true,
           expectedMinutes: expected,
           plannedStartMinutes: start,
           plannedEndMinutes: end,
@@ -180,10 +182,14 @@ export const ProfilePage: React.FC = () => {
 
       await profileService.updateWorkSchedule(schedulePayload);
 
-      setSuccessMessage('Perfil e jornada salvos com sucesso!');
+      setSuccessMessage('Jornada atualizada com sucesso.');
       setHasUnconfiguredSchedule(false);
     } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || 'Erro ao salvar perfil.');
+      setErrorMessage(
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        'Erro ao salvar perfil.'
+      );
     } finally {
       setSaving(false);
     }

@@ -209,7 +209,8 @@ export class ReportService {
         bankStartDateStr !== null &&
         dateStr >= bankStartDateStr &&
         isHistorical &&
-        state.status === 'RECORDED';
+        (state.status === 'RECORDED' ||
+          (state.status === 'EXCUSED' && state.occurrence?.type === 'BANK_HOURS_LEAVE'));
 
       if (dateStr <= todayStr) {
         scheduledMinutes += state.expectedMinutes;
@@ -250,7 +251,9 @@ export class ReportService {
       }
 
       if (isToday) {
-        if (state.hasEntries) {
+        if (state.occurrence?.type === 'BANK_HOURS_LEAVE') {
+          provisionalTodayBalanceMinutes = state.totalWorkedMinutes - baseExpectedMinutes;
+        } else if (state.hasEntries) {
           provisionalTodayBalanceMinutes = state.totalWorkedMinutes - state.expectedMinutes;
         } else if (state.expectedMinutes === 0) {
           provisionalTodayBalanceMinutes = 0;

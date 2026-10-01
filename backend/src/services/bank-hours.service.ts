@@ -147,7 +147,9 @@ export class BankHoursService {
       });
 
       if (state.status === 'IN_PROGRESS' || dateStr === todayStr) {
-        if (state.hasEntries) {
+        if (state.occurrence?.type === 'BANK_HOURS_LEAVE') {
+          todayBalanceMinutes = state.totalWorkedMinutes - defaultExpected;
+        } else if (state.hasEntries) {
           todayBalanceMinutes = state.totalWorkedMinutes - state.expectedMinutes;
         } else if (state.expectedMinutes === 0) {
           todayBalanceMinutes = 0;
@@ -175,8 +177,15 @@ export class BankHoursService {
             expectedMinutes: state.expectedMinutes,
             totalWorkedMinutes: state.workedMinutes,
           });
-        } else if (state.status === 'RECORDED') {
-          const dayBalance = state.totalWorkedMinutes - state.expectedMinutes;
+        } else if (
+          state.status === 'RECORDED' ||
+          (state.status === 'EXCUSED' && state.occurrence?.type === 'BANK_HOURS_LEAVE')
+        ) {
+          const dayBalance =
+            state.balanceMinutes !== null
+              ? state.balanceMinutes
+              : state.totalWorkedMinutes - state.expectedMinutes;
+
           if (dayBalance > 0) {
             creditMinutes += dayBalance;
             monthStats.creditMinutes += dayBalance;

@@ -31,7 +31,7 @@ export function useCalendarOccurrences(_monthStr?: string) {
       }
     } catch (err: any) {
       if (requestId === latestRequestIdRef.current) {
-        const msg = err.response?.data?.message || 'Erro ao carregar ocorrências.';
+        const msg = err.response?.data?.error?.message || err.response?.data?.message || 'Erro ao carregar ocorrências.';
         setError(msg);
       }
     } finally {
@@ -53,7 +53,7 @@ export function useCalendarOccurrences(_monthStr?: string) {
       setSuccessMessage('Ocorrência salva com sucesso!');
       return true;
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Erro ao criar ocorrência.';
+      const msg = err.response?.data?.error?.message || err.response?.data?.message || 'Erro ao criar ocorrência.';
       setError(msg);
       return false;
     } finally {
@@ -77,7 +77,7 @@ export function useCalendarOccurrences(_monthStr?: string) {
       setSuccessMessage('Ocorrência atualizada com sucesso!');
       return true;
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Erro ao atualizar ocorrência.';
+      const msg = err.response?.data?.error?.message || err.response?.data?.message || 'Erro ao atualizar ocorrência.';
       setError(msg);
       return false;
     } finally {
@@ -98,7 +98,7 @@ export function useCalendarOccurrences(_monthStr?: string) {
       setSuccessMessage('Ocorrência removida com sucesso!');
       return true;
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Erro ao remover ocorrência.';
+      const msg = err.response?.data?.error?.message || err.response?.data?.message || 'Erro ao remover ocorrência.';
       setError(msg);
       return false;
     } finally {

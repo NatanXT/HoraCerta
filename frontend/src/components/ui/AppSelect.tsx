@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import { PopoverPortal } from './PopoverPortal';
 
 export interface AppSelectOption {
   value: string;
@@ -31,24 +32,9 @@ export const AppSelect: React.FC<AppSelectProps> = ({
   placeholder = 'Selecione uma opção...',
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
-
-  // Click outside handler
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -66,7 +52,7 @@ export const AppSelect: React.FC<AppSelectProps> = ({
   };
 
   return (
-    <div className={`space-y-1.5 relative ${className}`} ref={containerRef}>
+    <div className={`space-y-1.5 relative ${className}`} ref={triggerRef}>
       {label && (
         <label
           htmlFor={id}
@@ -107,11 +93,16 @@ export const AppSelect: React.FC<AppSelectProps> = ({
         />
       </div>
 
-      {/* Custom Dark Theme Popover */}
-      {isOpen && (
+      {/* Custom Dark Theme Popover via Portal */}
+      <PopoverPortal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        triggerRef={triggerRef}
+        matchWidth={true}
+      >
         <div
           role="listbox"
-          className="absolute left-0 right-0 mt-2 z-50 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 backdrop-blur-md animate-fadeIn max-h-60 overflow-y-auto custom-scrollbar"
+          className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 backdrop-blur-md animate-fadeIn max-h-60 overflow-y-auto custom-scrollbar"
           onClick={(e) => e.stopPropagation()}
         >
           {options.map((opt) => {
@@ -139,7 +130,7 @@ export const AppSelect: React.FC<AppSelectProps> = ({
             );
           })}
         </div>
-      )}
+      </PopoverPortal>
     </div>
   );
 };

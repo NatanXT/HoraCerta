@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { calendarOccurrenceService } from './calendar-occurrence.service';
 import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
+import { bankHoursConfigRepository } from '../repositories/bank-hours-config.repository';
 import { prisma } from '../lib/prisma';
 import { CalendarOccurrenceType } from '@prisma/client';
 import { AppError } from '../errors/app-error';
@@ -150,6 +151,41 @@ describe('CalendarOccurrenceService (Mocked DB)', () => {
           endDate: '2026-10-10',
         })
       ).rejects.toThrow(AppError);
+    });
+  });
+
+  describe('BANK_HOURS_LEAVE Validations (C.9 & C.10)', () => {
+    it('C.9 deve bloquear criação de BANK_HOURS_LEAVE quando o banco de horas não estiver configurado', async () => {
+      vi.spyOn(bankHoursConfigRepository, 'findByUserId').mockResolvedValue(null);
+
+      await expect(
+        calendarOccurrenceService.create(TEST_USER_ID, {
+          type: CalendarOccurrenceType.BANK_HOURS_LEAVE,
+          title: 'Folga Banco',
+          startDate: '2026-10-15',
+          endDate: '2026-10-15',
+        })
+      ).rejects.toThrow('Configure o banco de horas antes de registrar uma folga usando saldo.');
+    });
+
+    it('C.10 deve bloquear criação de BANK_HOURS_LEAVE quando a data for anterior ao startDate do banco', async () => {
+      vi.spyOn(bankHoursConfigRepository, 'findByUserId').mockResolvedValue({
+        id: 'cfg-1',
+        userId: TEST_USER_ID,
+        startDate: new Date('2026-10-01T00:00:00.000Z'),
+        initialBalanceMinutes: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      await expect(
+        calendarOccurrenceService.create(TEST_USER_ID, {
+          type: CalendarOccurrenceType.BANK_HOURS_LEAVE,
+          title: 'Folga Retroativa',
+          startDate: '2026-09-20',
+          endDate: '2026-09-20',
+        })
+      ).rejects.toThrow('A data da folga por banco de horas não pode ser anterior à data de início do banco de horas configurado.');
     });
   });
 });

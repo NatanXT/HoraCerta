@@ -1,7 +1,7 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { TriangleAlert } from 'lucide-react';
 import { formatBalanceInput } from '../../utils/time';
-import { CustomDatePicker } from '../common/CustomDatePicker';
+import { AppDatePicker } from '../ui/AppDatePicker';
 
 interface BankHoursConfigFormProps {
   initialStartDate?: string;
@@ -27,6 +27,11 @@ export function BankHoursConfigForm({
     formatBalanceInput(initialBalanceMinutes)
   );
 
+  useEffect(() => {
+    setStartDate(initialStartDate || todayStr);
+    setBalanceInput(formatBalanceInput(initialBalanceMinutes));
+  }, [initialStartDate, initialBalanceMinutes, todayStr]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     await onSave(startDate, balanceInput);
@@ -48,7 +53,7 @@ export function BankHoursConfigForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Data Inicial */}
-        <CustomDatePicker
+        <AppDatePicker
           id="startDateInput"
           label="Data inicial da apuração *"
           max={todayStr}

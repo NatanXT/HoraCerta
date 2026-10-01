@@ -20,6 +20,7 @@ export function DashboardPage() {
     handlePauseLunch,
     handleResume,
     handleFinish,
+    handleReconcile,
   } = useTodayWorkDay();
 
   return (
@@ -45,6 +46,7 @@ export function DashboardPage() {
               onPauseLunch={handlePauseLunch}
               onResume={handleResume}
               onFinish={handleFinish}
+              onReconcile={handleReconcile}
             />
 
             <SummaryCard summary={data as any} />

@@ -73,6 +73,9 @@ export function resolveWorkDayState({
 
   if (!hasEntries) {
     if (activeOccurrence) {
+      const isBankHoursLeave = activeOccurrence.type === 'BANK_HOURS_LEAVE';
+      const balanceMinutes = isBankHoursLeave ? 0 - defaultExpectedMinutes : 0;
+
       return {
         dateStr,
         expectedMinutes: 0,
@@ -80,7 +83,7 @@ export function resolveWorkDayState({
         workedMinutes: 0,
         currentSessionMinutes: 0,
         totalWorkedMinutes: 0,
-        balanceMinutes: 0,
+        balanceMinutes,
         isOpen: false,
         hasEntries: false,
         occurrence: activeOccurrence,
@@ -116,9 +119,12 @@ export function resolveWorkDayState({
     };
   }
 
+  const isBankHoursLeave = activeOccurrence?.type === 'BANK_HOURS_LEAVE';
+  const calculationExpected = isBankHoursLeave ? defaultExpectedMinutes : effectiveExpectedMinutes;
+
   const calc = calculateDaySummary({
     entries: activeTimeEntries,
-    expectedMinutes: effectiveExpectedMinutes,
+    expectedMinutes: calculationExpected,
     now,
     isHistorical: !isToday,
   });
