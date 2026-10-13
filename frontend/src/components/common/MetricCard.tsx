@@ -35,77 +35,77 @@ const variantStyles: Record<
   }
 > = {
   indigo: {
-    cardBorder: 'border-slate-800/80',
-    cardHoverBorder: 'hover:border-indigo-500/40',
-    cardHoverBg: 'hover:bg-slate-900/90 hover:shadow-indigo-500/5',
-    iconBg: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-500/20',
-    iconColor: 'text-indigo-400',
-    valueColor: 'text-slate-100',
+    cardBorder: 'border-[var(--hc-border)]',
+    cardHoverBorder: 'hover:border-[var(--hc-accent-border)]',
+    cardHoverBg: 'hover:bg-[var(--hc-surface-raised)]',
+    iconBg: 'bg-[var(--hc-accent-soft)] border-[var(--hc-accent-border)] text-[var(--hc-accent-soft-foreground)] group-hover:scale-110',
+    iconColor: 'text-[var(--hc-accent)]',
+    valueColor: 'text-[var(--hc-text)]',
   },
   emerald: {
-    cardBorder: 'border-slate-800/80',
+    cardBorder: 'border-[var(--hc-border)]',
     cardHoverBorder: 'hover:border-emerald-500/40',
-    cardHoverBg: 'hover:bg-slate-900/90 hover:shadow-emerald-500/5',
-    iconBg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/20',
-    iconColor: 'text-emerald-400',
-    valueColor: 'text-emerald-400',
+    cardHoverBg: 'hover:bg-[var(--hc-surface-raised)]',
+    iconBg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 group-hover:scale-110',
+    iconColor: 'text-emerald-500',
+    valueColor: 'text-emerald-600 dark:text-emerald-400',
   },
   amber: {
-    cardBorder: 'border-slate-800/80',
+    cardBorder: 'border-[var(--hc-border)]',
     cardHoverBorder: 'hover:border-amber-500/40',
-    cardHoverBg: 'hover:bg-slate-900/90 hover:shadow-amber-500/5',
-    iconBg: 'bg-amber-500/10 border-amber-500/20 text-amber-400 group-hover:scale-110 group-hover:bg-amber-500/20',
-    iconColor: 'text-amber-400',
-    valueColor: 'text-amber-400',
+    cardHoverBg: 'hover:bg-[var(--hc-surface-raised)]',
+    iconBg: 'bg-amber-500/10 border-amber-500/20 text-amber-500 group-hover:scale-110',
+    iconColor: 'text-amber-500',
+    valueColor: 'text-amber-600 dark:text-amber-400',
   },
   rose: {
-    cardBorder: 'border-slate-800/80',
+    cardBorder: 'border-[var(--hc-border)]',
     cardHoverBorder: 'hover:border-rose-500/40',
-    cardHoverBg: 'hover:bg-slate-900/90 hover:shadow-rose-500/5',
-    iconBg: 'bg-rose-500/10 border-rose-500/20 text-rose-400 group-hover:scale-110 group-hover:bg-rose-500/20',
-    iconColor: 'text-rose-400',
-    valueColor: 'text-rose-400',
+    cardHoverBg: 'hover:bg-[var(--hc-surface-raised)]',
+    iconBg: 'bg-rose-500/10 border-rose-500/20 text-rose-500 group-hover:scale-110',
+    iconColor: 'text-rose-500',
+    valueColor: 'text-rose-600 dark:text-rose-400',
   },
   sky: {
-    cardBorder: 'border-slate-800/80',
+    cardBorder: 'border-[var(--hc-border)]',
     cardHoverBorder: 'hover:border-sky-500/40',
-    cardHoverBg: 'hover:bg-slate-900/90 hover:shadow-sky-500/5',
-    iconBg: 'bg-sky-500/10 border-sky-500/20 text-sky-400 group-hover:scale-110 group-hover:bg-sky-500/20',
-    iconColor: 'text-sky-400',
-    valueColor: 'text-sky-400',
+    cardHoverBg: 'hover:bg-[var(--hc-surface-raised)]',
+    iconBg: 'bg-sky-500/10 border-sky-500/20 text-sky-500 group-hover:scale-110',
+    iconColor: 'text-sky-500',
+    valueColor: 'text-sky-600 dark:text-sky-400',
   },
   purple: {
-    cardBorder: 'border-slate-800/80',
+    cardBorder: 'border-[var(--hc-border)]',
     cardHoverBorder: 'hover:border-purple-500/40',
-    cardHoverBg: 'hover:bg-slate-900/90 hover:shadow-purple-500/5',
-    iconBg: 'bg-purple-500/10 border-purple-500/20 text-purple-400 group-hover:scale-110 group-hover:bg-purple-500/20',
-    iconColor: 'text-purple-400',
-    valueColor: 'text-purple-300',
+    cardHoverBg: 'hover:bg-[var(--hc-surface-raised)]',
+    iconBg: 'bg-purple-500/10 border-purple-500/20 text-purple-500 group-hover:scale-110',
+    iconColor: 'text-purple-500',
+    valueColor: 'text-purple-600 dark:text-purple-400',
   },
   blue: {
-    cardBorder: 'border-slate-800/80',
+    cardBorder: 'border-[var(--hc-border)]',
     cardHoverBorder: 'hover:border-blue-500/40',
-    cardHoverBg: 'hover:bg-slate-900/90 hover:shadow-blue-500/5',
-    iconBg: 'bg-blue-500/10 border-blue-500/20 text-blue-400 group-hover:scale-110 group-hover:bg-blue-500/20',
-    iconColor: 'text-blue-400',
-    valueColor: 'text-blue-400',
+    cardHoverBg: 'hover:bg-[var(--hc-surface-raised)]',
+    iconBg: 'bg-blue-500/10 border-blue-500/20 text-blue-500 group-hover:scale-110',
+    iconColor: 'text-blue-500',
+    valueColor: 'text-blue-600 dark:text-blue-400',
   },
   slate: {
-    cardBorder: 'border-slate-800/80',
-    cardHoverBorder: 'hover:border-slate-700',
-    cardHoverBg: 'hover:bg-slate-900/90',
-    iconBg: 'bg-slate-800/80 border-slate-700/60 text-slate-300 group-hover:scale-110 group-hover:bg-slate-700/80',
-    iconColor: 'text-slate-400',
-    valueColor: 'text-slate-100',
+    cardBorder: 'border-[var(--hc-border)]',
+    cardHoverBorder: 'hover:border-[var(--hc-border-subtle)]',
+    cardHoverBg: 'hover:bg-[var(--hc-surface-raised)]',
+    iconBg: 'bg-[var(--hc-surface-raised)] border-[var(--hc-border)] text-[var(--hc-text-muted)] group-hover:scale-110',
+    iconColor: 'text-[var(--hc-text-muted)]',
+    valueColor: 'text-[var(--hc-text)]',
   },
 };
 
 const badgeStyles: Record<string, string> = {
-  success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  warning: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  error: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-  info: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
-  neutral: 'bg-slate-800 text-slate-400 border-slate-700',
+  success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+  warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
+  error: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30',
+  info: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30',
+  neutral: 'bg-[var(--hc-surface-raised)] text-[var(--hc-text-secondary)] border-[var(--hc-border)]',
 };
 
 export const MetricCard: React.FC<MetricCardProps> = ({
@@ -124,12 +124,12 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`group relative bg-slate-900/70 border ${styles.cardBorder} ${styles.cardHoverBorder} ${styles.cardHoverBg} rounded-2xl p-4 sm:p-5 transition-all duration-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md ${
+      className={`group relative bg-[var(--hc-surface)] border ${styles.cardBorder} ${styles.cardHoverBorder} ${styles.cardHoverBg} rounded-2xl p-4 sm:p-5 transition-all duration-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md ${
         onClick ? 'cursor-pointer' : ''
       } ${className}`}
     >
       <div className="flex items-start justify-between gap-3">
-        <span className="text-xs sm:text-sm font-semibold text-slate-400 tracking-wide uppercase font-mono">
+        <span className="text-xs sm:text-sm font-semibold text-[var(--hc-text-secondary)] tracking-wide uppercase font-mono">
           {title}
         </span>
         {Icon && (
@@ -157,7 +157,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       </div>
 
       {subtitle && (
-        <p className="mt-1.5 text-xs text-slate-400 font-medium leading-relaxed">
+        <p className="mt-1.5 text-xs text-[var(--hc-text-muted)] font-medium leading-relaxed">
           {subtitle}
         </p>
       )}

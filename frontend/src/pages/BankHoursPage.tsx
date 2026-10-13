@@ -26,24 +26,24 @@ export function BankHoursPage() {
   } = useBankHours();
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
+    <main className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
         <FeedbackBanner feedback={feedback} />
 
         {/* Page Heading */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-800/80 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-[var(--hc-border)] gap-3">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white">Banco de Horas</h1>
-            <p className="text-xs text-slate-400">Apuração acumulada e acompanhamento do saldo de horas.</p>
+            <h1 className="text-xl font-bold tracking-tight text-[var(--hc-text)]">Banco de Horas</h1>
+            <p className="text-xs text-[var(--hc-text-secondary)]">Apuração acumulada e acompanhamento do saldo de horas.</p>
           </div>
 
           {data?.configured && !isEditingConfig && (
             <button
               type="button"
               onClick={toggleEditConfig}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:bg-slate-900 text-slate-300 border border-slate-800 text-xs font-semibold transition-colors cursor-pointer self-start sm:self-auto flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-xl bg-[var(--hc-surface)] hover:bg-[var(--hc-surface-raised)] text-[var(--hc-text)] border border-[var(--hc-border)] text-xs font-semibold transition-colors cursor-pointer self-start sm:self-auto flex items-center gap-1.5"
             >
-              <Settings className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+              <Settings className="w-3.5 h-3.5 text-[var(--hc-text-muted)]" aria-hidden="true" />
               <span>Editar configuração</span>
             </button>
           )}
@@ -74,13 +74,13 @@ export function BankHoursPage() {
             {data.configured && !isEditingConfig && data.summary && (
               <div className="space-y-6 sm:space-y-8">
                 {/* Active Configuration Summary Badge */}
-                <div className="bg-slate-900/60 border border-slate-800/60 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-2">
+                <div className="bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-[var(--hc-text-secondary)] gap-2">
                   <div className="flex items-center gap-3">
-                    <span>Início da apuração: <strong className="text-slate-200 font-mono">{formatFullDate(data.config!.startDate)}</strong></span>
+                    <span>Início da apuração: <strong className="text-[var(--hc-text)] font-mono">{formatFullDate(data.config!.startDate)}</strong></span>
                     <span className="hidden sm:inline">•</span>
-                    <span>Saldo inicial: <strong className="text-slate-200 font-mono">{formatBalance(data.config!.initialBalanceMinutes)}</strong></span>
+                    <span>Saldo inicial: <strong className="text-[var(--hc-text)] font-mono">{formatBalance(data.config!.initialBalanceMinutes)}</strong></span>
                   </div>
-                  <span className="text-slate-500 italic">Datas anteriores a esta são ignoradas no banco.</span>
+                  <span className="text-[var(--hc-text-muted)] italic">Datas anteriores a esta são ignoradas no banco.</span>
                 </div>
 
                 {/* 3 Main Summary Cards */}

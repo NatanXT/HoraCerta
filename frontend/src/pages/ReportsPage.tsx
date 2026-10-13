@@ -135,16 +135,16 @@ export function ReportsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white print:bg-white print:text-slate-900">
+    <main className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)] print:bg-white print:text-slate-900">
       <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 print:p-0 print:space-y-4 print:max-w-none">
         {/* Page Header (Hidden on print) */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-800/80 gap-4 print:hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-[var(--hc-border)] gap-4 print:hidden">
           <div>
             <div className="flex items-center gap-2">
-              <FileText className="w-6 h-6 text-indigo-400" />
-              <h1 className="text-xl font-bold tracking-tight text-white">Relatórios</h1>
+              <FileText className="w-6 h-6 text-[var(--hc-accent)]" />
+              <h1 className="text-xl font-bold tracking-tight text-[var(--hc-text)]">Relatórios</h1>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[var(--hc-text-secondary)] mt-1">
               Analise sua jornada, saldos, pendências e ocorrências em um período personalizado.
             </p>
           </div>
@@ -154,16 +154,16 @@ export function ReportsPage() {
             <button
               onClick={handleDownloadCsv}
               disabled={loading || csvDownloading || !report}
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700/80 rounded-xl transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-[var(--hc-text)] bg-[var(--hc-surface)] hover:bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
             >
-              <Download className="w-4 h-4 text-emerald-400" />
+              <Download className="w-4 h-4 text-emerald-500" />
               <span>{csvDownloading ? 'Exportando...' : 'Exportar CSV'}</span>
             </button>
 
             <button
               onClick={handlePrint}
               disabled={!report || loading}
-              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-xl transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-[var(--hc-accent-foreground)] bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 rounded-xl transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Salvar em PDF / Imprimir</span>
@@ -201,7 +201,7 @@ export function ReportsPage() {
                 setError(null);
                 setValidationError(null);
               }}
-              className="text-rose-400 hover:text-rose-200"
+              className="text-rose-400 hover:text-rose-200 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -209,9 +209,9 @@ export function ReportsPage() {
         )}
 
         {/* Filter Card (Hidden on print) */}
-        <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-xl space-y-4 backdrop-blur-sm print:hidden">
-          <div className="flex items-center gap-2 text-slate-300 font-semibold text-xs uppercase tracking-wider">
-            <CalendarRange className="w-4 h-4 text-indigo-400" />
+        <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-5 shadow-xl space-y-4 backdrop-blur-sm print:hidden">
+          <div className="flex items-center gap-2 text-[var(--hc-text-secondary)] font-semibold text-xs uppercase tracking-wider">
+            <CalendarRange className="w-4 h-4 text-[var(--hc-accent)]" />
             <span>Seleção de Período</span>
           </div>
 
@@ -235,32 +235,32 @@ export function ReportsPage() {
             {/* Presets and Submit */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] text-slate-500 mr-1">Atalhos:</span>
+                <span className="text-[11px] text-[var(--hc-text-muted)] mr-1">Atalhos:</span>
                 <button
                   type="button"
                   onClick={() => handleApplyPreset('THIS_MONTH')}
-                  className="px-2.5 py-1 text-[11px] font-medium bg-slate-950 hover:bg-slate-800 text-slate-300 rounded-lg border border-slate-800 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 text-[11px] font-medium bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-surface-muted)] text-[var(--hc-text)] rounded-lg border border-[var(--hc-border)] transition-colors cursor-pointer"
                 >
                   Este mês
                 </button>
                 <button
                   type="button"
                   onClick={() => handleApplyPreset('LAST_MONTH')}
-                  className="px-2.5 py-1 text-[11px] font-medium bg-slate-950 hover:bg-slate-800 text-slate-300 rounded-lg border border-slate-800 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 text-[11px] font-medium bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-surface-muted)] text-[var(--hc-text)] rounded-lg border border-[var(--hc-border)] transition-colors cursor-pointer"
                 >
                   Mês anterior
                 </button>
                 <button
                   type="button"
                   onClick={() => handleApplyPreset('LAST_30_DAYS')}
-                  className="px-2.5 py-1 text-[11px] font-medium bg-slate-950 hover:bg-slate-800 text-slate-300 rounded-lg border border-slate-800 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 text-[11px] font-medium bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-surface-muted)] text-[var(--hc-text)] rounded-lg border border-[var(--hc-border)] transition-colors cursor-pointer"
                 >
                   Últimos 30 dias
                 </button>
                 <button
                   type="button"
                   onClick={() => handleApplyPreset('THIS_YEAR')}
-                  className="px-2.5 py-1 text-[11px] font-medium bg-slate-950 hover:bg-slate-800 text-slate-300 rounded-lg border border-slate-800 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 text-[11px] font-medium bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-surface-muted)] text-[var(--hc-text)] rounded-lg border border-[var(--hc-border)] transition-colors cursor-pointer"
                 >
                   Este ano
                 </button>
@@ -269,7 +269,7 @@ export function ReportsPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-50 rounded-xl transition-colors cursor-pointer shadow-sm"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-[var(--hc-accent-foreground)] bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 disabled:opacity-50 rounded-xl transition-colors cursor-pointer shadow-sm"
               >
                 <Search className="w-4 h-4" />
                 <span>{loading ? 'Gerando...' : 'Gerar relatório'}</span>

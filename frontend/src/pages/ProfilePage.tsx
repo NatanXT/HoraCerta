@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { User, Calendar, Clock, Coffee, Utensils, Save, Check, AlertCircle, Info } from 'lucide-react';
+import { User, Calendar, Clock, Coffee, Utensils, Save, Check, AlertCircle, Info, Palette } from 'lucide-react';
 import { profileService, ProfileScheduleDay } from '../services/profile.service';
 import { AppTimePicker } from '../components/ui/AppTimePicker';
 import { useAuth } from '../contexts/AuthContext';
+import { AppearanceSettings } from '../components/settings/AppearanceSettings';
 
 const WEEKDAYS = [
   { key: 'MONDAY', label: 'Segunda-feira' },
@@ -38,6 +39,7 @@ interface DayFormState {
 
 export const ProfilePage: React.FC = () => {
   const { refreshMe } = useAuth();
+  const [activeTab, setActiveTab] = useState<'profile' | 'appearance'>('profile');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [timezone, setTimezone] = useState('America/Sao_Paulo');
@@ -75,8 +77,8 @@ export const ProfilePage: React.FC = () => {
         return {
           weekday: w.key,
           isWorkDay,
-          startHhMm: minutesToHhMm(existing?.plannedStartMinutes ?? (isWorkDay ? 480 : null)), // 08:00
-          endHhMm: minutesToHhMm(existing?.plannedEndMinutes ?? (isWorkDay ? 1035 : null)), // 17:15
+          startHhMm: minutesToHhMm(existing?.plannedStartMinutes ?? (isWorkDay ? 480 : null)),
+          endHhMm: minutesToHhMm(existing?.plannedEndMinutes ?? (isWorkDay ? 1035 : null)),
           snackBreakHhMm: minutesToHhMm(existing?.snackBreakMinutes ?? (isWorkDay ? 15 : 0)),
           lunchBreakHhMm: minutesToHhMm(existing?.lunchBreakMinutes ?? (isWorkDay ? 60 : 0)),
         };
@@ -145,11 +147,9 @@ export const ProfilePage: React.FC = () => {
     setSaving(true);
 
     try {
-      // 1. Update Personal Data
       await profileService.updatePersonalData({ name });
       await refreshMe();
 
-      // 2. Update Work Schedule
       const schedulePayload = days.map((d) => {
         if (!d.isWorkDay) {
           return {
@@ -198,7 +198,7 @@ export const ProfilePage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-16">
-        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-2 border-[var(--hc-accent)] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -207,211 +207,248 @@ export const ProfilePage: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-          <User className="w-6 h-6 text-indigo-400" />
-          Perfil e Jornada de Trabalho
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--hc-text)] flex items-center gap-2.5">
+          <User className="w-6 h-6 text-[var(--hc-accent)]" />
+          Configurações do Usuário
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Configure seus dados pessoais e o planejamento semanal das suas jornadas e pausas.
+        <p className="text-sm text-[var(--hc-text-secondary)] mt-1">
+          Gerencie seus dados cadastrais, horários de trabalho planejados e preferências visuais.
         </p>
       </div>
 
-      {hasUnconfiguredSchedule && (
-        <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/60 text-amber-300 text-sm flex items-start gap-3">
-          <Info className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold">Horário planejado ainda não configurado</p>
-            <p className="text-xs text-amber-400/90 mt-0.5">
-              Sua conta possui registros com carga horária mas sem horário de início/fim planejado. Preencha os campos abaixo e salve para atualizar.
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Tabs Navigation */}
+      <div className="flex items-center gap-2 border-b border-[var(--hc-border)] pb-2 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab('profile')}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'profile'
+              ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+              : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)]'
+          }`}
+        >
+          <User className="w-4 h-4" />
+          Meu Perfil
+        </button>
 
-      {successMessage && (
-        <div className="p-4 rounded-xl bg-emerald-950/50 border border-emerald-800/60 text-emerald-300 text-sm flex items-center gap-3">
-          <Check className="w-5 h-5 text-emerald-400 shrink-0" />
-          <span>{successMessage}</span>
-        </div>
-      )}
+        <button
+          type="button"
+          onClick={() => setActiveTab('appearance')}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'appearance'
+              ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+              : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)]'
+          }`}
+        >
+          <Palette className="w-4 h-4" />
+          Aparência
+        </button>
+      </div>
 
-      {errorMessage && (
-        <div className="p-4 rounded-xl bg-red-950/50 border border-red-800/60 text-red-300 text-sm flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-          <span>{errorMessage}</span>
-        </div>
-      )}
+      {/* Tab: Appearance */}
+      {activeTab === 'appearance' && <AppearanceSettings />}
 
-      <form onSubmit={handleSave} className="space-y-6">
-        {/* Card 1: Personal Info */}
-        <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-4">
-          <h2 className="text-base font-semibold text-white flex items-center gap-2 pb-3 border-b border-slate-800">
-            <User className="w-4 h-4 text-indigo-400" />
-            Dados Pessoais
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                Nome completo
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-sm"
-              />
+      {/* Tab: Profile & Schedule */}
+      {activeTab === 'profile' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {hasUnconfiguredSchedule && (
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-sm flex items-start gap-3">
+              <Info className="w-5 h-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Horário planejado ainda não configurado</p>
+                <p className="text-xs opacity-90 mt-0.5">
+                  Sua conta possui registros com carga horária mas sem horário de início/fim planejado. Preencha os campos abaixo e salve para atualizar.
+                </p>
+              </div>
             </div>
+          )}
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                E-mail (somente leitura)
-              </label>
-              <input
-                type="email"
-                disabled
-                value={email}
-                className="w-full px-4 py-2.5 bg-slate-950/40 border border-slate-800/60 rounded-xl text-slate-400 text-sm cursor-not-allowed"
-              />
+          {successMessage && (
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-sm flex items-center gap-3">
+              <Check className="w-5 h-5 shrink-0" />
+              <span>{successMessage}</span>
             </div>
-          </div>
+          )}
 
-          <div className="pt-2 text-xs text-slate-400 flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-slate-500" />
-            Fuso horário: <span className="text-slate-300 font-medium">{timezone}</span>
-          </div>
-        </div>
+          {errorMessage && (
+            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-sm flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
-        {/* Card 2: Planned Weekly Schedule */}
-        <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
-            <div>
-              <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-indigo-400" />
-                Jornada de Trabalho Semanal
+          <form onSubmit={handleSave} className="space-y-6">
+            {/* Card 1: Personal Info */}
+            <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 shadow-xl space-y-4">
+              <h2 className="text-base font-semibold text-[var(--hc-text)] flex items-center gap-2 pb-3 border-b border-[var(--hc-border)]">
+                <User className="w-4 h-4 text-[var(--hc-accent)]" />
+                Dados Pessoais
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Configure os horários de início/fim e as pausas estimadas para cada dia.
-              </p>
-            </div>
 
-            <div className="bg-indigo-950/60 border border-indigo-800/60 text-indigo-300 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2">
-              <span>Semana planejada:</span>
-              <span className="text-white text-sm font-bold">
-                {minutesToHhMm(calculateWeeklyTotal())}h
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {days.map((day) => {
-              const weekdayObj = WEEKDAYS.find((w) => w.key === day.weekday)!;
-              const netMins = calculateNetMinutes(day);
-
-              return (
-                <div
-                  key={day.weekday}
-                  className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-all hover:border-slate-700/80"
-                >
-                  {/* Left: Day & Toggle */}
-                  <div className="flex items-center justify-between lg:justify-start lg:w-48 gap-3">
-                    <span className="text-sm font-medium text-slate-200">
-                      {weekdayObj.label}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleDayChange(day.weekday, 'isWorkDay', !day.isWorkDay)}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                        day.isWorkDay
-                          ? 'bg-indigo-600/30 border border-indigo-500/50 text-indigo-300'
-                          : 'bg-slate-800/60 border border-slate-700/60 text-slate-400'
-                      }`}
-                    >
-                      {day.isWorkDay ? 'Trabalha' : 'Folga'}
-                    </button>
-                  </div>
-
-                  {/* Center: Work Hours & Breaks */}
-                  {day.isWorkDay ? (
-                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div>
-                        <span className="block text-[11px] text-slate-400 font-medium mb-1">
-                          Início
-                        </span>
-                        <AppTimePicker
-                          value={day.startHhMm}
-                          onChange={(val) => handleDayChange(day.weekday, 'startHhMm', val)}
-                        />
-                      </div>
-
-                      <div>
-                        <span className="block text-[11px] text-slate-400 font-medium mb-1">
-                          Fim
-                        </span>
-                        <AppTimePicker
-                          value={day.endHhMm}
-                          onChange={(val) => handleDayChange(day.weekday, 'endHhMm', val)}
-                        />
-                      </div>
-
-                      <div>
-                        <span className="block text-[11px] text-slate-400 font-medium mb-1 flex items-center gap-1">
-                          <Coffee className="w-3 h-3 text-amber-400" />
-                          Lanche
-                        </span>
-                        <AppTimePicker
-                          value={day.snackBreakHhMm}
-                          onChange={(val) => handleDayChange(day.weekday, 'snackBreakHhMm', val)}
-                        />
-                      </div>
-
-                      <div>
-                        <span className="block text-[11px] text-slate-400 font-medium mb-1 flex items-center gap-1">
-                          <Utensils className="w-3 h-3 text-emerald-400" />
-                          Almoço
-                        </span>
-                        <AppTimePicker
-                          value={day.lunchBreakHhMm}
-                          onChange={(val) => handleDayChange(day.weekday, 'lunchBreakHhMm', val)}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex-1 text-xs text-slate-500 italic">
-                      Dia de descanso (sem expediente planejado)
-                    </div>
-                  )}
-
-                  {/* Right: Net workload badge */}
-                  <div className="flex items-center justify-end lg:w-28">
-                    <div className="text-right">
-                      <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 block">
-                        Jornada líquida
-                      </span>
-                      <span className="text-sm font-bold text-white">
-                        {minutesToHhMm(netMins)}h
-                      </span>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] uppercase tracking-wider mb-2">
+                    Nome completo
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl text-[var(--hc-text)] placeholder-[var(--hc-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--hc-focus-ring)] focus:border-[var(--hc-accent)] text-sm"
+                  />
                 </div>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Submit */}
-        <div className="flex justify-end pt-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2 cursor-pointer text-sm"
-          >
-            <Save className="w-4 h-4" />
-            {saving ? 'Salvando...' : 'Salvar alterações'}
-          </button>
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] uppercase tracking-wider mb-2">
+                    E-mail (somente leitura)
+                  </label>
+                  <input
+                    type="email"
+                    disabled
+                    value={email}
+                    className="w-full px-4 py-2.5 bg-[var(--hc-surface-muted)] border border-[var(--hc-border)] rounded-xl text-[var(--hc-text-muted)] text-sm cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 text-xs text-[var(--hc-text-muted)] flex items-center gap-2">
+                <Clock className="w-3.5 h-3.5 text-[var(--hc-text-muted)]" />
+                Fuso horário: <span className="text-[var(--hc-text)] font-medium">{timezone}</span>
+              </div>
+            </div>
+
+            {/* Card 2: Planned Weekly Schedule */}
+            <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 shadow-xl space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[var(--hc-border)]">
+                <div>
+                  <h2 className="text-base font-semibold text-[var(--hc-text)] flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-[var(--hc-accent)]" />
+                    Jornada de Trabalho Semanal
+                  </h2>
+                  <p className="text-xs text-[var(--hc-text-secondary)] mt-1">
+                    Configure os horários de início/fim e as pausas estimadas para cada dia.
+                  </p>
+                </div>
+
+                <div className="bg-[var(--hc-accent-soft)] border border-[var(--hc-accent-border)] text-[var(--hc-accent-soft-foreground)] px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2">
+                  <span>Semana planejada:</span>
+                  <span className="text-sm font-bold">
+                    {minutesToHhMm(calculateWeeklyTotal())}h
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {days.map((day) => {
+                  const weekdayObj = WEEKDAYS.find((w) => w.key === day.weekday)!;
+                  const netMins = calculateNetMinutes(day);
+
+                  return (
+                    <div
+                      key={day.weekday}
+                      className="p-4 rounded-xl bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-all hover:border-[var(--hc-accent-border)]"
+                    >
+                      {/* Left: Day & Toggle */}
+                      <div className="flex items-center justify-between lg:justify-start lg:w-48 gap-3">
+                        <span className="text-sm font-medium text-[var(--hc-text)]">
+                          {weekdayObj.label}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDayChange(day.weekday, 'isWorkDay', !day.isWorkDay)}
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                            day.isWorkDay
+                              ? 'bg-[var(--hc-accent-soft)] border border-[var(--hc-accent-border)] text-[var(--hc-accent-soft-foreground)]'
+                              : 'bg-[var(--hc-surface-muted)] border border-[var(--hc-border)] text-[var(--hc-text-muted)]'
+                          }`}
+                        >
+                          {day.isWorkDay ? 'Trabalha' : 'Folga'}
+                        </button>
+                      </div>
+
+                      {/* Center: Work Hours & Breaks */}
+                      {day.isWorkDay ? (
+                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          <div>
+                            <span className="block text-[11px] text-[var(--hc-text-secondary)] font-medium mb-1">
+                              Início
+                            </span>
+                            <AppTimePicker
+                              value={day.startHhMm}
+                              onChange={(val) => handleDayChange(day.weekday, 'startHhMm', val)}
+                            />
+                          </div>
+
+                          <div>
+                            <span className="block text-[11px] text-[var(--hc-text-secondary)] font-medium mb-1">
+                              Fim
+                            </span>
+                            <AppTimePicker
+                              value={day.endHhMm}
+                              onChange={(val) => handleDayChange(day.weekday, 'endHhMm', val)}
+                            />
+                          </div>
+
+                          <div>
+                            <span className="block text-[11px] text-[var(--hc-text-secondary)] font-medium mb-1 flex items-center gap-1">
+                              <Coffee className="w-3 h-3 text-amber-500" />
+                              Lanche
+                            </span>
+                            <AppTimePicker
+                              value={day.snackBreakHhMm}
+                              onChange={(val) => handleDayChange(day.weekday, 'snackBreakHhMm', val)}
+                            />
+                          </div>
+
+                          <div>
+                            <span className="block text-[11px] text-[var(--hc-text-secondary)] font-medium mb-1 flex items-center gap-1">
+                              <Utensils className="w-3 h-3 text-emerald-500" />
+                              Almoço
+                            </span>
+                            <AppTimePicker
+                              value={day.lunchBreakHhMm}
+                              onChange={(val) => handleDayChange(day.weekday, 'lunchBreakHhMm', val)}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex-1 text-xs text-[var(--hc-text-muted)] italic">
+                          Dia de descanso (sem expediente planejado)
+                        </div>
+                      )}
+
+                      {/* Right: Net workload badge */}
+                      <div className="flex items-center justify-end lg:w-28">
+                        <div className="text-right">
+                          <span className="text-[10px] uppercase tracking-wider font-semibold text-[var(--hc-text-muted)] block">
+                            Jornada líquida
+                          </span>
+                          <span className="text-sm font-bold text-[var(--hc-text)]">
+                            {minutesToHhMm(netMins)}h
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Submit */}
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-6 py-3 bg-[var(--hc-accent)] hover:opacity-90 disabled:opacity-50 text-[var(--hc-accent-foreground)] font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer text-sm"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? 'Salvando...' : 'Salvar alterações'}
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      )}
     </div>
   );
 };

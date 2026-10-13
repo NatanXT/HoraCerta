@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
+import { AppearanceProvider } from '../contexts/AppearanceContext';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { AppLayout } from '../layouts/AppLayout';
 import { LoginPage } from '../pages/LoginPage';
@@ -15,29 +16,31 @@ export function AppRoutes() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Public Authentication Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/cadastro" element={<RegisterPage />} />
+        <AppearanceProvider>
+          <Routes>
+            {/* Public Authentication Routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/cadastro" element={<RegisterPage />} />
 
-          {/* Protected Application Routes */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/historico" element={<HistoryPage />} />
-            <Route path="/banco-de-horas" element={<BankHoursPage />} />
-            <Route path="/ausencias" element={<AbsencesPage />} />
-            <Route path="/relatorios" element={<ReportsPage />} />
-            <Route path="/perfil" element={<ProfilePage />} />
-            {/* Redirect legacy /configuracoes to /perfil */}
-            <Route path="/configuracoes" element={<Navigate to="/perfil" replace />} />
-          </Route>
-        </Routes>
+            {/* Protected Application Routes */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/historico" element={<HistoryPage />} />
+              <Route path="/banco-de-horas" element={<BankHoursPage />} />
+              <Route path="/ausencias" element={<AbsencesPage />} />
+              <Route path="/relatorios" element={<ReportsPage />} />
+              <Route path="/perfil" element={<ProfilePage />} />
+              {/* Redirect legacy /configuracoes to /perfil */}
+              <Route path="/configuracoes" element={<Navigate to="/perfil" replace />} />
+            </Route>
+          </Routes>
+        </AppearanceProvider>
       </AuthProvider>
     </BrowserRouter>
   );

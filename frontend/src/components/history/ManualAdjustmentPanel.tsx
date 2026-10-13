@@ -157,22 +157,22 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div
-        className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-2xl bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-[var(--hc-text)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-950/40">
+        <div className="px-6 py-4 border-b border-[var(--hc-border)] flex items-center justify-between bg-[var(--hc-surface-raised)]">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <div className="p-2 rounded-xl bg-[var(--hc-accent-soft)] text-[var(--hc-accent)] border border-[var(--hc-accent-border)]">
               <PencilLine className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white tracking-tight">
+              <h3 className="text-base font-bold text-[var(--hc-text)] tracking-tight">
                 Ajuste manual do dia
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[var(--hc-text-secondary)]">
                 {formatFullDate(day.date)} • Jornada esperada: {formatMinutes(day.expectedMinutes)}
               </p>
             </div>
@@ -238,7 +238,7 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
                 {intervals.map((interval, index) => (
                   <div
                     key={index}
-                    className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 bg-slate-950/60 rounded-xl border border-slate-800"
+                    className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 bg-[var(--hc-surface-raised)] rounded-xl border border-[var(--hc-border)]"
                   >
                     <div className="flex-1 flex items-center gap-2">
                       <span className="text-xs font-semibold text-slate-400 w-24 shrink-0 font-mono">
@@ -298,26 +298,26 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Ex.: esqueci de registrar a saída no horário correto."
                 required
-                className="w-full bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="w-full bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl p-3 text-sm text-[var(--hc-text)] placeholder-[var(--hc-text-muted)] focus:outline-none focus:border-[var(--hc-accent)] focus:ring-1 focus:ring-[var(--hc-accent)]"
               />
             </div>
           </form>
 
           {/* Audit History Section */}
-          <div className="pt-6 border-t border-slate-800 space-y-4">
+          <div className="pt-6 border-t border-[var(--hc-border)] space-y-4">
             <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-slate-400" aria-hidden="true" />
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              <History className="w-4 h-4 text-[var(--hc-text-muted)]" aria-hidden="true" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--hc-text-secondary)]">
                 Histórico de ajustes deste dia
               </h4>
             </div>
 
             {loadingAdjustments && (
-              <p className="text-xs text-slate-500 py-2">Carregando histórico de auditoria...</p>
+              <p className="text-xs text-[var(--hc-text-muted)] py-2">Carregando histórico de auditoria...</p>
             )}
 
             {!loadingAdjustments && adjustments.length === 0 && (
-              <p className="text-xs text-slate-500 italic py-2">
+              <p className="text-xs text-[var(--hc-text-muted)] italic py-2">
                 Nenhum ajuste manual anterior gravado para esta data.
               </p>
             )}
@@ -330,31 +330,31 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
                   return (
                     <div
                       key={adj.id}
-                      className="p-3.5 bg-slate-950/40 rounded-xl border border-slate-800/80 space-y-2 text-xs"
+                      className="p-3.5 bg-[var(--hc-surface-raised)] rounded-xl border border-[var(--hc-border)] space-y-2 text-xs"
                     >
-                      <div className="flex items-center justify-between text-slate-400 font-mono text-[11px]">
+                      <div className="flex items-center justify-between text-[var(--hc-text-secondary)] font-mono text-[11px]">
                         <span>{formattedDate}</span>
                       </div>
 
-                      <p className="text-slate-200">
-                        <strong className="text-slate-400 font-semibold">Motivo:</strong> {adj.reason}
+                      <p className="text-[var(--hc-text)]">
+                        <strong className="text-[var(--hc-text-secondary)] font-semibold">Motivo:</strong> {adj.reason}
                       </p>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
-                        <div className="p-2 rounded bg-slate-900/60 border border-slate-800">
-                          <span className="text-rose-400 font-semibold block uppercase text-[10px] mb-0.5">
+                        <div className="p-2 rounded bg-[var(--hc-surface)] border border-[var(--hc-border)]">
+                          <span className="text-rose-500 font-semibold block uppercase text-[10px] mb-0.5">
                             Antes:
                           </span>
-                          <span className="text-slate-300">
+                          <span className="text-[var(--hc-text-secondary)]">
                             {formatSnapshotIntervals(adj.beforeEntries)}
                           </span>
                         </div>
 
-                        <div className="p-2 rounded bg-slate-900/60 border border-slate-800">
-                          <span className="text-emerald-400 font-semibold block uppercase text-[10px] mb-0.5">
+                        <div className="p-2 rounded bg-[var(--hc-surface)] border border-[var(--hc-border)]">
+                          <span className="text-emerald-500 font-semibold block uppercase text-[10px] mb-0.5">
                             Depois:
                           </span>
-                          <span className="text-slate-300">
+                          <span className="text-[var(--hc-text-secondary)]">
                             {formatSnapshotIntervals(adj.afterEntries)}
                           </span>
                         </div>
@@ -368,12 +368,12 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-3.5 border-t border-slate-800/80 bg-slate-950/40 flex items-center justify-end gap-3">
+        <div className="px-6 py-3.5 border-t border-[var(--hc-border)] bg-[var(--hc-surface-raised)] flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-700/80 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[var(--hc-border)] text-xs font-semibold text-[var(--hc-text)] hover:bg-[var(--hc-surface)] transition-colors disabled:opacity-50 cursor-pointer"
           >
             <X className="w-4 h-4" />
             <span>Cancelar</span>
@@ -383,7 +383,7 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
             type="submit"
             form="manual-adjustment-form"
             disabled={saving}
-            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 text-xs font-semibold text-[var(--hc-accent-foreground)] shadow-md transition-all disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Salvando...' : 'Salvar ajuste'}</span>

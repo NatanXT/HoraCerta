@@ -187,22 +187,22 @@ export function AbsencesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-800/80 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-[var(--hc-border)] gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <CalendarOff className="w-6 h-6 text-indigo-400" />
-              <h1 className="text-xl font-bold tracking-tight text-white">Ausências e feriados</h1>
+              <CalendarOff className="w-6 h-6 text-[var(--hc-accent)]" />
+              <h1 className="text-xl font-bold tracking-tight text-[var(--hc-text)]">Ausências e feriados</h1>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[var(--hc-text-secondary)] mt-1">
               Gerencie períodos que alteram a jornada esperada, como feriados, férias e afastamentos.
             </p>
           </div>
           <button
             onClick={openCreateModal}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-lg transition-colors shadow-sm cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-[var(--hc-accent-foreground)] bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 rounded-lg transition-colors shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Nova ocorrência
@@ -228,19 +228,19 @@ export function AbsencesPage() {
         )}
 
         {/* Month Navigation */}
-        <div className="flex items-center justify-between bg-slate-900/60 border border-slate-800 p-3 rounded-xl">
+        <div className="flex items-center justify-between bg-[var(--hc-surface)] border border-[var(--hc-border)] p-3 rounded-xl">
           <button
             onClick={handlePreviousMonth}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            className="p-2 text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] rounded-lg transition-colors cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-sm font-medium text-slate-200">
+          <span className="text-sm font-medium text-[var(--hc-text)]">
             {formatMonthTitle(selectedMonth)}
           </span>
           <button
             onClick={handleNextMonth}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            className="p-2 text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] rounded-lg transition-colors cursor-pointer"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -249,13 +249,13 @@ export function AbsencesPage() {
         {/* Occurrences List */}
         <div className="space-y-3">
           {loading ? (
-            <div className="p-8 text-center text-xs text-slate-400 bg-slate-900/30 border border-slate-800 rounded-xl">
+            <div className="p-8 text-center text-xs text-[var(--hc-text-muted)] bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl">
               Carregando ocorrências...
             </div>
           ) : occurrences.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400 bg-slate-900/30 border border-slate-800 rounded-xl space-y-1">
-              <p className="font-medium text-slate-300">Nenhuma ocorrência registrada no mês.</p>
-              <p className="text-slate-500">
+            <div className="p-8 text-center text-xs text-[var(--hc-text-muted)] bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl space-y-1">
+              <p className="font-medium text-[var(--hc-text)]">Nenhuma ocorrência registrada no mês.</p>
+              <p className="text-[var(--hc-text-muted)]">
                 Dias sem registro continuarão seguindo a jornada padrão.
               </p>
             </div>
@@ -263,25 +263,25 @@ export function AbsencesPage() {
             occurrences.map((occ) => (
               <div
                 key={occ.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-900/60 border border-slate-800/80 rounded-xl gap-3 hover:border-slate-700/80 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl gap-3 hover:border-[var(--hc-accent-border)] transition-colors"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 rounded-md">
+                    <span className="px-2.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase bg-[var(--hc-accent-soft)] text-[var(--hc-accent-soft-foreground)] border border-[var(--hc-accent-border)] rounded-md">
                       {CALENDAR_OCCURRENCE_TYPE_LABELS[occ.type] || occ.type}
                     </span>
-                    <h3 className="text-sm font-semibold text-white">{occ.title}</h3>
+                    <h3 className="text-sm font-semibold text-[var(--hc-text)]">{occ.title}</h3>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-[var(--hc-text-secondary)]">
                     Período:{' '}
-                    <span className="text-slate-300 font-mono">
+                    <span className="text-[var(--hc-text)] font-mono font-medium">
                       {occ.startDate === occ.endDate
                         ? occ.startDate
                         : `${occ.startDate} até ${occ.endDate}`}
                     </span>
                   </p>
                   {occ.note && (
-                    <p className="text-xs text-slate-400 italic bg-slate-950/40 px-2.5 py-1 rounded border border-slate-800/40">
+                    <p className="text-xs text-[var(--hc-text-muted)] italic bg-[var(--hc-surface-raised)] px-2.5 py-1 rounded border border-[var(--hc-border)]">
                       "{occ.note}"
                     </p>
                   )}
@@ -290,14 +290,14 @@ export function AbsencesPage() {
                 <div className="flex items-center gap-2 self-end sm:self-center">
                   <button
                     onClick={() => openEditModal(occ)}
-                    className="p-2 text-slate-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition-colors"
+                    className="p-2 text-[var(--hc-text-muted)] hover:text-[var(--hc-accent)] hover:bg-[var(--hc-surface-raised)] rounded-lg transition-colors cursor-pointer"
                     title="Editar"
                   >
                     <PencilLine className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setDeletingId(occ.id)}
-                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                    className="p-2 text-[var(--hc-text-muted)] hover:text-rose-500 hover:bg-[var(--hc-surface-raised)] rounded-lg transition-colors cursor-pointer"
                     title="Excluir"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -312,14 +312,14 @@ export function AbsencesPage() {
       {/* Create / Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h2 className="text-base font-semibold text-white">
+          <div className="w-full max-w-md bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--hc-border)]">
+              <h2 className="text-base font-semibold text-[var(--hc-text)]">
                 {editingOccurrence ? 'Editar ocorrência' : 'Nova ocorrência'}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -354,14 +354,14 @@ export function AbsencesPage() {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5 tracking-wide">Título</label>
+                <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] mb-1.5 tracking-wide">Título</label>
                 <input
                   type="text"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   placeholder="Ex: Feriado municipal, Férias regulamentares"
                   maxLength={100}
-                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 hover:border-slate-600 transition-all duration-150 shadow-inner"
+                  className="w-full bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl px-3.5 py-2.5 text-sm font-medium text-[var(--hc-text)] placeholder-[var(--hc-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--hc-focus-ring)] focus:border-[var(--hc-accent)] hover:border-[var(--hc-accent-border)] transition-all duration-150 shadow-inner"
                   required
                 />
               </div>
@@ -383,8 +383,8 @@ export function AbsencesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Observação <span className="text-slate-500 font-normal">(opcional)</span>
+                <label className="block text-xs font-medium text-[var(--hc-text-secondary)] mb-1">
+                  Observação <span className="text-[var(--hc-text-muted)] font-normal">(opcional)</span>
                 </label>
                 <textarea
                   value={formNote}
@@ -392,22 +392,22 @@ export function AbsencesPage() {
                   placeholder="Detalhes adicionais..."
                   maxLength={500}
                   rows={3}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none"
+                  className="w-full bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl px-3 py-2 text-xs text-[var(--hc-text)] placeholder-[var(--hc-text-muted)] focus:outline-none focus:border-[var(--hc-accent)] resize-none"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--hc-border)]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                  className="px-4 py-2 text-xs font-medium text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-surface-muted)] rounded-xl transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-50 rounded-xl transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-[var(--hc-accent-foreground)] bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 disabled:opacity-50 rounded-xl transition-colors cursor-pointer shadow-md"
                 >
                   <Check className="w-4 h-4" />
                   {submitting ? 'Salvando...' : 'Salvar'}
@@ -421,25 +421,25 @@ export function AbsencesPage() {
       {/* Delete Confirmation Modal */}
       {deletingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-amber-400">
+          <div className="w-full max-w-md bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-amber-500">
               <AlertTriangle className="w-6 h-6 shrink-0" />
-              <h3 className="text-base font-semibold text-white">Confirmar remoção</h3>
+              <h3 className="text-base font-semibold text-[var(--hc-text)]">Confirmar remoção</h3>
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-[var(--hc-text-secondary)] leading-relaxed">
               Remover esta ocorrência pode alterar o Histórico e o Banco de Horas dos dias envolvidos.
             </p>
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--hc-border)]">
               <button
                 onClick={() => setDeletingId(null)}
-                className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-medium text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-surface-muted)] rounded-xl transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmDelete}
                 disabled={submitting}
-                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 active:bg-rose-700 disabled:opacity-50 rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 active:bg-rose-700 disabled:opacity-50 rounded-xl transition-colors cursor-pointer shadow-md"
               >
                 {submitting ? 'Removendo...' : 'Remover ocorrência'}
               </button>
@@ -447,6 +447,6 @@ export function AbsencesPage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

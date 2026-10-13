@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, Link } from 'react-router-dom';
-import { Clock, UserCircle, ChevronDown, LogOut, User } from 'lucide-react';
+import { Clock, UserCircle, ChevronDown, LogOut, User, Palette } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export function AppLayout() {
@@ -26,35 +26,35 @@ export function AppLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-[var(--hc-bg)] text-[var(--hc-text)] flex flex-col selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
       {/* Top Main Navigation Bar */}
-      <header className="bg-slate-900/90 border-b border-slate-800/80 sticky top-0 z-40 backdrop-blur-md print:hidden">
+      <header className="bg-[var(--hc-surface)]/90 border-b border-[var(--hc-border)] sticky top-0 z-40 backdrop-blur-md print:hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
           {/* Logo & Branding */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400 font-extrabold flex items-center justify-center text-base shadow-sm shadow-indigo-500/10">
-              <Clock className="w-5 h-5 text-indigo-400" />
+            <div className="w-9 h-9 rounded-xl bg-[var(--hc-accent-soft)] border border-[var(--hc-accent-border)] text-[var(--hc-accent)] font-extrabold flex items-center justify-center text-base shadow-sm">
+              <Clock className="w-5 h-5 text-[var(--hc-accent)]" />
             </div>
             <div>
-              <span className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent block leading-none">
+              <span className="text-lg font-extrabold tracking-tight text-[var(--hc-text)] block leading-none">
                 HoraCerta
               </span>
-              <span className="text-[11px] text-slate-400 hidden sm:block mt-0.5 font-medium">
+              <span className="text-[11px] text-[var(--hc-text-secondary)] hidden sm:block mt-0.5 font-medium">
                 Controle simples da sua jornada
               </span>
             </div>
           </div>
 
           {/* Center Navigation Links */}
-          <nav aria-label="Navegação principal" className="flex items-center gap-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800/80 overflow-x-auto lg:overflow-visible">
+          <nav aria-label="Navegação principal" className="flex items-center gap-1 bg-[var(--hc-surface-raised)] p-1 rounded-xl border border-[var(--hc-border)] overflow-x-auto lg:overflow-visible">
             <NavLink
               to="/"
               end
               className={({ isActive }) =>
                 `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+                    : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface)]'
                 }`
               }
             >
@@ -65,8 +65,8 @@ export function AppLayout() {
               className={({ isActive }) =>
                 `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+                    : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface)]'
                 }`
               }
             >
@@ -77,8 +77,8 @@ export function AppLayout() {
               className={({ isActive }) =>
                 `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+                    : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface)]'
                 }`
               }
             >
@@ -89,8 +89,8 @@ export function AppLayout() {
               className={({ isActive }) =>
                 `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+                    : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface)]'
                 }`
               }
             >
@@ -101,8 +101,8 @@ export function AppLayout() {
               className={({ isActive }) =>
                 `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+                    : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface)]'
                 }`
               }
             >
@@ -114,30 +114,38 @@ export function AppLayout() {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 text-slate-200 text-xs sm:text-sm font-medium transition-all cursor-pointer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] hover:border-[var(--hc-accent-border)] text-[var(--hc-text)] text-xs sm:text-sm font-medium transition-all cursor-pointer"
             >
-              <UserCircle className="w-5 h-5 text-indigo-400" />
+              <UserCircle className="w-5 h-5 text-[var(--hc-accent)]" />
               <span className="max-w-[120px] sm:max-w-[160px] truncate">{user?.name || 'Usuário'}</span>
-              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 text-[var(--hc-text-muted)] transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
-                <div className="px-4 py-2 border-b border-slate-800/80">
-                  <p className="text-xs font-semibold text-white truncate">{user?.name}</p>
-                  <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
+              <div className="absolute right-0 mt-2 w-48 bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-4 py-2 border-b border-[var(--hc-border)]">
+                  <p className="text-xs font-semibold text-[var(--hc-text)] truncate">{user?.name}</p>
+                  <p className="text-[11px] text-[var(--hc-text-secondary)] truncate">{user?.email}</p>
                 </div>
                 <Link
                   to="/perfil"
                   onClick={() => setDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800/70 transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors"
                 >
-                  <User className="w-4 h-4 text-indigo-400" />
+                  <User className="w-4 h-4 text-[var(--hc-accent)]" />
                   Perfil
+                </Link>
+                <Link
+                  to="/perfil"
+                  onClick={() => setDropdownOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors"
+                >
+                  <Palette className="w-4 h-4 text-[var(--hc-accent)]" />
+                  Aparência
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-950/30 transition-colors cursor-pointer text-left"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer text-left"
                 >
                   <LogOut className="w-4 h-4" />
                   Sair

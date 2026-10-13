@@ -149,7 +149,7 @@ export const ClockCard: React.FC<ClockCardProps> = ({
   const showLunchBtn = breakSummary ? breakSummary.plannedLunchMinutes > 0 : true;
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 sm:p-8 text-center space-y-6 shadow-xl relative overflow-hidden backdrop-blur-sm">
+    <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 sm:p-8 text-center space-y-6 shadow-xl relative overflow-hidden backdrop-blur-sm">
       {/* Background glow gradient */}
       <div
         className={`absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full blur-3xl opacity-15 pointer-events-none transition-colors duration-500 ${
@@ -157,42 +157,42 @@ export const ClockCard: React.FC<ClockCardProps> = ({
             ? 'bg-emerald-500'
             : state === 'ON_SNACK_BREAK' || state === 'ON_LUNCH_BREAK'
             ? 'bg-amber-500'
-            : 'bg-indigo-500'
+            : 'bg-[var(--hc-accent)]'
         }`}
       />
 
       {/* Status Badge */}
       <div className="flex flex-col items-center gap-2">
         {state === 'NOT_STARTED' && (
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-indigo-400" />
+          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[var(--hc-accent-soft)] text-[var(--hc-accent-soft-foreground)] border border-[var(--hc-accent-border)] shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-[var(--hc-accent)]" />
             Pronto para iniciar
           </span>
         )}
 
         {state === 'WORKING' && (
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Expediente em andamento
           </span>
         )}
 
         {state === 'ON_SNACK_BREAK' && (
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
             Pausa para lanche
           </span>
         )}
 
         {state === 'ON_LUNCH_BREAK' && (
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
             Pausa para almoço
           </span>
         )}
 
         {state === 'ENDED' && (
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-800/80 text-slate-400 border border-slate-700/50">
+          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium bg-[var(--hc-surface-raised)] text-[var(--hc-text-muted)] border border-[var(--hc-border)]">
             <span className="w-2 h-2 rounded-full bg-slate-500" />
             Expediente encerrado
           </span>
@@ -201,7 +201,7 @@ export const ClockCard: React.FC<ClockCardProps> = ({
 
       {/* Digital Clock Display */}
       <div className="py-2">
-        <div className="text-4xl sm:text-5xl font-mono font-extrabold tracking-tight text-white drop-shadow-sm select-none">
+        <div className="text-4xl sm:text-5xl font-mono font-extrabold tracking-tight text-[var(--hc-text)] drop-shadow-sm select-none">
           {clockTime || '00:00:00'}
         </div>
       </div>
@@ -257,7 +257,7 @@ export const ClockCard: React.FC<ClockCardProps> = ({
             type="button"
             onClick={onStart}
             disabled={submitting}
-            className="w-full py-3.5 px-6 rounded-xl font-bold text-sm sm:text-base bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white shadow-lg shadow-indigo-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            className="w-full py-3.5 px-6 rounded-xl font-bold text-sm sm:text-base bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 text-[var(--hc-accent-foreground)] shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <Play className="w-5 h-5" />
             <span>{submitting ? 'Iniciando...' : 'Iniciar expediente'}</span>
@@ -271,9 +271,9 @@ export const ClockCard: React.FC<ClockCardProps> = ({
                 type="button"
                 onClick={onPauseSnack}
                 disabled={submitting}
-                className="py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm bg-amber-600/20 hover:bg-amber-600/30 active:bg-amber-600/40 text-amber-300 border border-amber-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-500 border border-amber-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                <Coffee className="w-4 h-4 text-amber-400" />
+                <Coffee className="w-4 h-4 text-amber-500" />
                 <span>Pausa lanche</span>
               </button>
             )}
@@ -283,9 +283,9 @@ export const ClockCard: React.FC<ClockCardProps> = ({
                 type="button"
                 onClick={onPauseLunch}
                 disabled={submitting}
-                className="py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm bg-amber-600/20 hover:bg-amber-600/30 active:bg-amber-600/40 text-amber-300 border border-amber-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-500 border border-amber-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                <Utensils className="w-4 h-4 text-amber-400" />
+                <Utensils className="w-4 h-4 text-amber-500" />
                 <span>Pausa almoço</span>
               </button>
             )}
@@ -294,11 +294,11 @@ export const ClockCard: React.FC<ClockCardProps> = ({
               type="button"
               onClick={onFinish}
               disabled={submitting}
-              className={`py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
+              className={`py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-surface-muted)] text-[var(--hc-text)] border border-[var(--hc-border)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
                 !showSnackBtn && !showLunchBtn ? 'sm:col-span-3' : ''
               }`}
             >
-              <LogOut className="w-4 h-4 text-slate-400" />
+              <LogOut className="w-4 h-4 text-[var(--hc-text-muted)]" />
               <span>Registrar saída</span>
             </button>
           </div>
@@ -310,7 +310,7 @@ export const ClockCard: React.FC<ClockCardProps> = ({
               type="button"
               onClick={onResume}
               disabled={submitting}
-              className="py-3.5 px-6 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white shadow-lg shadow-indigo-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="py-3.5 px-6 rounded-xl font-bold text-sm bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 text-[var(--hc-accent-foreground)] shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <Play className="w-5 h-5" />
               <span>{submitting ? 'Retomando...' : 'Retomar expediente'}</span>
@@ -320,10 +320,10 @@ export const ClockCard: React.FC<ClockCardProps> = ({
               type="button"
               onClick={onFinish}
               disabled={submitting}
-              className="py-3.5 px-6 rounded-xl font-semibold text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="py-3.5 px-6 rounded-xl font-semibold text-sm bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-surface-muted)] text-[var(--hc-text)] border border-[var(--hc-border)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <LogOut className="w-4 h-4 text-slate-400" />
-              <span>Registrar saída</span>
+              <LogOut className="w-4 h-4 text-[var(--hc-text-muted)]" />
+              <span>Encerrar direto</span>
             </button>
           </div>
         )}
@@ -333,9 +333,9 @@ export const ClockCard: React.FC<ClockCardProps> = ({
             type="button"
             onClick={onStart}
             disabled={submitting}
-            className="w-full py-3.5 px-6 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            className="w-full py-3.5 px-6 rounded-xl font-bold text-sm bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-surface-muted)] text-[var(--hc-text)] border border-[var(--hc-border)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            <Play className="w-5 h-5 text-indigo-400" />
+            <Play className="w-5 h-5 text-[var(--hc-accent)]" />
             <span>Iniciar novo período</span>
           </button>
         )}

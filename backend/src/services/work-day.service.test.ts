@@ -3,12 +3,14 @@ import { workDayService } from './work-day.service';
 import { userRepository } from '../repositories/user.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
+import { holidayRepository } from '../repositories/holiday.repository';
 import { TimeEntryType, TimeEntrySource, Weekday, CalendarOccurrenceType } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 
 describe('WorkDayService - ETAPA 09 & 11 (Ausências, Feriados e Status Autenticado)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(holidayRepository, 'findByDateRange').mockResolvedValue([]);
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-09-21T12:00:00.000Z'));
   });

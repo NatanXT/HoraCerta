@@ -85,13 +85,13 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={loading}
-            className="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-lg text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-colors"
+            className="w-full px-3.5 py-2.5 bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl text-[var(--hc-text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--hc-accent-soft)] focus:border-[var(--hc-accent)] disabled:opacity-50 transition-colors"
             placeholder="Seu nome completo"
           />
         </div>
 
         <div>
-          <label htmlFor="profile-email" className="block text-sm font-medium text-slate-300 mb-1.5">
+          <label htmlFor="profile-email" className="block text-sm font-medium text-[var(--hc-text-secondary)] mb-1.5">
             E-mail
           </label>
           <div className="relative">
@@ -101,9 +101,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
               value={profile.email}
               readOnly
               disabled
-              className="w-full px-3.5 py-2.5 bg-slate-900/40 border border-slate-700/50 rounded-lg text-slate-400 text-sm cursor-not-allowed pr-28"
+              className="w-full px-3.5 py-2.5 bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl text-[var(--hc-text-muted)] text-sm cursor-not-allowed pr-28"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-500 bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 flex items-center gap-1">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[var(--hc-text-muted)] bg-[var(--hc-surface)] px-2 py-0.5 rounded-lg border border-[var(--hc-border)] flex items-center gap-1">
               <Mail className="w-3 h-3" />
               Somente leitura
             </span>
@@ -111,7 +111,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
         </div>
 
         <div>
-          <label htmlFor="profile-timezone" className="block text-sm font-medium text-slate-300 mb-1.5">
+          <label htmlFor="profile-timezone" className="block text-sm font-medium text-[var(--hc-text-secondary)] mb-1.5">
             Fuso horário
           </label>
           <div className="relative">
@@ -121,14 +121,14 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
               value={timezone}
               readOnly
               disabled
-              className="w-full px-3.5 py-2.5 bg-slate-900/40 border border-slate-700/50 rounded-lg text-slate-400 text-sm cursor-not-allowed pr-28"
+              className="w-full px-3.5 py-2.5 bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl text-[var(--hc-text-muted)] text-sm cursor-not-allowed pr-28"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-500 bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 flex items-center gap-1">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[var(--hc-text-muted)] bg-[var(--hc-surface)] px-2 py-0.5 rounded-lg border border-[var(--hc-border)] flex items-center gap-1">
               <Globe className="w-3 h-3" />
               Somente leitura
             </span>
           </div>
-          <p className="mt-1.5 text-xs text-slate-400">
+          <p className="mt-1.5 text-xs text-[var(--hc-text-muted)]">
             Utilizado para calcular corretamente seus registros de ponto.
           </p>
         </div>
@@ -137,7 +137,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-sm rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 text-[var(--hc-accent-foreground)] font-medium text-sm rounded-xl transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--hc-accent-soft)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{loading ? 'Salvando...' : 'Salvar informações'}</span>

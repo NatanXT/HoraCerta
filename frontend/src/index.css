@@ -1,10 +1,46 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --hc-bg: #F8FAFC;
+  --hc-surface: #FFFFFF;
+  --hc-surface-raised: #F1F5F9;
+  --hc-surface-muted: #E2E8F0;
+  --hc-border: #E2E8F0;
+  --hc-border-subtle: #F1F5F9;
+  --hc-text: #0F172A;
+  --hc-text-secondary: #475569;
+  --hc-text-muted: #64748B;
+  --hc-accent: #4F46E5;
+  --hc-accent-hover: #4338CA;
+  --hc-accent-active: #3730A3;
+  --hc-accent-foreground: #FFFFFF;
+  --hc-accent-soft: rgba(79, 70, 229, 0.12);
+  --hc-accent-soft-foreground: #4F46E5;
+  --hc-accent-border: rgba(79, 70, 229, 0.28);
+  --hc-focus-ring: rgba(79, 70, 229, 0.5);
+}
+
+html.dark {
+  --hc-bg: #020617;
+  --hc-surface: #0F172A;
+  --hc-surface-raised: #1E293B;
+  --hc-surface-muted: #090D16;
+  --hc-border: #1E293B;
+  --hc-border-subtle: #334155;
+  --hc-text: #F8FAFC;
+  --hc-text-secondary: #94A3B8;
+  --hc-text-muted: #64748B;
+}
+
 @layer base {
   html, body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: var(--hc-bg);
+    color: var(--hc-text);
     scrollbar-width: thin;
-    scrollbar-color: #334155 #020617;
+    scrollbar-color: var(--hc-border) var(--hc-bg);
   }
 
   /* Custom Webkit Scrollbar */
@@ -14,18 +50,18 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: #020617;
+    background: var(--hc-bg);
     border-radius: 8px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: var(--hc-border);
     border-radius: 9999px;
-    border: 2px solid #020617;
+    border: 2px solid var(--hc-bg);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #4f46e5;
+    background: var(--hc-accent);
   }
 }
 
@@ -35,21 +71,25 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #090d16;
+  background: var(--hc-surface-muted);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--hc-border);
   border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #4f46e5;
+  background: var(--hc-accent);
 }
 
 @media print {
   .report-print-hidden {
     display: none !important;
   }
-}
 
+  body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+}

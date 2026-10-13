@@ -143,17 +143,17 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         role="button"
-        className={`w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between transition-all duration-150 shadow-inner group ${
+        className={`w-full bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl px-3.5 py-2.5 flex items-center justify-between transition-all duration-150 shadow-inner group ${
           disabled
             ? 'opacity-50 cursor-not-allowed'
-            : 'cursor-pointer hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500'
-        } ${isOpen ? 'ring-2 ring-indigo-500/50 border-indigo-500' : ''}`}
+            : 'cursor-pointer hover:border-[var(--hc-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--hc-accent-soft)] focus:border-[var(--hc-accent)]'
+        } ${isOpen ? 'ring-2 ring-[var(--hc-accent-soft)] border-[var(--hc-accent)]' : ''}`}
       >
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <CalendarIcon className="w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-colors shrink-0" />
+          <CalendarIcon className="w-4 h-4 text-[var(--hc-text-muted)] group-hover:text-[var(--hc-accent)] transition-colors shrink-0" />
           <span
             className={`text-sm font-mono font-medium truncate ${
-              value ? 'text-slate-100' : 'text-slate-500'
+              value ? 'text-[var(--hc-text)]' : 'text-[var(--hc-text-muted)]'
             }`}
           >
             {value ? formatDisplayDate(value) : placeholder}
@@ -167,7 +167,7 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
               e.stopPropagation();
               onChange('');
             }}
-            className="text-slate-500 hover:text-slate-300 p-0.5 rounded transition-colors cursor-pointer"
+            className="text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] p-0.5 rounded transition-colors cursor-pointer"
             title="Limpar data"
           >
             <X className="w-3.5 h-3.5" />
@@ -175,32 +175,32 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
         )}
       </div>
 
-      {/* Custom Dark Theme Popover via Portal */}
+      {/* Custom Theme Popover via Portal */}
       <PopoverPortal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         triggerRef={triggerRef}
       >
-        <div className="w-72 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 space-y-3 backdrop-blur-md animate-fadeIn">
+        <div className="w-72 bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl shadow-2xl p-4 space-y-3 backdrop-blur-md animate-fadeIn text-[var(--hc-text)]">
           {/* Calendar Header */}
-          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+          <div className="flex items-center justify-between pb-2 border-b border-[var(--hc-border)]">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1 rounded-lg text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors cursor-pointer"
               title="Mês anterior"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            <span className="text-sm font-bold text-slate-100 font-mono">
+            <span className="text-sm font-bold text-[var(--hc-text)] font-mono">
               {MONTH_NAMES[viewMonth]} {viewYear}
             </span>
 
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-1 rounded-lg text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors cursor-pointer"
               title="Próximo mês"
             >
               <ChevronRight className="w-4 h-4" />
@@ -208,7 +208,7 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
           </div>
 
           {/* Weekday Labels Header */}
-          <div className="grid grid-cols-7 text-center font-mono text-[11px] font-semibold text-slate-400">
+          <div className="grid grid-cols-7 text-center font-mono text-[11px] font-semibold text-[var(--hc-text-muted)]">
             {WEEKDAY_SHORT.map((wd) => (
               <span key={wd} className="py-1">
                 {wd}
@@ -245,12 +245,12 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
                   onClick={(e) => handleSelectDay(dayNum, e)}
                   className={`h-8 rounded-lg text-xs font-mono font-medium transition-all duration-150 flex items-center justify-center cursor-pointer ${
                     isSelected
-                      ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30'
+                      ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] font-bold shadow-md'
                       : isToday
-                      ? 'border border-indigo-500/50 text-indigo-300 font-bold hover:bg-indigo-500/20'
+                      ? 'border border-[var(--hc-accent)] text-[var(--hc-accent)] font-bold hover:bg-[var(--hc-accent-soft)]'
                       : isDisabledDay
-                      ? 'text-slate-600 opacity-40 cursor-not-allowed'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      ? 'text-[var(--hc-text-muted)] opacity-30 cursor-not-allowed'
+                      : 'text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)]'
                   }`}
                 >
                   {dayNum}

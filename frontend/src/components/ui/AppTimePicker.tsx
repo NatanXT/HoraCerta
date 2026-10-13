@@ -140,14 +140,14 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
       {/* Field Input Container — Whole field is clickable */}
       <div
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
-        className={`w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2 flex items-center justify-between transition-all duration-150 shadow-inner group ${
+        className={`w-full bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl px-3.5 py-2 flex items-center justify-between transition-all duration-150 shadow-inner group ${
           disabled
             ? 'opacity-50 cursor-not-allowed'
-            : 'cursor-pointer hover:border-slate-600 focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500'
-        } ${isOpen ? 'ring-2 ring-indigo-500/50 border-indigo-500' : ''}`}
+            : 'cursor-pointer hover:border-[var(--hc-border-strong)] focus-within:ring-2 focus-within:ring-[var(--hc-accent-soft)] focus-within:border-[var(--hc-accent)]'
+        } ${isOpen ? 'ring-2 ring-[var(--hc-accent-soft)] border-[var(--hc-accent)]' : ''}`}
       >
         <div className="flex items-center gap-2.5 flex-1">
-          <Clock className="w-4 h-4 text-slate-400 group-hover:text-indigo-400 transition-colors shrink-0" />
+          <Clock className="w-4 h-4 text-[var(--hc-text-muted)] group-hover:text-[var(--hc-accent)] transition-colors shrink-0" />
           <input
             id={id}
             type="text"
@@ -163,7 +163,7 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
               e.stopPropagation();
               if (!disabled) setIsOpen(true);
             }}
-            className="w-full bg-transparent text-sm font-mono font-semibold text-slate-100 placeholder-slate-500 focus:outline-none scheme-dark"
+            className="w-full bg-transparent text-sm font-mono font-semibold text-[var(--hc-text)] placeholder-[var(--hc-text-muted)] focus:outline-none"
           />
         </div>
 
@@ -175,7 +175,7 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
               setInputValue('');
               onChange('');
             }}
-            className="text-slate-500 hover:text-slate-300 p-0.5 rounded transition-colors cursor-pointer"
+            className="text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] p-0.5 rounded transition-colors cursor-pointer"
             title="Limpar horário"
           >
             <X className="w-3.5 h-3.5" />
@@ -189,8 +189,8 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
         onClose={() => setIsOpen(false)}
         triggerRef={triggerRef}
       >
-        <div className="w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 space-y-3 backdrop-blur-md animate-fadeIn">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs font-semibold text-slate-400 font-mono">
+        <div className="w-64 bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl shadow-2xl p-4 space-y-3 backdrop-blur-md animate-fadeIn text-[var(--hc-text)]">
+          <div className="flex items-center justify-between pb-2 border-b border-[var(--hc-border)] text-xs font-semibold text-[var(--hc-text-muted)] font-mono">
             <span className="w-1/2 text-center">Hora</span>
             <span className="w-1/2 text-center">Minuto</span>
           </div>
@@ -210,12 +210,12 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
                     onClick={(e) => handleHourSelect(h, e)}
                     className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer ${
                       isSelected
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                        ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+                        : 'text-[var(--hc-text-secondary)] hover:bg-[var(--hc-surface-raised)] hover:text-[var(--hc-text)]'
                     }`}
                   >
                     <span>{h}</span>
-                    {isSelected && <Check className="w-3 h-3 text-white shrink-0" />}
+                    {isSelected && <Check className="w-3 h-3 text-[var(--hc-accent-foreground)] shrink-0" />}
                   </button>
                 );
               })}
@@ -235,12 +235,12 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
                     onClick={(e) => handleMinuteSelect(m, e)}
                     className={`w-full py-1.5 rounded-lg text-xs font-mono font-bold transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer ${
                       isSelected
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                        ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+                        : 'text-[var(--hc-text-secondary)] hover:bg-[var(--hc-surface-raised)] hover:text-[var(--hc-text)]'
                     }`}
                   >
                     <span>{m}</span>
-                    {isSelected && <Check className="w-3 h-3 text-white shrink-0" />}
+                    {isSelected && <Check className="w-3 h-3 text-[var(--hc-accent-foreground)] shrink-0" />}
                   </button>
                 );
               })}
@@ -248,11 +248,11 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
           </div>
 
           {/* Popover Footer Button */}
-          <div className="pt-2 border-t border-slate-800 flex justify-end">
+          <div className="pt-2 border-t border-[var(--hc-border)] flex justify-end">
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+              className="px-3 py-1 bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-border)] text-[var(--hc-text)] text-xs font-semibold rounded-lg transition-colors cursor-pointer border border-[var(--hc-border)]"
             >
               Ok
             </button>

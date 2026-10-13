@@ -150,10 +150,10 @@ export const WorkScheduleSettings: React.FC<WorkScheduleSettingsProps> = ({
           {localDays.map((d) => (
             <div
               key={d.weekday}
-              className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-lg bg-slate-900/60 border border-slate-700/50 gap-3"
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-lg bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] gap-3"
             >
               <div className="flex items-center justify-between sm:justify-start gap-4">
-                <span className="text-sm font-medium text-slate-200 min-w-[120px]">
+                <span className="text-sm font-medium text-[var(--hc-text)] min-w-[120px]">
                   {d.label}
                 </span>
 
@@ -162,15 +162,15 @@ export const WorkScheduleSettings: React.FC<WorkScheduleSettingsProps> = ({
                   onClick={() => handleToggleWorkDay(d.weekday)}
                   disabled={loading}
                   aria-label={`Alternar dia de trabalho para ${d.label}`}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
                     d.isWorkDay
-                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-slate-800 text-slate-400 border border-slate-700/80 hover:bg-slate-700/60'
+                      ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
+                      : 'bg-[var(--hc-surface)] text-[var(--hc-text-muted)] border border-[var(--hc-border)] hover:bg-[var(--hc-surface-raised)]'
                   }`}
                 >
                   <span
                     className={`w-2 h-2 rounded-full ${
-                      d.isWorkDay ? 'bg-emerald-400' : 'bg-slate-500'
+                      d.isWorkDay ? 'bg-emerald-500' : 'bg-[var(--hc-text-muted)]'
                     }`}
                   />
                   <span>{d.isWorkDay ? 'Trabalha' : 'Folga'}</span>
@@ -183,7 +183,7 @@ export const WorkScheduleSettings: React.FC<WorkScheduleSettingsProps> = ({
                 </label>
                 {d.isWorkDay ? (
                   <div className="relative flex items-center">
-                    <Clock className="w-4 h-4 text-slate-400 absolute left-3" />
+                    <Clock className="w-4 h-4 text-[var(--hc-text-muted)] absolute left-3" />
                     <input
                       id={`duration-${d.weekday}`}
                       type="text"
@@ -191,11 +191,11 @@ export const WorkScheduleSettings: React.FC<WorkScheduleSettingsProps> = ({
                       onChange={(e) => handleDurationChange(d.weekday, e.target.value)}
                       disabled={loading}
                       placeholder="08:00"
-                      className="w-28 pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                      className="w-28 pl-9 pr-3 py-1.5 bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-lg text-[var(--hc-text)] text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-[var(--hc-accent-soft)] focus:border-[var(--hc-accent)] disabled:opacity-50"
                     />
                   </div>
                 ) : (
-                  <span className="w-28 py-1.5 px-3 text-center text-sm font-mono text-slate-500 bg-slate-900/40 rounded-lg border border-slate-800">
+                  <span className="w-28 py-1.5 px-3 text-center text-sm font-mono text-[var(--hc-text-muted)] bg-[var(--hc-surface)] rounded-lg border border-[var(--hc-border)]">
                     Folga
                   </span>
                 )}
@@ -204,17 +204,17 @@ export const WorkScheduleSettings: React.FC<WorkScheduleSettingsProps> = ({
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-blue-950/30 border border-blue-800/40 gap-3">
-          <span className="text-sm font-medium text-slate-300">Carga semanal esperada</span>
-          <span className="text-lg font-bold text-blue-400 font-mono">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-[var(--hc-accent-soft)] border border-[var(--hc-accent-border)] gap-3">
+          <span className="text-sm font-medium text-[var(--hc-accent-soft-foreground)]">Carga semanal esperada</span>
+          <span className="text-lg font-bold text-[var(--hc-accent)] font-mono">
             {formatMinutes(weeklyTotalMinutes)}
           </span>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-700/60 text-xs text-slate-400 flex items-start gap-3">
-          <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-xl bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] text-xs text-[var(--hc-text-secondary)] flex items-start gap-3">
+          <Info className="w-4 h-4 text-[var(--hc-accent)] shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <p className="font-medium text-slate-300">Preservação do histórico</p>
+            <p className="font-medium text-[var(--hc-text)]">Preservação do histórico</p>
             <p>
               Alterações na jornada passam a valer a partir de hoje. Dias que já possuem registros de ponto
               ou snaps de jornada mantêm a jornada histórica salva sem modificações retroativas.
@@ -226,7 +226,7 @@ export const WorkScheduleSettings: React.FC<WorkScheduleSettingsProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-medium text-sm rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 text-[var(--hc-accent-foreground)] font-medium text-sm rounded-xl transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--hc-accent-soft)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{loading ? 'Salvando...' : 'Salvar jornada'}</span>

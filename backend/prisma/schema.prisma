@@ -41,17 +41,23 @@ enum WorkBreakType {
   LUNCH
 }
 
+enum ThemeMode {
+  LIGHT
+  DARK
+}
+
 model User {
-  id                  String               @id @default(cuid())
-  name                String
-  email               String               @unique
-  passwordHash        String?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  workSchedules       WorkSchedule[]
-  workDays            WorkDay[]
-  bankHoursConfig     BankHoursConfig?
-  calendarOccurrences CalendarOccurrence[]
+  id                   String                    @id @default(cuid())
+  name                 String
+  email                String                    @unique
+  passwordHash         String?
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  workSchedules        WorkSchedule[]
+  workDays             WorkDay[]
+  bankHoursConfig      BankHoursConfig?
+  calendarOccurrences  CalendarOccurrence[]
+  appearancePreference UserAppearancePreference?
 
   @@map("users")
 }
@@ -179,4 +185,17 @@ model Holiday {
 
   @@index([year, date])
   @@map("holidays")
+}
+
+model UserAppearancePreference {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode      ThemeMode @default(DARK)
+  accentHex String    @default("#4F46E5")
+  favorites Json
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("user_appearance_preferences")
 }

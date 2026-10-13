@@ -72,28 +72,28 @@ export const AppSelect: React.FC<AppSelectProps> = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         role="combobox"
-        className={`w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between transition-all duration-150 shadow-inner group ${
+        className={`w-full bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl px-3.5 py-2.5 flex items-center justify-between transition-all duration-150 shadow-inner group ${
           disabled
             ? 'opacity-50 cursor-not-allowed'
-            : 'cursor-pointer hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500'
-        } ${isOpen ? 'ring-2 ring-indigo-500/50 border-indigo-500' : ''}`}
+            : 'cursor-pointer hover:border-[var(--hc-border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--hc-accent-soft)] focus:border-[var(--hc-accent)]'
+        } ${isOpen ? 'ring-2 ring-[var(--hc-accent-soft)] border-[var(--hc-accent)]' : ''}`}
       >
         <span
           className={`text-sm font-medium truncate ${
-            selectedOption ? 'text-slate-100 font-semibold' : 'text-slate-500'
+            selectedOption ? 'text-[var(--hc-text)] font-semibold' : 'text-[var(--hc-text-muted)]'
           }`}
         >
           {selectedOption ? selectedOption.label : placeholder}
         </span>
 
         <ChevronDown
-          className={`w-4 h-4 text-slate-400 group-hover:text-slate-200 transition-transform duration-150 shrink-0 ${
-            isOpen ? 'rotate-180 text-indigo-400' : ''
+          className={`w-4 h-4 text-[var(--hc-text-muted)] group-hover:text-[var(--hc-text)] transition-transform duration-150 shrink-0 ${
+            isOpen ? 'rotate-180 text-[var(--hc-accent)]' : ''
           }`}
         />
       </div>
 
-      {/* Custom Dark Theme Popover via Portal */}
+      {/* Custom Theme Popover via Portal */}
       <PopoverPortal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -102,7 +102,7 @@ export const AppSelect: React.FC<AppSelectProps> = ({
       >
         <div
           role="listbox"
-          className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 backdrop-blur-md animate-fadeIn max-h-60 overflow-y-auto custom-scrollbar"
+          className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl shadow-2xl p-1.5 space-y-1 backdrop-blur-md animate-fadeIn max-h-60 overflow-y-auto custom-scrollbar text-[var(--hc-text)]"
           onClick={(e) => e.stopPropagation()}
         >
           {options.map((opt) => {
@@ -115,17 +115,17 @@ export const AppSelect: React.FC<AppSelectProps> = ({
                 onClick={(e) => handleSelectOption(opt.value, e)}
                 className={`p-2.5 rounded-xl text-xs sm:text-sm transition-all duration-150 flex items-center justify-between cursor-pointer ${
                   isSelected
-                    ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-[var(--hc-accent-soft)] text-[var(--hc-accent-soft-foreground)] font-semibold border border-[var(--hc-accent-border)]'
+                    : 'text-[var(--hc-text-secondary)] hover:bg-[var(--hc-surface-raised)] hover:text-[var(--hc-text)]'
                 }`}
               >
                 <div className="flex flex-col">
                   <span>{opt.label}</span>
                   {opt.description && (
-                    <span className="text-[11px] text-slate-500 font-normal">{opt.description}</span>
+                    <span className="text-[11px] text-[var(--hc-text-muted)] font-normal">{opt.description}</span>
                   )}
                 </div>
-                {isSelected && <Check className="w-4 h-4 text-indigo-400 shrink-0" />}
+                {isSelected && <Check className="w-4 h-4 text-[var(--hc-accent)] shrink-0" />}
               </div>
             );
           })}

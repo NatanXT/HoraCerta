@@ -12,11 +12,11 @@ export function TodayEntries({ entries }: TodayEntriesProps) {
   );
 
   return (
-    <section aria-label="Registros de hoje" className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-md space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-800/60">
-        <h2 className="text-base font-bold text-white flex items-center gap-2">
+    <section aria-label="Registros de hoje" className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 shadow-md space-y-4">
+      <div className="flex items-center justify-between pb-3 border-b border-[var(--hc-border)]">
+        <h2 className="text-base font-bold text-[var(--hc-text)] flex items-center gap-2">
           <span>Registros de hoje</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold border border-slate-700/50">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--hc-surface-raised)] text-[var(--hc-text-secondary)] font-semibold border border-[var(--hc-border)]">
             {entries.length}
           </span>
         </h2>
@@ -24,36 +24,36 @@ export function TodayEntries({ entries }: TodayEntriesProps) {
 
       {sortedEntries.length === 0 ? (
         <div className="py-10 text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-slate-800/60 text-slate-500 flex items-center justify-center mx-auto shadow-inner">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--hc-surface-raised)] text-[var(--hc-text-muted)] flex items-center justify-center mx-auto shadow-inner">
             <CalendarDays className="w-6 h-6" aria-hidden="true" />
           </div>
-          <p className="text-sm font-semibold text-slate-300">
+          <p className="text-sm font-semibold text-[var(--hc-text)]">
             Nenhum ponto registrado hoje.
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[var(--hc-text-muted)]">
             Registre sua entrada para iniciar a jornada.
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-slate-800/50">
+        <div className="divide-y divide-[var(--hc-border)]">
           {sortedEntries.map((entry) => {
             const isClockIn = entry.type === 'CLOCK_IN';
             return (
               <div
                 key={entry.id}
-                className="py-3.5 flex items-center justify-between transition-colors hover:bg-slate-800/30 px-2 rounded-lg"
+                className="py-3.5 flex items-center justify-between transition-colors hover:bg-[var(--hc-surface-raised)] px-2 rounded-lg"
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-2.5 h-2.5 rounded-full ${
-                      isClockIn ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' : 'bg-rose-400 shadow-sm shadow-rose-400/50'
+                      isClockIn ? 'bg-emerald-500 shadow-sm' : 'bg-rose-500 shadow-sm'
                     }`}
                   />
-                  <span className="text-sm font-medium text-slate-200">
+                  <span className="text-sm font-medium text-[var(--hc-text)]">
                     {isClockIn ? 'Entrada' : 'Saída'}
                   </span>
                 </div>
-                <span className="text-sm font-mono font-bold text-white bg-slate-800/80 px-3 py-1 rounded-lg border border-slate-700/50">
+                <span className="text-sm font-mono font-bold text-[var(--hc-text)] bg-[var(--hc-surface-raised)] px-3 py-1 rounded-lg border border-[var(--hc-border)]">
                   {formatTime(entry.timestamp)}
                 </span>
               </div>

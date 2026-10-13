@@ -30,13 +30,13 @@ export function MonthlyCalendar({
   }
 
   return (
-    <section aria-label="Calendário mensal" className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-3 sm:p-6 shadow-xl backdrop-blur-sm space-y-4">
+    <section aria-label="Calendário mensal" className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-3 sm:p-6 shadow-xl backdrop-blur-sm space-y-4">
       {/* Weekday Header Row */}
-      <div className="grid grid-cols-7 text-center border-b border-slate-800/60 pb-3">
+      <div className="grid grid-cols-7 text-center border-b border-[var(--hc-border)] pb-3">
         {WEEKDAY_HEADERS.map((header) => (
           <span
             key={header}
-            className="text-xs font-bold uppercase tracking-wider text-slate-400"
+            className="text-xs font-bold uppercase tracking-wider text-[var(--hc-text-secondary)]"
           >
             {header}
           </span>
@@ -47,7 +47,7 @@ export function MonthlyCalendar({
       <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {/* Lead-in Empty Cells */}
         {Array.from({ length: leadInSlots }).map((_, i) => (
-          <div key={`lead-${i}`} className="h-16 sm:h-20 rounded-xl bg-slate-950/20 border border-transparent" />
+          <div key={`lead-${i}`} className="h-16 sm:h-20 rounded-xl bg-[var(--hc-surface-raised)] border border-transparent" />
         ))}
 
         {/* Days of the Month */}
@@ -57,37 +57,35 @@ export function MonthlyCalendar({
           const isToday = daySummary.date === todayStr;
           const isHoliday = Boolean(daySummary.holiday);
 
-          let statusClass = 'bg-slate-900/60 border-slate-800/60 text-slate-300';
+          let statusClass = 'bg-[var(--hc-surface)] border-[var(--hc-border)] text-[var(--hc-text)]';
           let badgeColor = '';
 
           switch (daySummary.status) {
             case 'RECORDED':
-              statusClass = 'bg-slate-900/90 border-slate-800 hover:border-slate-700';
+              statusClass = 'bg-[var(--hc-surface)] border-[var(--hc-border)] hover:border-[var(--hc-accent-border)]';
               break;
             case 'IN_PROGRESS':
-              statusClass = 'bg-emerald-950/20 border-emerald-500/30 hover:border-emerald-500/50';
-              badgeColor = 'bg-emerald-400 animate-pulse';
+              statusClass = 'bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500/50';
+              badgeColor = 'bg-emerald-500 animate-pulse';
               break;
             case 'INCOMPLETE':
-              statusClass = 'bg-amber-950/20 border-amber-500/30 hover:border-amber-500/50';
-              badgeColor = 'bg-amber-400';
+              statusClass = 'bg-amber-500/10 border-amber-500/30 hover:border-amber-500/50';
+              badgeColor = 'bg-amber-500';
               break;
             case 'EXCUSED':
-              statusClass = isHoliday
-                ? 'bg-slate-900/80 border-indigo-500/40 hover:border-indigo-400/60 text-slate-200'
-                : 'bg-slate-900/80 border-indigo-900/40 hover:border-indigo-700/50 text-slate-300';
-              badgeColor = 'bg-indigo-400';
+              statusClass = 'bg-[var(--hc-accent-soft)] border-[var(--hc-accent-border)] hover:border-[var(--hc-accent)] text-[var(--hc-text)]';
+              badgeColor = 'bg-[var(--hc-accent)]';
               break;
             case 'NO_RECORDS':
-              statusClass = 'bg-slate-900/40 border-slate-800/40 text-slate-400';
+              statusClass = 'bg-[var(--hc-surface-raised)] border-[var(--hc-border)] text-[var(--hc-text-secondary)]';
               break;
             case 'REST_DAY':
-              statusClass = 'bg-slate-950/40 border-slate-900 text-slate-500';
+              statusClass = 'bg-[var(--hc-surface-muted)] border-[var(--hc-border)] text-[var(--hc-text-muted)]';
               break;
             case 'FUTURE':
               statusClass = isHoliday
-                ? 'bg-slate-950/30 border-indigo-950/50 text-slate-400'
-                : 'bg-slate-950/20 border-transparent text-slate-600 opacity-60';
+                ? 'bg-[var(--hc-accent-soft)] border-[var(--hc-accent-border)] text-[var(--hc-text)]'
+                : 'bg-[var(--hc-surface-raised)] border-[var(--hc-border)] text-[var(--hc-text-muted)] opacity-60';
               break;
           }
 
@@ -101,9 +99,9 @@ export function MonthlyCalendar({
                 onClick={() => onSelectDay(daySummary.date)}
                 aria-label={`Dia ${dayNumber}, ${isHoliday ? `Feriado: ${daySummary.holiday?.name}, ` : ''}${daySummary.status}`}
                 aria-pressed={isSelected}
-                className={`h-16 sm:h-20 p-1.5 sm:p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 relative cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-500/50 hover:bg-slate-800/90 group ${statusClass} ${
+                className={`h-16 sm:h-20 p-1.5 sm:p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 relative cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--hc-accent)] hover:bg-[var(--hc-surface-raised)] group ${statusClass} ${
                   isSelected
-                    ? 'ring-2 ring-indigo-500 border-indigo-500 bg-slate-800/90 shadow-lg shadow-indigo-500/10'
+                    ? 'ring-2 ring-[var(--hc-focus-ring)] border-[var(--hc-accent)] bg-[var(--hc-surface-raised)] shadow-lg'
                     : ''
                 }`}
               >
@@ -112,10 +110,10 @@ export function MonthlyCalendar({
                   <span
                     className={`text-xs sm:text-sm font-bold ${
                       isToday
-                        ? 'w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-extrabold shadow-sm'
+                        ? 'w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] flex items-center justify-center font-extrabold shadow-sm'
                         : isSelected
-                        ? 'text-indigo-400 font-extrabold'
-                        : 'text-slate-200'
+                        ? 'text-[var(--hc-accent)] font-extrabold'
+                        : 'text-[var(--hc-text)]'
                     }`}
                   >
                     {dayNumber}
@@ -125,7 +123,7 @@ export function MonthlyCalendar({
                     {isHoliday && (
                       <span
                         title={`Feriado: ${daySummary.holiday?.name}`}
-                        className="text-amber-400/90 hover:text-amber-300 transition-colors"
+                        className="text-amber-500 hover:text-amber-400 transition-colors"
                       >
                         <CalendarDays size={12} className="sm:w-3.5 sm:h-3.5" />
                       </span>
@@ -136,7 +134,7 @@ export function MonthlyCalendar({
                     )}
 
                     {daySummary.status === 'RECORDED' && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                     )}
                   </div>
                 </div>
@@ -145,13 +143,13 @@ export function MonthlyCalendar({
                 <div className="overflow-hidden text-ellipsis whitespace-nowrap w-full">
                   {daySummary.status === 'RECORDED' && (
                     <div>
-                      <span className="text-[10px] sm:text-xs font-mono font-bold text-white block">
+                      <span className="text-[10px] sm:text-xs font-mono font-bold text-[var(--hc-text)] block">
                         {formatMinutes(daySummary.totalWorkedMinutes)}
                       </span>
                       {daySummary.balanceMinutes !== null && daySummary.balanceMinutes !== 0 && (
                         <span
                           className={`text-[9px] sm:text-[10px] font-mono font-medium block ${
-                            daySummary.balanceMinutes > 0 ? 'text-emerald-400' : 'text-amber-400/90'
+                            daySummary.balanceMinutes > 0 ? 'text-emerald-500' : 'text-amber-500'
                           }`}
                         >
                           {formatBalance(daySummary.balanceMinutes)}
@@ -161,40 +159,40 @@ export function MonthlyCalendar({
                   )}
 
                   {daySummary.status === 'EXCUSED' && (
-                    <span className="text-[9px] sm:text-[10px] text-indigo-300 font-medium block truncate">
+                    <span className="text-[9px] sm:text-[10px] text-[var(--hc-accent-soft-foreground)] font-medium block truncate">
                       {daySummary.holiday ? daySummary.holiday.name : (daySummary.occurrence?.title || 'Abonado')}
                     </span>
                   )}
 
                   {daySummary.status === 'IN_PROGRESS' && (
-                    <span className="text-[9px] sm:text-[10px] text-emerald-400 font-medium block truncate">
+                    <span className="text-[9px] sm:text-[10px] text-emerald-500 font-medium block truncate">
                       <span className="hidden sm:inline">Em andamento</span>
                       <span className="sm:hidden">Andamento</span>
                     </span>
                   )}
 
                   {daySummary.status === 'INCOMPLETE' && (
-                    <span className="text-[9px] sm:text-[10px] text-amber-400 font-medium block truncate">
+                    <span className="text-[9px] sm:text-[10px] text-amber-500 font-medium block truncate">
                       <span className="hidden sm:inline">Incompleto</span>
                       <span className="sm:hidden">Incomp.</span>
                     </span>
                   )}
 
                   {daySummary.status === 'NO_RECORDS' && (
-                    <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium block truncate">
+                    <span className="text-[9px] sm:text-[10px] text-[var(--hc-text-secondary)] font-medium block truncate">
                       <span className="hidden sm:inline">Sem registro</span>
                       <span className="sm:hidden">Sem reg.</span>
                     </span>
                   )}
 
                   {daySummary.status === 'REST_DAY' && (
-                    <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium block truncate">
+                    <span className="text-[9px] sm:text-[10px] text-[var(--hc-text-muted)] font-medium block truncate">
                       Folga
                     </span>
                   )}
 
                   {daySummary.status === 'FUTURE' && (
-                    <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium block truncate">
+                    <span className="text-[9px] sm:text-[10px] text-[var(--hc-text-muted)] font-medium block truncate">
                       {daySummary.holiday ? daySummary.holiday.name : (daySummary.occurrence?.title || 'Futuro')}
                     </span>
                   )}

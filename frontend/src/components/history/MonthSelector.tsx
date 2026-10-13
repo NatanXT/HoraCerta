@@ -17,21 +17,21 @@ export function MonthSelector({
   const monthLabel = formatMonthLabel(selectedMonth);
 
   return (
-    <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800/80 rounded-2xl p-4 shadow-md backdrop-blur-sm">
+    <div className="flex items-center justify-between bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-4 shadow-md backdrop-blur-sm">
       <button
         type="button"
         onClick={onPreviousMonth}
         aria-label="Mês anterior"
-        className="w-10 h-10 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 active:bg-slate-800 text-slate-200 border border-slate-700/50 flex items-center justify-center transition-colors cursor-pointer"
+        className="w-10 h-10 rounded-xl bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-border)] active:opacity-90 text-[var(--hc-text)] border border-[var(--hc-border)] flex items-center justify-center transition-colors cursor-pointer"
       >
         <ChevronLeft className="w-5 h-5" aria-hidden="true" />
       </button>
 
       <div className="text-center">
-        <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+        <h2 className="text-base sm:text-lg font-bold text-[var(--hc-text)] tracking-tight">
           {monthLabel}
         </h2>
-        <p className="text-[11px] text-slate-400">Navegação mensal da jornada</p>
+        <p className="text-[11px] text-[var(--hc-text-secondary)]">Navegação mensal da jornada</p>
       </div>
 
       <button
@@ -41,8 +41,8 @@ export function MonthSelector({
         aria-label="Próximo mês"
         className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
           isCurrentMonthSelected
-            ? 'bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed opacity-50'
-            : 'bg-slate-800/80 hover:bg-slate-700/80 active:bg-slate-800 text-slate-200 border border-slate-700/50 cursor-pointer'
+            ? 'bg-[var(--hc-surface-raised)] text-[var(--hc-text-muted)] border border-[var(--hc-border)] cursor-not-allowed opacity-40'
+            : 'bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-border)] active:opacity-90 text-[var(--hc-text)] border border-[var(--hc-border)] cursor-pointer'
         }`}
       >
         <ChevronRight className="w-5 h-5" aria-hidden="true" />
