@@ -1,6 +1,9 @@
 import { MonthlyDaySummary } from '../../types/work-day';
 import { formatMinutes, formatBalance } from '../../utils/time';
 import { getTodayDateStr } from '../../utils/date';
+import { AppTooltip } from '../ui/AppTooltip';
+import { DayTooltipContent } from './DayTooltipContent';
+import { CalendarDays } from 'lucide-react';
 
 interface MonthlyCalendarProps {
   days: MonthlyDaySummary[];
@@ -52,6 +55,7 @@ export function MonthlyCalendar({
           const dayNumber = parseInt(daySummary.date.split('-')[2], 10);
           const isSelected = selectedDayDate === daySummary.date;
           const isToday = daySummary.date === todayStr;
+          const isHoliday = Boolean(daySummary.holiday);
 
           let statusClass = 'bg-slate-900/60 border-slate-800/60 text-slate-300';
           let badgeColor = '';
@@ -69,7 +73,9 @@ export function MonthlyCalendar({
               badgeColor = 'bg-amber-400';
               break;
             case 'EXCUSED':
-              statusClass = 'bg-slate-900/80 border-indigo-900/40 hover:border-indigo-700/50 text-slate-300';
+              statusClass = isHoliday
+                ? 'bg-slate-900/80 border-indigo-500/40 hover:border-indigo-400/60 text-slate-200'
+                : 'bg-slate-900/80 border-indigo-900/40 hover:border-indigo-700/50 text-slate-300';
               badgeColor = 'bg-indigo-400';
               break;
             case 'NO_RECORDS':
@@ -79,105 +85,122 @@ export function MonthlyCalendar({
               statusClass = 'bg-slate-950/40 border-slate-900 text-slate-500';
               break;
             case 'FUTURE':
-              statusClass = 'bg-slate-950/20 border-transparent text-slate-600 opacity-60';
+              statusClass = isHoliday
+                ? 'bg-slate-950/30 border-indigo-950/50 text-slate-400'
+                : 'bg-slate-950/20 border-transparent text-slate-600 opacity-60';
               break;
           }
 
           return (
-            <button
+            <AppTooltip
               key={daySummary.date}
-              type="button"
-              onClick={() => onSelectDay(daySummary.date)}
-              aria-label={`Dia ${dayNumber}, ${daySummary.status}`}
-              aria-pressed={isSelected}
-              className={`h-16 sm:h-20 p-1.5 sm:p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 relative cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-500/50 hover:bg-slate-800/90 group ${statusClass} ${
-                isSelected
-                  ? 'ring-2 ring-indigo-500 border-indigo-500 bg-slate-800/90 shadow-lg shadow-indigo-500/10'
-                  : ''
-              }`}
+              content={<DayTooltipContent day={daySummary} />}
             >
-              {/* Top Row: Day Number & Status Indicators */}
-              <div className="flex items-center justify-between w-full">
-                <span
-                  className={`text-xs sm:text-sm font-bold ${
-                    isToday
-                      ? 'w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-extrabold shadow-sm'
-                      : isSelected
-                      ? 'text-indigo-400 font-extrabold'
-                      : 'text-slate-200'
-                  }`}
-                >
-                  {dayNumber}
-                </span>
+              <button
+                type="button"
+                onClick={() => onSelectDay(daySummary.date)}
+                aria-label={`Dia ${dayNumber}, ${isHoliday ? `Feriado: ${daySummary.holiday?.name}, ` : ''}${daySummary.status}`}
+                aria-pressed={isSelected}
+                className={`h-16 sm:h-20 p-1.5 sm:p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 relative cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-500/50 hover:bg-slate-800/90 group ${statusClass} ${
+                  isSelected
+                    ? 'ring-2 ring-indigo-500 border-indigo-500 bg-slate-800/90 shadow-lg shadow-indigo-500/10'
+                    : ''
+                }`}
+              >
+                {/* Top Row: Day Number & Status Indicators */}
+                <div className="flex items-center justify-between w-full">
+                  <span
+                    className={`text-xs sm:text-sm font-bold ${
+                      isToday
+                        ? 'w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-extrabold shadow-sm'
+                        : isSelected
+                        ? 'text-indigo-400 font-extrabold'
+                        : 'text-slate-200'
+                    }`}
+                  >
+                    {dayNumber}
+                  </span>
 
-                {badgeColor && (
-                  <span className={`w-2 h-2 rounded-full ${badgeColor}`} />
-                )}
-
-                {daySummary.status === 'RECORDED' && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                )}
-              </div>
-
-              {/* Bottom Row: Cell Status Label or Time Values */}
-              <div className="overflow-hidden text-ellipsis whitespace-nowrap w-full">
-                {daySummary.status === 'RECORDED' && (
-                  <div>
-                    <span className="text-[10px] sm:text-xs font-mono font-bold text-white block">
-                      {formatMinutes(daySummary.totalWorkedMinutes)}
-                    </span>
-                    {daySummary.balanceMinutes !== null && daySummary.balanceMinutes !== 0 && (
+                  <div className="flex items-center gap-1">
+                    {isHoliday && (
                       <span
-                        className={`text-[9px] sm:text-[10px] font-mono font-medium block ${
-                          daySummary.balanceMinutes > 0 ? 'text-emerald-400' : 'text-amber-400/90'
-                        }`}
+                        title={`Feriado: ${daySummary.holiday?.name}`}
+                        className="text-amber-400/90 hover:text-amber-300 transition-colors"
                       >
-                        {formatBalance(daySummary.balanceMinutes)}
+                        <CalendarDays size={12} className="sm:w-3.5 sm:h-3.5" />
                       </span>
                     )}
+
+                    {badgeColor && (
+                      <span className={`w-2 h-2 rounded-full ${badgeColor}`} />
+                    )}
+
+                    {daySummary.status === 'RECORDED' && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    )}
                   </div>
-                )}
+                </div>
 
-                {daySummary.status === 'EXCUSED' && (
-                  <span className="text-[9px] sm:text-[10px] text-indigo-300 font-medium block truncate">
-                    {daySummary.occurrence?.title || 'Abonado'}
-                  </span>
-                )}
+                {/* Bottom Row: Cell Status Label or Time Values */}
+                <div className="overflow-hidden text-ellipsis whitespace-nowrap w-full">
+                  {daySummary.status === 'RECORDED' && (
+                    <div>
+                      <span className="text-[10px] sm:text-xs font-mono font-bold text-white block">
+                        {formatMinutes(daySummary.totalWorkedMinutes)}
+                      </span>
+                      {daySummary.balanceMinutes !== null && daySummary.balanceMinutes !== 0 && (
+                        <span
+                          className={`text-[9px] sm:text-[10px] font-mono font-medium block ${
+                            daySummary.balanceMinutes > 0 ? 'text-emerald-400' : 'text-amber-400/90'
+                          }`}
+                        >
+                          {formatBalance(daySummary.balanceMinutes)}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
-                {daySummary.status === 'IN_PROGRESS' && (
-                  <span className="text-[9px] sm:text-[10px] text-emerald-400 font-medium block truncate">
-                    <span className="hidden sm:inline">Em andamento</span>
-                    <span className="sm:hidden">Andamento</span>
-                  </span>
-                )}
+                  {daySummary.status === 'EXCUSED' && (
+                    <span className="text-[9px] sm:text-[10px] text-indigo-300 font-medium block truncate">
+                      {daySummary.holiday ? daySummary.holiday.name : (daySummary.occurrence?.title || 'Abonado')}
+                    </span>
+                  )}
 
-                {daySummary.status === 'INCOMPLETE' && (
-                  <span className="text-[9px] sm:text-[10px] text-amber-400 font-medium block truncate">
-                    <span className="hidden sm:inline">Incompleto</span>
-                    <span className="sm:hidden">Incomp.</span>
-                  </span>
-                )}
+                  {daySummary.status === 'IN_PROGRESS' && (
+                    <span className="text-[9px] sm:text-[10px] text-emerald-400 font-medium block truncate">
+                      <span className="hidden sm:inline">Em andamento</span>
+                      <span className="sm:hidden">Andamento</span>
+                    </span>
+                  )}
 
-                {daySummary.status === 'NO_RECORDS' && (
-                  <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium block truncate">
-                    <span className="hidden sm:inline">Sem registro</span>
-                    <span className="sm:hidden">Sem reg.</span>
-                  </span>
-                )}
+                  {daySummary.status === 'INCOMPLETE' && (
+                    <span className="text-[9px] sm:text-[10px] text-amber-400 font-medium block truncate">
+                      <span className="hidden sm:inline">Incompleto</span>
+                      <span className="sm:hidden">Incomp.</span>
+                    </span>
+                  )}
 
-                {daySummary.status === 'REST_DAY' && (
-                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium block truncate">
-                    Folga
-                  </span>
-                )}
+                  {daySummary.status === 'NO_RECORDS' && (
+                    <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium block truncate">
+                      <span className="hidden sm:inline">Sem registro</span>
+                      <span className="sm:hidden">Sem reg.</span>
+                    </span>
+                  )}
 
-                {daySummary.status === 'FUTURE' && (
-                  <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium block truncate">
-                    {daySummary.occurrence?.title || 'Futuro'}
-                  </span>
-                )}
-              </div>
-            </button>
+                  {daySummary.status === 'REST_DAY' && (
+                    <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium block truncate">
+                      Folga
+                    </span>
+                  )}
+
+                  {daySummary.status === 'FUTURE' && (
+                    <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium block truncate">
+                      {daySummary.holiday ? daySummary.holiday.name : (daySummary.occurrence?.title || 'Futuro')}
+                    </span>
+                  )}
+                </div>
+              </button>
+            </AppTooltip>
           );
         })}
       </div>

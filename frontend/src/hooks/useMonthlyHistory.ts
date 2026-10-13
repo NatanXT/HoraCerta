@@ -3,7 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { MonthlyHistoryResponse, MonthlyDaySummary } from '../types/work-day';
 import { workDayService } from '../services/work-day.service';
+import { holidayService } from '../services/holiday.service';
 import { getCurrentMonthStr, shiftMonth, getTodayDateStr } from '../utils/date';
+
+// In-session cache of synced years to avoid repeated sync requests
+const sessionSyncedYears = new Set<number>();
 
 export function useMonthlyHistory() {
   const [searchParams] = useSearchParams();
@@ -22,6 +26,7 @@ export function useMonthlyHistory() {
   const [selectedDayDate, setSelectedDayDate] = useState<string | null>(initialDayDate);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [holidayWarning, setHolidayWarning] = useState<string | null>(null);
 
   const requestIdRef = useRef<number>(0);
   const isCurrentMonthSelected = selectedMonth === currentMonthStr;
@@ -82,6 +87,27 @@ export function useMonthlyHistory() {
     fetchMonthly(selectedMonth);
   }, [selectedMonth, fetchMonthly]);
 
+  // Automatic one-shot sync per year navigated in this session
+  useEffect(() => {
+    const year = parseInt(selectedMonth.split('-')[0], 10);
+    if (!Number.isNaN(year) && !sessionSyncedYears.has(year)) {
+      sessionSyncedYears.add(year);
+      holidayService
+        .syncHolidays(year)
+        .then((res) => {
+          if (res.synced > 0) {
+            // Refresh to populate calendar with newly synced holidays
+            fetchMonthly(selectedMonth);
+          }
+        })
+        .catch(() => {
+          setHolidayWarning(
+            'Não foi possível atualizar os feriados. O calendário continua disponível.'
+          );
+        });
+    }
+  }, [selectedMonth, fetchMonthly]);
+
   const refresh = useCallback(async () => {
     const currentRequestId = ++requestIdRef.current;
     try {
@@ -118,6 +144,7 @@ export function useMonthlyHistory() {
     selectedDay,
     loading,
     error,
+    holidayWarning,
     isCurrentMonthSelected,
     goToPreviousMonth,
     goToNextMonth,

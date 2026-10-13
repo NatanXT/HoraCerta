@@ -165,3 +165,18 @@ model CalendarOccurrence {
   @@index([userId, startDate, endDate])
   @@map("calendar_occurrences")
 }
+
+model Holiday {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  year        Int
+  name        String
+  provider    String
+  providerKey String   @unique
+  syncedAt    DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([year, date])
+  @@map("holidays")
+}

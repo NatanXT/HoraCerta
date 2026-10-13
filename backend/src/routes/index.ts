@@ -9,6 +9,7 @@ import { bankHoursRouter } from './bank-hours.routes';
 import { settingsRouter } from './settings.routes';
 import { calendarOccurrenceRouter } from './calendar-occurrence.routes';
 import { reportRouter } from './report.routes';
+import { holidayRouter } from './holiday.routes';
 
 const routes = Router();
 
@@ -22,5 +23,6 @@ routes.use('/api/bank-hours', bankHoursRouter);
 routes.use('/api/settings', settingsRouter);
 routes.use('/api/calendar-occurrences', calendarOccurrenceRouter);
 routes.use('/api/reports', reportRouter);
+routes.use('/api/holidays', holidayRouter);
 
 export { routes };

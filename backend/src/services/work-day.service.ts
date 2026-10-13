@@ -18,6 +18,9 @@ import {
   CalendarOccurrenceDTO,
   formatCalendarOccurrenceDTO,
 } from '../types/calendar-occurrence.dto';
+import { HolidayDTO, formatHolidayDTO } from '../types/holiday.dto';
+import { holidayRepository } from '../repositories/holiday.repository';
+import { HolidayResolver } from '../utils/holiday-resolver';
 
 export interface TimeEntryDto {
   id: string;
@@ -49,6 +52,7 @@ export interface WorkDaySummaryDto {
   entries: TimeEntryDto[];
   workBreaks?: WorkBreakDto[];
   occurrence?: CalendarOccurrenceDTO | null;
+  holiday?: HolidayDTO | null;
   session?: any;
   breakSummary?: any;
 }
@@ -58,15 +62,19 @@ export type MonthlyDayStatus = WorkDayStatus;
 export interface MonthlyDaySummaryDto {
   date: string;
   expectedMinutes: number;
+  baseExpectedMinutes?: number;
   workedMinutes: number;
   currentSessionMinutes: number;
   totalWorkedMinutes: number;
   balanceMinutes: number | null;
+  bankHoursImpactMinutes?: number | null;
+  hasManualAdjustments?: boolean;
   isOpen: boolean;
   status: MonthlyDayStatus;
   entries: TimeEntryDto[];
   workBreaks?: WorkBreakDto[];
   occurrence?: CalendarOccurrenceDTO | null;
+  holiday?: HolidayDTO | null;
 }
 
 export interface MonthlySummaryDto {
@@ -125,6 +133,9 @@ export class WorkDayService {
     );
     const occurrence = activeOccurrences[0] ?? null;
 
+    const holidays = await holidayRepository.findByDateRange(dateUtcMidnight, dateUtcMidnight);
+    const holiday = holidays[0] ?? null;
+
     const defaultExpected = schedule ? schedule.expectedMinutes : 0;
     const todayStr = getLocalDateString(new Date(), env.APP_TIMEZONE);
 
@@ -134,6 +145,7 @@ export class WorkDayService {
       defaultExpectedMinutes: defaultExpected,
       workDay: workDay as WorkDayWithEntries | null,
       occurrence,
+      holiday,
     });
 
     let nextAction: TimeEntryType = TimeEntryType.CLOCK_IN;
@@ -185,6 +197,7 @@ export class WorkDayService {
         : [],
       workBreaks: breaksDto,
       occurrence: formatCalendarOccurrenceDTO(state.occurrence),
+      holiday: formatHolidayDTO(state.holiday),
     };
   }
 
@@ -221,6 +234,9 @@ export class WorkDayService {
     );
     const occurrenceResolver = new CalendarOccurrenceResolver(occurrences);
 
+    const holidays = await holidayRepository.findByDateRange(startDate, endDate);
+    const holidayResolver = new HolidayResolver(holidays);
+
     const workDayMap = new Map<string, (typeof workDays)[0]>();
     for (const wd of workDays) {
       const dateStr = wd.date.toISOString().substring(0, 10);
@@ -243,6 +259,7 @@ export class WorkDayService {
       const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
       const workDay = workDayMap.get(dateStr);
       const occurrence = occurrenceResolver.getForDate(dateStr);
+      const holiday = holidayResolver.getForDate(dateStr);
 
       const defaultExpected = scheduleResolver.getExpectedMinutesForDate(weekday, dateUtcMidnight);
 
@@ -252,6 +269,7 @@ export class WorkDayService {
         defaultExpectedMinutes: defaultExpected,
         workDay: (workDay as unknown as WorkDayWithEntries) || null,
         occurrence,
+        holiday,
       });
 
       if (state.hasEntries) {
@@ -284,13 +302,22 @@ export class WorkDayService {
           })
         : [];
 
+      const isBankHoursLeave = state.occurrence?.type === 'BANK_HOURS_LEAVE';
+      const bankHoursImpactMinutes = isBankHoursLeave ? (state.holiday ? 0 : -defaultExpected) : null;
+      const hasManualAdjustments = workDay
+        ? workDay.timeEntries.some((e) => e.source === 'MANUAL')
+        : false;
+
       days.push({
         date: dateStr,
         expectedMinutes: state.expectedMinutes,
+        baseExpectedMinutes: defaultExpected,
         workedMinutes: state.workedMinutes,
         currentSessionMinutes: state.currentSessionMinutes,
         totalWorkedMinutes: state.totalWorkedMinutes,
         balanceMinutes: state.balanceMinutes,
+        bankHoursImpactMinutes,
+        hasManualAdjustments,
         isOpen: state.isOpen,
         status: state.status,
         entries: workDay
@@ -303,6 +330,7 @@ export class WorkDayService {
           : [],
         workBreaks: breaksDto,
         occurrence: formatCalendarOccurrenceDTO(state.occurrence),
+        holiday: formatHolidayDTO(state.holiday),
       });
     }
 

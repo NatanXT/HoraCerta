@@ -1,7 +1,8 @@
-import { CalendarOccurrence } from '@prisma/client';
+import { CalendarOccurrence, Holiday } from '@prisma/client';
 
 export interface ResolveEffectiveExpectedMinutesInput {
   occurrence?: CalendarOccurrence | null;
+  holiday?: Holiday | null;
   snapshot?: number | null;
   scheduleExpectedMinutes?: number | null;
 }
@@ -10,16 +11,18 @@ export interface ResolveEffectiveExpectedMinutesInput {
   Centralized function to determine effective expected minutes for a day.
   Rule:
   1. Active CalendarOccurrence present -> 0
-  2. Snapshot present (!= null) -> snapshot
-  3. WorkSchedule present (!= null) -> scheduleExpectedMinutes
-  4. Fallback -> 0
+  2. Holiday present -> 0
+  3. Snapshot present (!= null) -> snapshot
+  4. WorkSchedule present (!= null) -> scheduleExpectedMinutes
+  5. Fallback -> 0
  */
 export function resolveEffectiveExpectedMinutes({
   occurrence,
+  holiday,
   snapshot,
   scheduleExpectedMinutes,
 }: ResolveEffectiveExpectedMinutesInput): number {
-  if (occurrence) {
+  if (occurrence || holiday) {
     return 0;
   }
   if (snapshot !== undefined && snapshot !== null) {

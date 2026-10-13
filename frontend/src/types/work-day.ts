@@ -1,4 +1,5 @@
 import { CalendarOccurrence } from './calendar-occurrence';
+import { Holiday } from './holiday';
 
 export type TimeEntryType = 'CLOCK_IN' | 'CLOCK_OUT';
 
@@ -29,6 +30,7 @@ export interface WorkDaySummary {
   entries: TimeEntry[];
   workBreaks?: WorkBreak[];
   occurrence?: CalendarOccurrence | null;
+  holiday?: Holiday | null;
 }
 
 export type MonthlyDayStatus =
@@ -43,15 +45,19 @@ export type MonthlyDayStatus =
 export interface MonthlyDaySummary {
   date: string;
   expectedMinutes: number;
+  baseExpectedMinutes?: number;
   workedMinutes: number;
   currentSessionMinutes: number;
   totalWorkedMinutes: number;
   balanceMinutes: number | null;
+  bankHoursImpactMinutes?: number | null;
+  hasManualAdjustments?: boolean;
   isOpen: boolean;
   status: MonthlyDayStatus;
   entries: TimeEntry[];
   workBreaks?: WorkBreak[];
   occurrence?: CalendarOccurrence | null;
+  holiday?: Holiday | null;
 }
 
 export interface MonthlyHistorySummary {

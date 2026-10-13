@@ -11,6 +11,8 @@ import {
 import { resolveWorkDayState } from '../utils/work-day-status';
 import { WorkScheduleResolver } from '../utils/work-schedule-resolver';
 import { CalendarOccurrenceResolver } from '../utils/calendar-occurrence-resolver';
+import { holidayRepository } from '../repositories/holiday.repository';
+import { HolidayResolver } from '../utils/holiday-resolver';
 
 export interface BankHoursConfigDto {
   startDate: string;
@@ -96,6 +98,9 @@ export class BankHoursService {
     );
     const occurrenceResolver = new CalendarOccurrenceResolver(occurrences);
 
+    const holidays = await holidayRepository.findByDateRange(startDateUtc, endDateUtc);
+    const holidayResolver = new HolidayResolver(holidays);
+
     const workDayMap = new Map<string, WorkDayWithEntries>();
     for (const wd of workDays) {
       const dateStr = wd.date.toISOString().substring(0, 10);
@@ -136,6 +141,7 @@ export class BankHoursService {
       const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
       const workDay = workDayMap.get(dateStr);
       const occurrence = occurrenceResolver.getForDate(dateStr);
+      const holiday = holidayResolver.getForDate(dateStr);
 
       const defaultExpected = scheduleResolver.getExpectedMinutesForDate(weekday, dateUtcMidnight);
       const state = resolveWorkDayState({
@@ -144,10 +150,11 @@ export class BankHoursService {
         defaultExpectedMinutes: defaultExpected,
         workDay,
         occurrence,
+        holiday,
       });
 
       if (state.status === 'IN_PROGRESS' || dateStr === todayStr) {
-        if (state.occurrence?.type === 'BANK_HOURS_LEAVE') {
+        if (state.occurrence?.type === 'BANK_HOURS_LEAVE' && !state.holiday) {
           todayBalanceMinutes = state.totalWorkedMinutes - defaultExpected;
         } else if (state.hasEntries) {
           todayBalanceMinutes = state.totalWorkedMinutes - state.expectedMinutes;
@@ -179,7 +186,7 @@ export class BankHoursService {
           });
         } else if (
           state.status === 'RECORDED' ||
-          (state.status === 'EXCUSED' && state.occurrence?.type === 'BANK_HOURS_LEAVE')
+          (state.status === 'EXCUSED' && state.occurrence?.type === 'BANK_HOURS_LEAVE' && !state.holiday)
         ) {
           const dayBalance =
             state.balanceMinutes !== null

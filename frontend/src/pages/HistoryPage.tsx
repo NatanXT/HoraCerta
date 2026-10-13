@@ -5,6 +5,7 @@ import { MonthlyCalendar } from '../components/history/MonthlyCalendar';
 import { DayDetails } from '../components/history/DayDetails';
 import { LoadingSkeleton } from '../components/dashboard/LoadingSkeleton';
 import { OfflineError } from '../components/dashboard/OfflineError';
+import { AlertCircle } from 'lucide-react';
 
 export function HistoryPage() {
   const {
@@ -14,6 +15,7 @@ export function HistoryPage() {
     selectedDay,
     loading,
     error,
+    holidayWarning,
     isCurrentMonthSelected,
     goToPreviousMonth,
     goToNextMonth,
@@ -40,6 +42,13 @@ export function HistoryPage() {
           onPreviousMonth={goToPreviousMonth}
           onNextMonth={goToNextMonth}
         />
+
+        {holidayWarning && (
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-200 text-xs shadow-sm">
+            <AlertCircle size={16} className="text-amber-400 shrink-0" />
+            <span>{holidayWarning}</span>
+          </div>
+        )}
 
         {loading && !data && <LoadingSkeleton />}
 

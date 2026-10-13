@@ -1,4 +1,4 @@
-import { TimeEntryType, CalendarOccurrence } from '@prisma/client';
+import { TimeEntryType, CalendarOccurrence, Holiday } from '@prisma/client';
 import { WorkDayWithEntries } from '../repositories/work-day.repository';
 import { calculateDaySummary } from './time-calculation';
 import { resolveEffectiveExpectedMinutes } from './calendar-occurrence-resolver';
@@ -18,6 +18,7 @@ export interface ResolveWorkDayStateInput {
   defaultExpectedMinutes: number;
   workDay: WorkDayWithEntries | null | undefined;
   occurrence?: CalendarOccurrence | null;
+  holiday?: Holiday | null;
   now?: Date;
 }
 
@@ -32,6 +33,7 @@ export interface ResolvedWorkDayState {
   isOpen: boolean;
   hasEntries: boolean;
   occurrence: CalendarOccurrence | null;
+  holiday: Holiday | null;
 }
 
 export function resolveWorkDayState({
@@ -40,11 +42,13 @@ export function resolveWorkDayState({
   defaultExpectedMinutes,
   workDay,
   occurrence = null,
+  holiday = null,
   now = new Date(),
 }: ResolveWorkDayStateInput): ResolvedWorkDayState {
   const activeOccurrence = occurrence && occurrence.deletedAt === null ? occurrence : null;
   const effectiveExpectedMinutes = resolveEffectiveExpectedMinutes({
     occurrence: activeOccurrence,
+    holiday,
     snapshot: workDay?.expectedMinutesSnapshot,
     scheduleExpectedMinutes: defaultExpectedMinutes,
   });
@@ -68,13 +72,15 @@ export function resolveWorkDayState({
       isOpen: false,
       hasEntries: false,
       occurrence: activeOccurrence,
+      holiday: holiday ?? null,
     };
   }
 
   if (!hasEntries) {
     if (activeOccurrence) {
+      // Se a data também for feriado nacional, BANK_HOURS_LEAVE não deve debitar do banco de horas
       const isBankHoursLeave = activeOccurrence.type === 'BANK_HOURS_LEAVE';
-      const balanceMinutes = isBankHoursLeave ? 0 - defaultExpectedMinutes : 0;
+      const balanceMinutes = isBankHoursLeave && !holiday ? 0 - defaultExpectedMinutes : 0;
 
       return {
         dateStr,
@@ -87,6 +93,23 @@ export function resolveWorkDayState({
         isOpen: false,
         hasEntries: false,
         occurrence: activeOccurrence,
+        holiday: holiday ?? null,
+      };
+    }
+
+    if (holiday) {
+      return {
+        dateStr,
+        expectedMinutes: 0,
+        status: 'EXCUSED',
+        workedMinutes: 0,
+        currentSessionMinutes: 0,
+        totalWorkedMinutes: 0,
+        balanceMinutes: 0,
+        isOpen: false,
+        hasEntries: false,
+        occurrence: null,
+        holiday,
       };
     }
 
@@ -102,6 +125,7 @@ export function resolveWorkDayState({
         isOpen: false,
         hasEntries: false,
         occurrence: null,
+        holiday: null,
       };
     }
 
@@ -116,10 +140,11 @@ export function resolveWorkDayState({
       isOpen: false,
       hasEntries: false,
       occurrence: null,
+      holiday: null,
     };
   }
 
-  const isBankHoursLeave = activeOccurrence?.type === 'BANK_HOURS_LEAVE';
+  const isBankHoursLeave = activeOccurrence?.type === 'BANK_HOURS_LEAVE' && !holiday;
   const calculationExpected = isBankHoursLeave ? defaultExpectedMinutes : effectiveExpectedMinutes;
 
   const calc = calculateDaySummary({
@@ -153,5 +178,6 @@ export function resolveWorkDayState({
     isOpen: calc.isOpen,
     hasEntries: true,
     occurrence: activeOccurrence,
+    holiday: holiday ?? null,
   };
 }

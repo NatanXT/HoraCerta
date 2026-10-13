@@ -16,6 +16,9 @@ import {
   CalendarOccurrenceDTO,
   formatCalendarOccurrenceDTO,
 } from '../types/calendar-occurrence.dto';
+import { HolidayDTO, formatHolidayDTO } from '../types/holiday.dto';
+import { holidayRepository } from '../repositories/holiday.repository';
+import { HolidayResolver } from '../utils/holiday-resolver';
 
 export interface ReportDayEntryDto {
   id: string;
@@ -37,6 +40,7 @@ export interface ReportDayDto {
   isBankAccounted: boolean;
   isProvisional: boolean;
   occurrence: CalendarOccurrenceDTO | null;
+  holiday?: HolidayDTO | null;
   entrySource: 'CLOCK' | 'MANUAL' | 'MIXED' | null;
   entries: ReportDayEntryDto[];
 }
@@ -100,10 +104,12 @@ export class ReportService {
     const workDays = await workDayRepository.findByUserAndDateRange(userId, fromUtc, toUtc);
     const schedules = await workScheduleRepository.findAllVersionsByUserUntilDate(userId, toUtc);
     const occurrences = await calendarOccurrenceRepository.findActiveInRange(userId, fromUtc, toUtc);
+    const holidays = await holidayRepository.findByDateRange(fromUtc, toUtc);
     const bankConfig = await bankHoursConfigRepository.findByUserId(userId);
 
     const scheduleResolver = new WorkScheduleResolver(schedules);
     const occurrenceResolver = new CalendarOccurrenceResolver(occurrences);
+    const holidayResolver = new HolidayResolver(holidays);
 
     const workDayMap = new Map<string, WorkDayWithEntries>();
     for (const wd of workDays) {
@@ -169,6 +175,7 @@ export class ReportService {
       const dateUtcMidnight = parseDateToUtcMidnight(dateStr);
       const workDay = workDayMap.get(dateStr);
       const occurrence = occurrenceResolver.getForDate(dateStr);
+      const holiday = holidayResolver.getForDate(dateStr);
 
       const defaultExpected = scheduleResolver.getExpectedMinutesForDate(
         weekday,
@@ -182,6 +189,7 @@ export class ReportService {
         defaultExpectedMinutes: baseExpectedMinutes,
         workDay,
         occurrence,
+        holiday,
       });
 
       // Active entries (deletedAt === null)
@@ -274,7 +282,19 @@ export class ReportService {
         balanceMinutes: state.balanceMinutes,
         isBankAccounted,
         isProvisional: isToday,
-        occurrence: formatCalendarOccurrenceDTO(state.occurrence),
+        occurrence:
+          formatCalendarOccurrenceDTO(state.occurrence) ??
+          (state.holiday
+            ? {
+                id: state.holiday.id,
+                type: 'HOLIDAY',
+                title: `Feriado — ${state.holiday.name}`,
+                startDate: dateStr,
+                endDate: dateStr,
+                note: null,
+              }
+            : null),
+        holiday: formatHolidayDTO(state.holiday),
         entrySource,
         entries: activeEntries.map((e) => ({
           id: e.id,
