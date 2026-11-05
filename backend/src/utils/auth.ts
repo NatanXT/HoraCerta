@@ -7,9 +7,11 @@ export interface TokenPayload {
   userId: string;
   email: string;
   name: string;
+  authVersion?: number;
+  iat?: number;
 }
 
-const COOKIE_NAME = 'auth_token';
+export const COOKIE_NAME = 'auth_token';
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
@@ -20,7 +22,16 @@ export async function comparePassword(password: string, hash: string): Promise<b
 }
 
 export function generateToken(payload: TokenPayload): string {
-  return jwt.sign(payload, env.AUTH_SECRET, { expiresIn: '7d' });
+  return jwt.sign(
+    {
+      userId: payload.userId,
+      email: payload.email,
+      name: payload.name,
+      authVersion: payload.authVersion ?? 0,
+    },
+    env.AUTH_SECRET,
+    { expiresIn: '7d' }
+  );
 }
 
 export function verifyToken(token: string): TokenPayload | null {
@@ -47,13 +58,11 @@ export function setAuthCookie(res: Response, token: string): void {
 }
 
 export function clearAuthCookie(res: Response): void {
-  res.cookie(COOKIE_NAME, '', {
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
     path: '/',
-    expires: new Date(0),
   });
 }
-
-export { COOKIE_NAME };

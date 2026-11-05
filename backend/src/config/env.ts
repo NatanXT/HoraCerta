@@ -30,5 +30,9 @@ export const env = {
   APP_TIMEZONE,
   DEFAULT_USER_EMAIL: process.env.DEFAULT_USER_EMAIL || 'usuario@horacerta.local',
   AUTH_SECRET,
+  SMTP_HOST: process.env.SMTP_HOST || '',
+  SMTP_PORT: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587,
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASSWORD: process.env.SMTP_PASSWORD || '',
+  SMTP_FROM: process.env.SMTP_FROM || 'nao-responda@horacerta.local',
 };
-

@@ -88,7 +88,7 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
 
   it('WorkDay Snapshot: expectedMinutesSnapshot deve ter PRIORIDADE ABSOLUTA sobre a jornada versionada', async () => {
     vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, authVersion: 0, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
@@ -107,7 +107,7 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
 
   it('NO_RECORDS histórico: dia sem registro em 21/09 deve manter 480m e não virar 360m retroativamente', async () => {
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, authVersion: 0, createdAt: new Date(), updatedAt: new Date(),
     });
 
     const schedules = [
@@ -130,7 +130,7 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
 
   it('Ajuste Manual Histórico: ao corrigir dia histórico 21/09 sem WorkDay, deve aplicar snapshot de 480m', async () => {
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, authVersion: 0, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
@@ -170,7 +170,7 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
 
   it('Banco de Horas: pendência histórica em 21/09 continua utilizando a jornada antiga (480m)', async () => {
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, authVersion: 0, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(bankHoursConfigRepository, 'findByUserId').mockResolvedValue({
@@ -192,7 +192,7 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
 
   it('TimeEntry: no primeiro CLOCK_IN posterior à mudança de jornada, deve persistir snapshot com a nova jornada', async () => {
     vi.spyOn(userRepository, 'findByEmail').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, authVersion: 0, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
@@ -229,7 +229,7 @@ describe('ETAPA 08 — SettingsService', () => {
 
   it('getSettings: deve retornar perfil, email, timezone, 7 dias e total semanal', async () => {
     vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, authVersion: 0, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(workScheduleRepository, 'findLatestScheduleVersionDate').mockResolvedValue(new Date('2026-09-22T00:00:00.000Z'));
@@ -255,11 +255,11 @@ describe('ETAPA 08 — SettingsService', () => {
 
   it('updateProfile: deve atualizar e retornar o nome', async () => {
     vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, authVersion: 0, createdAt: new Date(), updatedAt: new Date(),
     });
 
     vi.spyOn(prisma.user, 'update').mockResolvedValue({
-      id: 'u1', name: 'Natan Santos', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan Santos', email: 'usuario@horacerta.local', passwordHash: null, authVersion: 0, createdAt: new Date(), updatedAt: new Date(),
     });
 
     const res = await settingsService.updateProfile('u1', { name: 'Natan Santos' });
@@ -269,7 +269,7 @@ describe('ETAPA 08 — SettingsService', () => {
 
   it('updateWorkSchedule: ao salvar duas vezes no mesmo dia (2026-09-22), deve utilizar o mesmo effectiveFrom e efetuar upsert', async () => {
     vi.spyOn(prisma.user, 'findUnique').mockResolvedValue({
-      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, createdAt: new Date(), updatedAt: new Date(),
+      id: 'u1', name: 'Natan', email: 'usuario@horacerta.local', passwordHash: null, authVersion: 0, createdAt: new Date(), updatedAt: new Date(),
     });
 
     const upsertSpy = vi.spyOn(workScheduleRepository, 'upsertVersionSchedules').mockResolvedValue([]);

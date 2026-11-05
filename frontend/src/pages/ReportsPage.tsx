@@ -136,7 +136,7 @@ export function ReportsPage() {
 
   return (
     <main className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)] print:bg-white print:text-slate-900">
-      <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 print:p-0 print:space-y-4 print:max-w-none">
+      <div className="w-full space-y-6 sm:space-y-8 print:p-0 print:space-y-4 print:max-w-none">
         {/* Page Header (Hidden on print) */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-[var(--hc-border)] gap-4 print:hidden">
           <div>

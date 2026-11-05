@@ -24,6 +24,7 @@ describe('ReportService', () => {
       name: 'Usuário Teste',
       email: 'usuario@horacerta.local',
       passwordHash: null,
+      authVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -123,6 +124,7 @@ describe('ReportService', () => {
       name: 'Usuário Teste',
       email: 'usuario@horacerta.local',
       passwordHash: null,
+      authVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -179,6 +181,7 @@ describe('ReportService', () => {
       name: 'Usuário Teste',
       email: 'usuario@horacerta.local',
       passwordHash: null,
+      authVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

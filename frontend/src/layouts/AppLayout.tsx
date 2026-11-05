@@ -29,7 +29,7 @@ export function AppLayout() {
     <div className="min-h-screen bg-[var(--hc-bg)] text-[var(--hc-text)] flex flex-col selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
       {/* Top Main Navigation Bar */}
       <header className="bg-[var(--hc-surface)]/90 border-b border-[var(--hc-border)] sticky top-0 z-40 backdrop-blur-md print:hidden">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
           {/* Logo & Branding */}
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[var(--hc-accent-soft)] border border-[var(--hc-accent-border)] text-[var(--hc-accent)] font-extrabold flex items-center justify-center text-base shadow-sm">
@@ -136,7 +136,7 @@ export function AppLayout() {
                   Perfil
                 </Link>
                 <Link
-                  to="/perfil"
+                  to="/perfil?aba=aparencia"
                   onClick={() => setDropdownOpen(false)}
                   className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors"
                 >
@@ -157,9 +157,14 @@ export function AppLayout() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Outlet />
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-[var(--hc-border)] py-4 text-center text-xs text-[var(--hc-text-muted)] print:hidden">
+        HoraCerta &copy; {new Date().getFullYear()} &mdash; Sistema de Gestão de Ponto e Banco de Horas
+      </footer>
     </div>
   );
 }

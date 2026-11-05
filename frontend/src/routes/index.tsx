@@ -5,6 +5,8 @@ import { ProtectedRoute } from '../components/ProtectedRoute';
 import { AppLayout } from '../layouts/AppLayout';
 import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
+import { ResetPasswordPage } from '../pages/ResetPasswordPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { HistoryPage } from '../pages/HistoryPage';
 import { BankHoursPage } from '../pages/BankHoursPage';
@@ -21,6 +23,8 @@ export function AppRoutes() {
             {/* Public Authentication Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/cadastro" element={<RegisterPage />} />
+            <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
+            <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
 
             {/* Protected Application Routes */}
             <Route

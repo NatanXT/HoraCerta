@@ -25,5 +25,20 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'A senha é obrigatória.'),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email('E-mail inválido.')
+    .transform((val) => val.toLowerCase()),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().trim().min(1, 'Token de recuperação é obrigatório.'),
+  newPassword: z.string().min(8, 'A nova senha deve ter no mínimo 8 caracteres.'),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { User, Calendar, Clock, Coffee, Utensils, Save, Check, AlertCircle, Info, Palette } from 'lucide-react';
 import { profileService, ProfileScheduleDay } from '../services/profile.service';
 import { AppTimePicker } from '../components/ui/AppTimePicker';
@@ -39,7 +40,20 @@ interface DayFormState {
 
 export const ProfilePage: React.FC = () => {
   const { refreshMe } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'appearance'>('profile');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Tab state directly derived from query params without flicker
+  const currentAba = searchParams.get('aba');
+  const activeTab: 'profile' | 'appearance' = currentAba === 'aparencia' ? 'appearance' : 'profile';
+
+  const handleTabChange = (tab: 'profile' | 'appearance') => {
+    if (tab === 'appearance') {
+      setSearchParams({ aba: 'aparencia' });
+    } else {
+      setSearchParams({});
+    }
+  };
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [timezone, setTimezone] = useState('America/Sao_Paulo');
@@ -106,23 +120,27 @@ export const ProfilePage: React.FC = () => {
     const snack = hhMmToMinutes(day.snackBreakHhMm);
     const lunch = hhMmToMinutes(day.lunchBreakHhMm);
 
-    const span = end - start;
-    const net = span - snack - lunch;
+    if (end <= start) return 0;
+    const gross = end - start;
+    const net = gross - snack - lunch;
     return Math.max(0, net);
   };
 
   const calculateWeeklyTotal = (): number => {
-    return days.reduce((sum, d) => sum + calculateNetMinutes(d), 0);
+    return days.reduce((acc, curr) => acc + calculateNetMinutes(curr), 0);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (saving) return;
-
     setSuccessMessage(null);
     setErrorMessage(null);
 
-    // Validate work days
+    // Validation
+    if (!name.trim()) {
+      setErrorMessage('O nome não pode ficar em branco.');
+      return;
+    }
+
     for (const d of days) {
       if (d.isWorkDay) {
         const start = hhMmToMinutes(d.startHhMm);
@@ -130,26 +148,28 @@ export const ProfilePage: React.FC = () => {
         const snack = hhMmToMinutes(d.snackBreakHhMm);
         const lunch = hhMmToMinutes(d.lunchBreakHhMm);
 
-        if (start >= end) {
-          const weekdayLabel = WEEKDAYS.find((w) => w.key === d.weekday)?.label;
-          setErrorMessage(`No dia ${weekdayLabel}, o horário de início deve ser anterior ao de fim.`);
+        const weekdayLabel = WEEKDAYS.find((w) => w.key === d.weekday)?.label || d.weekday;
+
+        if (end <= start) {
+          setErrorMessage(`Em ${weekdayLabel}, o horário de término deve ser após o início.`);
           return;
         }
 
-        if (snack + lunch >= end - start) {
-          const weekdayLabel = WEEKDAYS.find((w) => w.key === d.weekday)?.label;
-          setErrorMessage(`No dia ${weekdayLabel}, as pausas superam a duração total do expediente.`);
+        const gross = end - start;
+        if (snack + lunch >= gross) {
+          setErrorMessage(`Em ${weekdayLabel}, o total das pausas deve ser menor que o período total de trabalho.`);
           return;
         }
       }
     }
 
     setSaving(true);
-
     try {
-      await profileService.updatePersonalData({ name });
+      // 1. Update Profile (Name)
+      await profileService.updatePersonalData({ name: name.trim() });
       await refreshMe();
 
+      // 2. Update Work Schedule
       const schedulePayload = days.map((d) => {
         if (!d.isWorkDay) {
           return {
@@ -182,7 +202,7 @@ export const ProfilePage: React.FC = () => {
 
       await profileService.updateWorkSchedule(schedulePayload);
 
-      setSuccessMessage('Jornada atualizada com sucesso.');
+      setSuccessMessage('Configurações atualizadas com sucesso.');
       setHasUnconfiguredSchedule(false);
     } catch (err: any) {
       setErrorMessage(
@@ -204,7 +224,7 @@ export const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
+    <div className="max-w-[1360px] mx-auto space-y-6 pb-12">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-[var(--hc-text)] flex items-center gap-2.5">
@@ -220,7 +240,7 @@ export const ProfilePage: React.FC = () => {
       <div className="flex items-center gap-2 border-b border-[var(--hc-border)] pb-2 overflow-x-auto">
         <button
           type="button"
-          onClick={() => setActiveTab('profile')}
+          onClick={() => handleTabChange('profile')}
           className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'profile'
               ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
@@ -233,7 +253,7 @@ export const ProfilePage: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => setActiveTab('appearance')}
+          onClick={() => handleTabChange('appearance')}
           className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'appearance'
               ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
@@ -285,7 +305,7 @@ export const ProfilePage: React.FC = () => {
                 Dados Pessoais
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
                   <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] uppercase tracking-wider mb-2">
                     Nome completo
@@ -301,7 +321,7 @@ export const ProfilePage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] uppercase tracking-wider mb-2">
-                    E-mail (somente leitura)
+                    E-mail
                   </label>
                   <input
                     type="email"
@@ -310,11 +330,16 @@ export const ProfilePage: React.FC = () => {
                     className="w-full px-4 py-2.5 bg-[var(--hc-surface-muted)] border border-[var(--hc-border)] rounded-xl text-[var(--hc-text-muted)] text-sm cursor-not-allowed"
                   />
                 </div>
-              </div>
 
-              <div className="pt-2 text-xs text-[var(--hc-text-muted)] flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-[var(--hc-text-muted)]" />
-                Fuso horário: <span className="text-[var(--hc-text)] font-medium">{timezone}</span>
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] uppercase tracking-wider mb-2">
+                    Fuso horário
+                  </label>
+                  <div className="w-full px-4 py-2.5 bg-[var(--hc-surface-muted)] border border-[var(--hc-border)] rounded-xl text-[var(--hc-text)] text-sm flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[var(--hc-accent)] shrink-0" />
+                    <span className="font-medium truncate">{timezone}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -327,19 +352,19 @@ export const ProfilePage: React.FC = () => {
                     Jornada de Trabalho Semanal
                   </h2>
                   <p className="text-xs text-[var(--hc-text-secondary)] mt-1">
-                    Configure os horários de início/fim e as pausas estimadas para cada dia.
+                    Configure os horários de início/fim e as pausas estimadas para cada dia da semana.
                   </p>
                 </div>
 
-                <div className="bg-[var(--hc-accent-soft)] border border-[var(--hc-accent-border)] text-[var(--hc-accent-soft-foreground)] px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2">
-                  <span>Semana planejada:</span>
+                <div className="bg-[var(--hc-accent-soft)] border border-[var(--hc-accent-border)] text-[var(--hc-accent-soft-foreground)] px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm">
+                  <span>Carga semanal planejada:</span>
                   <span className="text-sm font-bold">
                     {minutesToHhMm(calculateWeeklyTotal())}h
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 {days.map((day) => {
                   const weekdayObj = WEEKDAYS.find((w) => w.key === day.weekday)!;
                   const netMins = calculateNetMinutes(day);
@@ -347,11 +372,11 @@ export const ProfilePage: React.FC = () => {
                   return (
                     <div
                       key={day.weekday}
-                      className="p-4 rounded-xl bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-all hover:border-[var(--hc-accent-border)]"
+                      className="p-4 rounded-xl bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] flex flex-col xl:flex-row xl:items-center justify-between gap-4 transition-all hover:border-[var(--hc-accent-border)] shadow-xs"
                     >
                       {/* Left: Day & Toggle */}
-                      <div className="flex items-center justify-between lg:justify-start lg:w-48 gap-3">
-                        <span className="text-sm font-medium text-[var(--hc-text)]">
+                      <div className="flex items-center justify-between xl:justify-start xl:w-56 gap-3 shrink-0">
+                        <span className="text-sm font-semibold text-[var(--hc-text)]">
                           {weekdayObj.label}
                         </span>
                         <button
@@ -363,13 +388,13 @@ export const ProfilePage: React.FC = () => {
                               : 'bg-[var(--hc-surface-muted)] border border-[var(--hc-border)] text-[var(--hc-text-muted)]'
                           }`}
                         >
-                          {day.isWorkDay ? 'Trabalha' : 'Folga'}
+                          {day.isWorkDay ? 'Expediente' : 'Folga'}
                         </button>
                       </div>
 
                       {/* Center: Work Hours & Breaks */}
                       {day.isWorkDay ? (
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                           <div>
                             <span className="block text-[11px] text-[var(--hc-text-secondary)] font-medium mb-1">
                               Início
@@ -413,13 +438,13 @@ export const ProfilePage: React.FC = () => {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex-1 text-xs text-[var(--hc-text-muted)] italic">
+                        <div className="flex-1 text-xs text-[var(--hc-text-muted)] italic py-2">
                           Dia de descanso (sem expediente planejado)
                         </div>
                       )}
 
                       {/* Right: Net workload badge */}
-                      <div className="flex items-center justify-end lg:w-28">
+                      <div className="flex items-center justify-end xl:w-36 shrink-0 pt-2 xl:pt-0 border-t xl:border-t-0 border-[var(--hc-border)]">
                         <div className="text-right">
                           <span className="text-[10px] uppercase tracking-wider font-semibold text-[var(--hc-text-muted)] block">
                             Jornada líquida
@@ -443,7 +468,7 @@ export const ProfilePage: React.FC = () => {
                 className="px-6 py-3 bg-[var(--hc-accent)] hover:opacity-90 disabled:opacity-50 text-[var(--hc-accent-foreground)] font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer text-sm"
               >
                 <Save className="w-4 h-4" />
-                {saving ? 'Salvando...' : 'Salvar alterações'}
+                {saving ? 'Salvando...' : 'Salvar configurações'}
               </button>
             </div>
           </form>

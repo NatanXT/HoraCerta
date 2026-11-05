@@ -73,9 +73,17 @@ export const LoginPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] uppercase tracking-wider mb-2">
-              Senha
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] uppercase tracking-wider">
+                Senha
+              </label>
+              <Link
+                to="/esqueci-senha"
+                className="text-xs text-[var(--hc-accent)] hover:opacity-85 font-medium transition-colors"
+              >
+                Esqueceu sua senha?
+              </Link>
+            </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--hc-text-muted)]">
                 <Lock className="w-5 h-5" />

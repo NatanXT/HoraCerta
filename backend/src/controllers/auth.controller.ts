@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/auth.service';
-import { registerSchema, loginSchema } from '../schemas/auth.schema';
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../schemas/auth.schema';
 import { generateToken, setAuthCookie, clearAuthCookie } from '../utils/auth';
 
 export class AuthController {
@@ -8,7 +8,12 @@ export class AuthController {
     try {
       const input = registerSchema.parse(req.body);
       const user = await authService.register(input);
-      const token = generateToken({ userId: user.id, email: user.email, name: user.name });
+      const token = generateToken({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        authVersion: user.authVersion ?? 0,
+      });
       setAuthCookie(res, token);
       res.status(201).json(user);
     } catch (err) {
@@ -20,7 +25,12 @@ export class AuthController {
     try {
       const input = loginSchema.parse(req.body);
       const user = await authService.login(input);
-      const token = generateToken({ userId: user.id, email: user.email, name: user.name });
+      const token = generateToken({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        authVersion: user.authVersion ?? 0,
+      });
       setAuthCookie(res, token);
       res.json(user);
     } catch (err) {
@@ -41,6 +51,26 @@ export class AuthController {
       }
       const user = await authService.getMe(req.auth.userId);
       res.json(user);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const input = forgotPasswordSchema.parse(req.body);
+      const result = await authService.forgotPassword(input);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const input = resetPasswordSchema.parse(req.body);
+      const result = await authService.resetPassword(input);
+      res.json(result);
     } catch (err) {
       next(err);
     }

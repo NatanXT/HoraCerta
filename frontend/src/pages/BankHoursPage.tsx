@@ -26,8 +26,8 @@ export function BankHoursPage() {
   } = useBankHours();
 
   return (
-    <main className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
-      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+    <div className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
+      <div className="w-full space-y-6 sm:space-y-8">
         <FeedbackBanner feedback={feedback} />
 
         {/* Page Heading */}
@@ -99,6 +99,6 @@ export function BankHoursPage() {
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }
