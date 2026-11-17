@@ -31,6 +31,10 @@ export const getWorkDayByDateSchema = z.object({
   date: dateParamSchema,
 });
 
+export const getWeeklyWorkDaysSchema = z.object({
+  startDate: dateParamSchema,
+});
+
 export const getMonthlyWorkDaysSchema = z.object({
   month: z
     .string({
@@ -55,4 +59,5 @@ export const getMonthlyWorkDaysSchema = z.object({
 });
 
 export type GetWorkDayByDateParams = z.infer<typeof getWorkDayByDateSchema>;
+export type GetWeeklyWorkDaysQuery = z.infer<typeof getWeeklyWorkDaysSchema>;
 export type GetMonthlyWorkDaysQuery = z.infer<typeof getMonthlyWorkDaysSchema>;

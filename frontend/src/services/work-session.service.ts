@@ -1,5 +1,6 @@
 import { api } from './api';
 import { TimeEntry, WorkBreak } from '../types/work-day';
+import { inFlightTracker } from '../features/pwa/utils/inFlightTracker';
 
 export type WorkSessionState =
   | 'NOT_STARTED'
@@ -61,27 +62,37 @@ export const workSessionService = {
   },
 
   async startSession(): Promise<WorkDayWithSession> {
-    const response = await api.post<WorkDayWithSession>('/api/work-session/start');
-    return response.data;
+    return inFlightTracker.track(async () => {
+      const response = await api.post<WorkDayWithSession>('/api/work-session/start');
+      return response.data;
+    });
   },
 
   async pauseSession(type: 'SNACK' | 'LUNCH'): Promise<WorkDayWithSession> {
-    const response = await api.post<WorkDayWithSession>('/api/work-session/pause', { type });
-    return response.data;
+    return inFlightTracker.track(async () => {
+      const response = await api.post<WorkDayWithSession>('/api/work-session/pause', { type });
+      return response.data;
+    });
   },
 
   async resumeSession(): Promise<WorkDayWithSession> {
-    const response = await api.post<WorkDayWithSession>('/api/work-session/resume');
-    return response.data;
+    return inFlightTracker.track(async () => {
+      const response = await api.post<WorkDayWithSession>('/api/work-session/resume');
+      return response.data;
+    });
   },
 
   async finishSession(): Promise<WorkDayWithSession> {
-    const response = await api.post<WorkDayWithSession>('/api/work-session/finish');
-    return response.data;
+    return inFlightTracker.track(async () => {
+      const response = await api.post<WorkDayWithSession>('/api/work-session/finish');
+      return response.data;
+    });
   },
 
   async reconcileSession(): Promise<WorkDayWithSession> {
-    const response = await api.post<WorkDayWithSession>('/api/work-session/reconcile');
-    return response.data;
+    return inFlightTracker.track(async () => {
+      const response = await api.post<WorkDayWithSession>('/api/work-session/reconcile');
+      return response.data;
+    });
   },
 };

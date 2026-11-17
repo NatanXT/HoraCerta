@@ -179,3 +179,126 @@ export function getTodayDateStr(
     return '';
   }
 }
+
+/**
+ * Returns Monday and Sunday date strings for the week containing dateStr.
+ */
+export function getWeekDateRange(dateStr: string): { mondayStr: string; sundayStr: string } {
+  const [yearStr, monthStr, dayStr] = dateStr.split('-');
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10);
+  const day = parseInt(dayStr, 10);
+  const civilDate = new Date(Date.UTC(year, month - 1, day));
+  const dayOfWeek = civilDate.getUTCDay(); // 0 is Sunday, 1 is Monday ... 6 is Saturday
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const mondayUtc = new Date(civilDate.getTime() + diffToMonday * 86400000);
+  const sundayUtc = new Date(mondayUtc.getTime() + 6 * 86400000);
+
+  return {
+    mondayStr: mondayUtc.toISOString().substring(0, 10),
+    sundayStr: sundayUtc.toISOString().substring(0, 10),
+  };
+}
+
+/**
+ * Shifts a Monday date string by deltaWeeks (-1, +1, etc.).
+ */
+export function shiftWeek(mondayStr: string, deltaWeeks: number): string {
+  const [yearStr, monthStr, dayStr] = mondayStr.split('-');
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10);
+  const day = parseInt(dayStr, 10);
+  const mondayUtc = new Date(Date.UTC(year, month - 1, day));
+  const shifted = new Date(mondayUtc.getTime() + deltaWeeks * 7 * 86400000);
+  return shifted.toISOString().substring(0, 10);
+}
+
+/**
+ * Formats a weekly range label e.g.:
+ * "16 a 22 de novembro de 2026"
+ * "28 de setembro a 04 de outubro de 2026" (cross-month)
+ * "28 de dezembro de 2026 a 03 de janeiro de 2027" (cross-year)
+ */
+export function formatWeekRangeLabel(mondayStr: string, sundayStr: string): string {
+  try {
+    const [mY, mM, mD] = mondayStr.split('-').map(Number);
+    const [sY, sM, sD] = sundayStr.split('-').map(Number);
+
+    const monthNames = [
+      'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+    ];
+
+    if (mY !== sY) {
+      return `${String(mD).padStart(2, '0')} de ${monthNames[mM - 1]} de ${mY} a ${String(sD).padStart(2, '0')} de ${monthNames[sM - 1]} de ${sY}`;
+    }
+
+    if (mM !== sM) {
+      return `${String(mD).padStart(2, '0')} de ${monthNames[mM - 1]} a ${String(sD).padStart(2, '0')} de ${monthNames[sM - 1]} de ${sY}`;
+    }
+
+    return `${String(mD).padStart(2, '0')} a ${String(sD).padStart(2, '0')} de ${monthNames[sM - 1]} de ${sY}`;
+  } catch {
+    return `${mondayStr} a ${sundayStr}`;
+  }
+}
+
+/**
+ * Returns the uppercase weekday key ('SUNDAY' | 'MONDAY' | ... | 'SATURDAY')
+ * corresponding to a YYYY-MM-DD civil date string, independent of local host timezone.
+ */
+export function getWeekdayFromCivilDate(dateStr: string): string {
+  const [yearStr, monthStr, dayStr] = dateStr.split('-');
+  const civilDate = new Date(
+    Date.UTC(parseInt(yearStr, 10), parseInt(monthStr, 10) - 1, parseInt(dayStr, 10))
+  );
+  const weekdayKeys = [
+    'SUNDAY',
+    'MONDAY',
+    'TUESDAY',
+    'WEDNESDAY',
+    'THURSDAY',
+    'FRIDAY',
+    'SATURDAY',
+  ];
+  return weekdayKeys[civilDate.getUTCDay()];
+}
+
+/**
+ * Parses a civil date string (YYYY-MM-DD) and minutes from midnight (0..1439)
+ * into a UTC Date object representing that exact moment in the target timezone.
+ */
+export function parseCivilDateTimeToUtc(
+  dateStr: string,
+  minutesOfDay: number,
+  timeZone: string = env.VITE_APP_TIMEZONE
+): Date {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const hour = Math.floor(minutesOfDay / 60);
+  const min = minutesOfDay % 60;
+  const targetUtcMs = Date.UTC(y, m - 1, d, hour, min, 0);
+
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(new Date(targetUtcMs));
+  const getPart = (type: string) => parts.find((p) => p.type === type)?.value;
+  const py = Number(getPart('year'));
+  const pm = Number(getPart('month'));
+  const pd = Number(getPart('day'));
+  let ph = Number(getPart('hour'));
+  if (ph === 24) ph = 0;
+  const pmin = Number(getPart('minute'));
+
+  const asTzUtcMs = Date.UTC(py, pm - 1, pd, ph, pmin, 0);
+  const offsetMs = targetUtcMs - asTzUtcMs;
+  return new Date(targetUtcMs + offsetMs);
+}

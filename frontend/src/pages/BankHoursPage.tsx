@@ -3,6 +3,7 @@ import { useBankHours } from '../hooks/useBankHours';
 import { BankHoursConfigForm } from '../components/bank-hours/BankHoursConfigForm';
 import { BankHoursSummaryCards } from '../components/bank-hours/BankHoursSummaryCards';
 import { BankHoursSecondaryStats } from '../components/bank-hours/BankHoursSecondaryStats';
+import { BankHoursPlanningCard } from '../features/bank-hours-planning';
 import { BankHoursMonthlyList } from '../components/bank-hours/BankHoursMonthlyList';
 import { BankHoursPendingList } from '../components/bank-hours/BankHoursPendingList';
 import { FeedbackBanner } from '../components/dashboard/FeedbackBanner';
@@ -27,7 +28,7 @@ export function BankHoursPage() {
 
   return (
     <div className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
-      <div className="w-full space-y-6 sm:space-y-8">
+      <div className="w-full space-y-5 sm:space-y-6">
         <FeedbackBanner feedback={feedback} />
 
         {/* Page Heading */}
@@ -72,9 +73,9 @@ export function BankHoursPage() {
 
             {/* Show active bank status dashboard when configured and not editing */}
             {data.configured && !isEditingConfig && data.summary && (
-              <div className="space-y-6 sm:space-y-8">
+              <div className="space-y-5 sm:space-y-6">
                 {/* Active Configuration Summary Badge */}
-                <div className="bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-[var(--hc-text-secondary)] gap-2">
+                <div className="bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-[var(--hc-text-secondary)] gap-2">
                   <div className="flex items-center gap-3">
                     <span>Início da apuração: <strong className="text-[var(--hc-text)] font-mono">{formatFullDate(data.config!.startDate)}</strong></span>
                     <span className="hidden sm:inline">•</span>
@@ -88,6 +89,12 @@ export function BankHoursPage() {
 
                 {/* 4 Secondary Statistics Cards */}
                 <BankHoursSecondaryStats summary={data.summary} />
+
+                {/* Seção: Planejamento de Compensação */}
+                <BankHoursPlanningCard
+                  currentBalanceMinutes={data.summary.liveBalanceMinutes}
+                  todayStr={todayStr}
+                />
 
                 {/* Monthly Breakdown List */}
                 <BankHoursMonthlyList monthly={data.monthly} />

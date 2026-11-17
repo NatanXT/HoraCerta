@@ -5,6 +5,7 @@ import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
 import { bankHoursConfigRepository } from '../repositories/bank-hours-config.repository';
+import { holidayRepository } from '../repositories/holiday.repository';
 import { TimeEntryType, TimeEntrySource, Weekday, CalendarOccurrenceType } from '@prisma/client';
 
 describe('ReportService', () => {
@@ -12,6 +13,7 @@ describe('ReportService', () => {
     vi.restoreAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-09-21T12:00:00.000Z'));
+    vi.spyOn(holidayRepository, 'findByDateRange').mockResolvedValue([]);
   });
 
   afterEach(() => {

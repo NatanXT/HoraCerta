@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MailService } from './mail.service.js';
+import { MailService, buildPasswordResetEmailTemplate } from './mail.service.js';
 import { env } from '../config/env.js';
 
 describe('MailService', () => {
@@ -12,43 +12,68 @@ describe('MailService', () => {
     };
   });
 
-  it('A) when SMTP is configured, real transport is invoked with correct options', async () => {
+  it('A) when SMTP is configured, real transport is invoked with professional from, subject and template', async () => {
     mockTransporter.sendMail.mockResolvedValue({ messageId: 'msg-12345' });
 
-    // Initialize MailService with custom mock transporter simulating configured SMTP
-    const mailService = new MailService(mockTransporter);
+    const origFrom = env.SMTP_FROM;
+    env.SMTP_FROM = 'no-reply@horacerta.com';
 
-    const result = await mailService.sendPasswordResetEmail({
-      to: 'user@example.com',
-      name: 'João Silva',
-      resetUrl: 'http://localhost:5173/redefinir-senha?token=abc123',
-      expiresMinutes: 20,
-    });
+    try {
+      const mailService = new MailService(mockTransporter);
 
-    expect(result).toEqual({
-      success: true,
-      simulated: false,
-      messageId: 'msg-12345',
-    });
+      const result = await mailService.sendPasswordResetEmail({
+        to: 'user@example.com',
+        name: 'João Silva',
+        resetUrl: 'http://localhost:5173/redefinir-senha?token=abc123',
+        expiresMinutes: 20,
+      });
 
-    expect(mockTransporter.sendMail).toHaveBeenCalledTimes(1);
-    const mailArgs = mockTransporter.sendMail.mock.calls[0][0];
-    expect(mailArgs.to).toBe('user@example.com');
-    expect(mailArgs.subject).toBe('HoraCerta — Recuperação de Senha');
-    expect(mailArgs.text).toContain('João Silva');
-    expect(mailArgs.text).toContain('http://localhost:5173/redefinir-senha?token=abc123');
-    expect(mailArgs.html).toContain('Redefinir Minha Senha');
+      expect(result).toEqual({
+        success: true,
+        simulated: false,
+        messageId: 'msg-12345',
+      });
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledTimes(1);
+      const mailArgs = mockTransporter.sendMail.mock.calls[0][0];
+
+      // Nome do remetente institucional e endereço configurado
+      expect(mailArgs.from).toEqual({
+        name: 'HoraCerta',
+        address: 'no-reply@horacerta.com',
+      });
+      expect(mailArgs.to).toBe('user@example.com');
+      // Assunto profissional
+      expect(mailArgs.subject).toBe('HoraCerta | Redefinição de senha');
+
+      // Preheader no HTML
+      expect(mailArgs.html).toContain('Recebemos uma solicitação para redefinir sua senha no HoraCerta.');
+      // Saudação com primeiro nome
+      expect(mailArgs.html).toContain('Olá, <strong style="color: #FFFFFF;">João</strong>!');
+      // Botão de ação principal
+      expect(mailArgs.html).toContain('Redefinir minha senha');
+      expect(mailArgs.html).toContain('http://localhost:5173/redefinir-senha?token=abc123');
+      // Aviso de segurança e prazo
+      expect(mailArgs.html).toContain('20 minutos');
+      expect(mailArgs.html).toContain('HoraCerta — Controle simples da sua jornada');
+
+      // Versão em texto puro
+      expect(mailArgs.text).toContain('Olá, João!');
+      expect(mailArgs.text).toContain('http://localhost:5173/redefinir-senha?token=abc123');
+      expect(mailArgs.text).toContain('20 minutos');
+    } finally {
+      env.SMTP_FROM = origFrom;
+    }
   });
 
   it('B) when SMTP is absent / not configured, does NOT declare real delivery (simulated: true)', async () => {
-    // Save original env values
     const origHost = env.SMTP_HOST;
     const origUser = env.SMTP_USER;
     env.SMTP_HOST = '';
     env.SMTP_USER = '';
 
     try {
-      const mailService = new MailService(); // no transporter, no env
+      const mailService = new MailService();
       expect(mailService.isSmtpConfigured()).toBe(false);
 
       const result = await mailService.sendPasswordResetEmail({
@@ -63,9 +88,12 @@ describe('MailService', () => {
         simulated: true,
       });
 
-      // Stored in in-memory simulation buffer
+      // Salvo no buffer de simulação em desenvolvimento
       expect(mailService.getSentEmails()).toHaveLength(1);
-      expect(mailService.getSentEmails()[0].to).toBe('user@example.com');
+      const sent = mailService.getSentEmails()[0];
+      expect(sent.to).toBe('user@example.com');
+      expect(sent.subject).toBe('HoraCerta | Redefinição de senha');
+      expect((sent.from as any).name).toBe('HoraCerta');
     } finally {
       env.SMTP_HOST = origHost;
       env.SMTP_USER = origUser;
@@ -97,7 +125,6 @@ describe('MailService', () => {
     const mailService = new MailService();
 
     try {
-      // Configuração completa
       env.SMTP_HOST = 'smtp.example.com';
       env.SMTP_PORT = 587;
       env.SMTP_USER = 'smtp-user';
@@ -105,31 +132,25 @@ describe('MailService', () => {
       env.SMTP_FROM = 'no-reply@example.com';
       expect(mailService.isSmtpConfigured()).toBe(true);
 
-      // Falta SMTP_PASSWORD
       env.SMTP_PASSWORD = '';
       expect(mailService.isSmtpConfigured()).toBe(false);
 
-      // SMTP_PASSWORD apenas espaços em branco
       env.SMTP_PASSWORD = '   ';
       expect(mailService.isSmtpConfigured()).toBe(false);
       env.SMTP_PASSWORD = 'valid-pass';
 
-      // Falta SMTP_HOST
       env.SMTP_HOST = '';
       expect(mailService.isSmtpConfigured()).toBe(false);
       env.SMTP_HOST = 'smtp.example.com';
 
-      // Falta SMTP_USER
       env.SMTP_USER = '';
       expect(mailService.isSmtpConfigured()).toBe(false);
       env.SMTP_USER = 'smtp-user';
 
-      // Falta SMTP_FROM
       env.SMTP_FROM = '';
       expect(mailService.isSmtpConfigured()).toBe(false);
       env.SMTP_FROM = 'no-reply@example.com';
 
-      // SMTP_PORT inválido
       env.SMTP_PORT = 0;
       expect(mailService.isSmtpConfigured()).toBe(false);
     } finally {
@@ -185,11 +206,80 @@ describe('MailService', () => {
       expect(res.simulated).toBe(false);
       expect(mockTransporter.sendMail).toHaveBeenCalledTimes(1);
 
-      // Em produção, o buffer em memória NÃO deve reter o e-mail/token
       expect(mailService.getSentEmails()).toHaveLength(0);
     } finally {
       process.env.NODE_ENV = origEnv;
     }
   });
-});
 
+  it('G) verifyConnection validates transport connectivity via transporter.verify', async () => {
+    mockTransporter.verify = vi.fn().mockResolvedValue(true);
+    const mailService = new MailService(mockTransporter);
+
+    const result = await mailService.verifyConnection();
+    expect(result).toEqual({ success: true });
+    expect(mockTransporter.verify).toHaveBeenCalledTimes(1);
+
+    mockTransporter.verify.mockRejectedValue(new Error('Invalid login credentials'));
+    const failedResult = await mailService.verifyConnection();
+    expect(failedResult).toEqual({ success: false, error: 'Invalid login credentials' });
+
+    // Testa serviço sem transporter configurado (isolando variáveis de ambiente)
+    const origHost = env.SMTP_HOST;
+    env.SMTP_HOST = '';
+    try {
+      const unconfiguredService = new MailService();
+      const noTransporterResult = await unconfiguredService.verifyConnection();
+      expect(noTransporterResult.success).toBe(false);
+      expect(noTransporterResult.error).toContain('Transporter SMTP não inicializado');
+    } finally {
+      env.SMTP_HOST = origHost;
+    }
+  });
+
+  describe('buildPasswordResetEmailTemplate', () => {
+    it('T1) extracts first name correctly and escapes XSS payloads', () => {
+      const { html, text } = buildPasswordResetEmailTemplate({
+        to: 'target@example.com',
+        name: '<script>alert("xss")</script> Ana Paula',
+        resetUrl: 'https://app.horacerta.com/redefinir-senha?token=token123&action=reset',
+        expiresMinutes: 20,
+      });
+
+      // Deve extrair a primeira palavra sanitizada e não injetar tags perigosas
+      expect(html).not.toContain('<script>');
+      expect(html).toContain('&lt;script&gt;');
+      expect(html).toContain('token123&amp;action=reset');
+      expect(text).toContain('Olá, <script>alert("xss")</script>!');
+    });
+
+    it('T2) falls back to "Usuário" when name is empty or spaces', () => {
+      const { html, text } = buildPasswordResetEmailTemplate({
+        to: 'target@example.com',
+        name: '   ',
+        resetUrl: 'https://app.horacerta.com/redefinir-senha?token=token123',
+        expiresMinutes: 20,
+      });
+
+      expect(html).toContain('Olá, <strong style="color: #FFFFFF;">Usuário</strong>!');
+      expect(text).toContain('Olá, Usuário!');
+    });
+
+    it('T3) includes preheader, clock monogram, bulletproof button and footer notice', () => {
+      const { html, text, subject } = buildPasswordResetEmailTemplate({
+        to: 'target@example.com',
+        name: 'Lucas Fernandes',
+        resetUrl: 'https://app.horacerta.com/redefinir-senha?token=safe-token',
+        expiresMinutes: 20,
+      });
+
+      expect(subject).toBe('HoraCerta | Redefinição de senha');
+      expect(html).toContain('Recebemos uma solicitação para redefinir sua senha no HoraCerta.');
+      expect(html).toContain('HoraCerta');
+      expect(html).toContain('Notificações de segurança');
+      expect(html).toContain('Redefinir minha senha');
+      expect(html).toContain('HoraCerta — Controle simples da sua jornada');
+      expect(text).toContain('HoraCerta — Notificações de segurança');
+    });
+  });
+});

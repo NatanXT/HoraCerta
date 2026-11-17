@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { workDayService } from '../services/work-day.service';
 import { workSessionService } from '../services/work-session.service';
-import { getWorkDayByDateSchema, getMonthlyWorkDaysSchema } from '../schemas/work-day.schema';
+import {
+  getWorkDayByDateSchema,
+  getMonthlyWorkDaysSchema,
+  getWeeklyWorkDaysSchema,
+} from '../schemas/work-day.schema';
 import { AppError } from '../errors/app-error';
 
 export class WorkDayController {
@@ -10,6 +14,25 @@ export class WorkDayController {
       const userId = req.auth!.userId;
       const summary = await workSessionService.getTodayWithSession(userId);
       res.status(200).json(summary);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getWeeklySummary(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.auth!.userId;
+      const parseResult = getWeeklyWorkDaysSchema.safeParse(req.query);
+      if (!parseResult.success) {
+        throw new AppError(
+          parseResult.error.errors[0]?.message || 'Data de início inválida. Utilize YYYY-MM-DD.',
+          400,
+          'INVALID_DATE'
+        );
+      }
+      const { startDate } = parseResult.data;
+      const response = await workDayService.getWeeklySummary(userId, startDate);
+      res.status(200).json(response);
     } catch (error) {
       next(error);
     }

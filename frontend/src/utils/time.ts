@@ -27,6 +27,26 @@ export function formatBalance(minutes: number): string {
 }
 
 /**
+ * Formats minutes into "32h 15min" or "40h 00min" format.
+ */
+export function formatHoursMinutes(minutes: number): string {
+  const absoluteMinutes = Math.abs(minutes);
+  const hours = Math.floor(absoluteMinutes / 60);
+  const mins = absoluteMinutes % 60;
+  return `${hours}h ${String(mins).padStart(2, '0')}min`;
+}
+
+/**
+ * Formats balance minutes into "+2h 10min", "-1h 30min" or "0h 00min".
+ */
+export function formatSignedBalanceHoursMinutes(minutes: number): string {
+  if (minutes === 0) return '0h 00min';
+  const sign = minutes > 0 ? '+' : '-';
+  const formatted = formatHoursMinutes(minutes);
+  return `${sign}${formatted}`;
+}
+
+/**
  * Formats an ISO timestamp string into HH:mm format in the configured timezone.
  */
 export function formatTime(

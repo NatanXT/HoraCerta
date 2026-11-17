@@ -39,9 +39,9 @@ export function DayDetails({ day, onDayUpdated }: DayDetailsProps) {
 
   return (
     <div className="space-y-4">
-      <section aria-label="Detalhes do dia selecionado" className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-sm">
+      <section aria-label="Detalhes do dia selecionado" className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 sm:space-y-5 backdrop-blur-sm">
         {/* Header & Status Badge */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-800/80 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3.5 border-b border-slate-800/80 gap-3">
           <div>
             <h3 className="text-lg font-bold text-white tracking-tight">
               {fullDateLabel}
@@ -122,7 +122,7 @@ export function DayDetails({ day, onDayUpdated }: DayDetailsProps) {
 
         {/* Occurrence Banner */}
         {day.occurrence && (
-          <div className="p-4 rounded-xl bg-indigo-950/40 border border-indigo-800/60 text-indigo-200 text-xs space-y-1">
+          <div className="p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-800/60 text-indigo-200 text-xs space-y-1">
             <div className="flex items-center gap-2 font-semibold text-white">
               <CalendarOff className="w-4 h-4 text-indigo-400" />
               <span>
@@ -137,7 +137,7 @@ export function DayDetails({ day, onDayUpdated }: DayDetailsProps) {
         )}
 
         {/* Metrics Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-slate-950/40 p-4 rounded-xl border border-slate-800/50">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-950/40 p-3.5 rounded-xl border border-slate-800/50">
           <div>
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
               Jornada esperada
@@ -178,13 +178,13 @@ export function DayDetails({ day, onDayUpdated }: DayDetailsProps) {
 
         {/* Pausas List */}
         {day.workBreaks && day.workBreaks.length > 0 && (
-          <div className="space-y-3 pt-2">
+          <div className="space-y-2 pt-1">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Pausas ({day.workBreaks.length})
             </h4>
             <div className="divide-y divide-slate-800/50 bg-slate-950/40 rounded-xl border border-slate-800/60 px-3">
               {day.workBreaks.map((b) => (
-                <div key={b.id} className="py-2.5 flex items-center justify-between text-xs">
+                <div key={b.id} className="py-2 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     {b.type === 'SNACK' ? (
                       <Coffee className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
@@ -211,7 +211,7 @@ export function DayDetails({ day, onDayUpdated }: DayDetailsProps) {
 
         {/* Time Entries List */}
         {sortedEntries.length > 0 && (
-          <div className="space-y-3 pt-2">
+          <div className="space-y-2 pt-1">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Registros do dia ({sortedEntries.length})
             </h4>
@@ -223,7 +223,7 @@ export function DayDetails({ day, onDayUpdated }: DayDetailsProps) {
                 return (
                   <div
                     key={entry.id}
-                    className="py-3 flex items-center justify-between"
+                    className="py-2.5 flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2.5">
                       <div

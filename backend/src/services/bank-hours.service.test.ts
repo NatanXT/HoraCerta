@@ -4,6 +4,7 @@ import { workDayRepository } from '../repositories/work-day.repository';
 import { workScheduleRepository } from '../repositories/work-schedule.repository';
 import { bankHoursConfigRepository } from '../repositories/bank-hours-config.repository';
 import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
+import { holidayRepository } from '../repositories/holiday.repository';
 import { saveBankHoursConfigSchema } from '../schemas/bank-hours.schema';
 import { Weekday, CalendarOccurrenceType } from '@prisma/client';
 
@@ -55,6 +56,8 @@ describe('BankHoursService - getBankHoursStatus', () => {
     vi.restoreAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-09-21T12:00:00.000Z'));
+    vi.spyOn(holidayRepository, 'findByDateRange').mockResolvedValue([]);
+    vi.spyOn(calendarOccurrenceRepository, 'findActiveInRange').mockResolvedValue([]);
   });
 
   afterEach(() => {

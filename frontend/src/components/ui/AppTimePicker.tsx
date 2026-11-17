@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Clock, Check, X } from 'lucide-react';
 import { PopoverPortal } from './PopoverPortal';
+import { AppTooltip } from './AppTooltip';
 import { normalizeTimeInput, isValidTimeFormat } from '../../utils/time-input';
 
 export interface AppTimePickerProps {
@@ -168,18 +169,20 @@ export const AppTimePicker: React.FC<AppTimePickerProps> = ({
         </div>
 
         {value && !disabled && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setInputValue('');
-              onChange('');
-            }}
-            className="text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] p-0.5 rounded transition-colors cursor-pointer"
-            title="Limpar horário"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
+          <AppTooltip content="Limpar horário">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setInputValue('');
+                onChange('');
+              }}
+              className="text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] p-0.5 rounded transition-colors cursor-pointer"
+              aria-label="Limpar horário"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </AppTooltip>
         )}
       </div>
 

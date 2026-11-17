@@ -92,7 +92,7 @@ const variantStyles: Record<
   },
   slate: {
     cardBorder: 'border-[var(--hc-border)]',
-    cardHoverBorder: 'hover:border-[var(--hc-border-subtle)]',
+    cardHoverBorder: 'hover:border-[var(--hc-border)]',
     cardHoverBg: 'hover:bg-[var(--hc-surface-raised)]',
     iconBg: 'bg-[var(--hc-surface-raised)] border-[var(--hc-border)] text-[var(--hc-text-muted)] group-hover:scale-110',
     iconColor: 'text-[var(--hc-text-muted)]',
@@ -101,11 +101,11 @@ const variantStyles: Record<
 };
 
 const badgeStyles: Record<string, string> = {
-  success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
-  warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
-  error: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30',
-  info: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30',
-  neutral: 'bg-[var(--hc-surface-raised)] text-[var(--hc-text-secondary)] border-[var(--hc-border)]',
+  success: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500',
+  warning: 'bg-amber-500/10 border-amber-500/30 text-amber-500',
+  error: 'bg-rose-500/10 border-rose-500/30 text-rose-500',
+  info: 'bg-[var(--hc-accent-soft)] border-[var(--hc-accent-border)] text-[var(--hc-accent-soft-foreground)]',
+  neutral: 'bg-[var(--hc-surface-raised)] border-[var(--hc-border)] text-[var(--hc-text-secondary)]',
 };
 
 export const MetricCard: React.FC<MetricCardProps> = ({
@@ -113,7 +113,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   value,
   subtitle,
   icon: Icon,
-  variant = 'indigo',
+  variant = 'slate',
   badge,
   badgeVariant = 'neutral',
   onClick,
@@ -124,7 +124,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`group relative bg-[var(--hc-surface)] border ${styles.cardBorder} ${styles.cardHoverBorder} ${styles.cardHoverBg} rounded-2xl p-4 sm:p-5 transition-all duration-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md ${
+      className={`group relative bg-[var(--hc-surface)] border ${styles.cardBorder} ${styles.cardHoverBorder} ${styles.cardHoverBg} rounded-2xl p-3.5 sm:p-4 transition-all duration-200 shadow-sm hover:-translate-y-0.5 hover:shadow-md ${
         onClick ? 'cursor-pointer' : ''
       } ${className}`}
     >
@@ -134,14 +134,14 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         </span>
         {Icon && (
           <div
-            className={`p-2 rounded-xl border transition-all duration-200 ${styles.iconBg}`}
+            className={`p-1.5 sm:p-2 rounded-xl border transition-all duration-200 ${styles.iconBg}`}
           >
             <Icon className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200" />
           </div>
         )}
       </div>
 
-      <div className="mt-2.5 flex items-baseline justify-between gap-2">
+      <div className="mt-2 flex items-baseline justify-between gap-2">
         <span className={`text-2xl sm:text-3xl font-extrabold tracking-tight font-mono ${styles.valueColor}`}>
           {value}
         </span>
@@ -157,7 +157,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       </div>
 
       {subtitle && (
-        <p className="mt-1.5 text-xs text-[var(--hc-text-muted)] font-medium leading-relaxed">
+        <p className="mt-1 text-xs text-[var(--hc-text-muted)] font-medium leading-relaxed">
           {subtitle}
         </p>
       )}

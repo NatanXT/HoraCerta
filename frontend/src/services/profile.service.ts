@@ -1,5 +1,6 @@
 import { api } from './api';
 import { UserDto } from './auth.service';
+import { inFlightTracker } from '../features/pwa/utils/inFlightTracker';
 
 export interface WorkScheduleDayInput {
   weekday: string;
@@ -38,12 +39,16 @@ export const profileService = {
   },
 
   async updatePersonalData(data: { name: string }): Promise<UserDto> {
-    const response = await api.put<UserDto>('/api/profile', data);
-    return response.data;
+    return inFlightTracker.track(async () => {
+      const response = await api.put<UserDto>('/api/profile', data);
+      return response.data;
+    });
   },
 
   async updateWorkSchedule(days: WorkScheduleDayInput[]): Promise<WorkScheduleProfileDto> {
-    const response = await api.put<WorkScheduleProfileDto>('/api/profile/work-schedule', { days });
-    return response.data;
+    return inFlightTracker.track(async () => {
+      const response = await api.put<WorkScheduleProfileDto>('/api/profile/work-schedule', { days });
+      return response.data;
+    });
   },
 };

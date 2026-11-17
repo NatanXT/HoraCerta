@@ -3,6 +3,7 @@ import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { ClockCard } from '../components/dashboard/ClockCard';
 import { SummaryCard } from '../components/dashboard/SummaryCard';
 import { TodayEntries } from '../components/dashboard/TodayEntries';
+import { WeeklySummarySection } from '../components/dashboard/weekly/WeeklySummarySection';
 import { FeedbackBanner } from '../components/dashboard/FeedbackBanner';
 import { LoadingSkeleton } from '../components/dashboard/LoadingSkeleton';
 import { OfflineError } from '../components/dashboard/OfflineError';
@@ -25,7 +26,7 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
-      <div className="w-full space-y-6 sm:space-y-8">
+      <div className="w-full space-y-5 sm:space-y-6">
         <FeedbackBanner feedback={feedback} />
 
         <DashboardHeader />
@@ -37,7 +38,7 @@ export function DashboardPage() {
         )}
 
         {data && (
-          <div className="space-y-6 sm:space-y-8">
+          <div className="space-y-5 sm:space-y-6">
             <ClockCard
               summary={data}
               submitting={submitting}
@@ -52,6 +53,9 @@ export function DashboardPage() {
             <SummaryCard summary={data as any} />
 
             <TodayEntries entries={data.entries} />
+
+            {/* Smart Weekly Dashboard Section (ETAPA 12.2) */}
+            <WeeklySummarySection refreshTrigger={data} />
           </div>
         )}
       </div>

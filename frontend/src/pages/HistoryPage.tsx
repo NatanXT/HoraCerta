@@ -26,7 +26,7 @@ export function HistoryPage() {
 
   return (
     <div className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
-      <div className="w-full space-y-6 sm:space-y-8">
+      <div className="w-full space-y-5 sm:space-y-6">
         {/* Page Heading */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-[var(--hc-border)] gap-3">
           <div>
@@ -57,7 +57,7 @@ export function HistoryPage() {
         )}
 
         {data && (
-          <div className="space-y-6 sm:space-y-8">
+          <div className="space-y-5 sm:space-y-6">
             {/* Descriptive Monthly Summary Cards */}
             <MonthlySummaryCards summary={data.summary} />
 

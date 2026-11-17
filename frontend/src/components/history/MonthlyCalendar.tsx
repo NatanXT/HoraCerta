@@ -30,9 +30,9 @@ export function MonthlyCalendar({
   }
 
   return (
-    <section aria-label="Calendário mensal" className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-3 sm:p-6 shadow-xl backdrop-blur-sm space-y-4">
+    <section aria-label="Calendário mensal" className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-3 sm:p-5 shadow-xl backdrop-blur-sm space-y-3.5">
       {/* Weekday Header Row */}
-      <div className="grid grid-cols-7 text-center border-b border-[var(--hc-border)] pb-3">
+      <div className="grid grid-cols-7 text-center border-b border-[var(--hc-border)] pb-2.5">
         {WEEKDAY_HEADERS.map((header) => (
           <span
             key={header}
@@ -47,7 +47,7 @@ export function MonthlyCalendar({
       <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {/* Lead-in Empty Cells */}
         {Array.from({ length: leadInSlots }).map((_, i) => (
-          <div key={`lead-${i}`} className="h-16 sm:h-20 rounded-xl bg-[var(--hc-surface-raised)] border border-transparent" />
+          <div key={`lead-${i}`} className="h-15 sm:h-[4.25rem] rounded-xl bg-[var(--hc-surface-raised)] border border-transparent" />
         ))}
 
         {/* Days of the Month */}
@@ -99,7 +99,7 @@ export function MonthlyCalendar({
                 onClick={() => onSelectDay(daySummary.date)}
                 aria-label={`Dia ${dayNumber}, ${isHoliday ? `Feriado: ${daySummary.holiday?.name}, ` : ''}${daySummary.status}`}
                 aria-pressed={isSelected}
-                className={`h-16 sm:h-20 p-1.5 sm:p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 relative cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--hc-accent)] hover:bg-[var(--hc-surface-raised)] group ${statusClass} ${
+                className={`h-15 sm:h-[4.25rem] p-1.5 sm:p-2 rounded-xl border text-left flex flex-col justify-between transition-all duration-200 relative cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--hc-accent)] hover:bg-[var(--hc-surface-raised)] group ${statusClass} ${
                   isSelected
                     ? 'ring-2 ring-[var(--hc-focus-ring)] border-[var(--hc-accent)] bg-[var(--hc-surface-raised)] shadow-lg'
                     : ''
@@ -121,10 +121,7 @@ export function MonthlyCalendar({
 
                   <div className="flex items-center gap-1">
                     {isHoliday && (
-                      <span
-                        title={`Feriado: ${daySummary.holiday?.name}`}
-                        className="text-amber-500 hover:text-amber-400 transition-colors"
-                      >
+                      <span className="text-amber-500 hover:text-amber-400 transition-colors">
                         <CalendarDays size={12} className="sm:w-3.5 sm:h-3.5" />
                       </span>
                     )}

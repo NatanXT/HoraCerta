@@ -4,6 +4,7 @@ import {
   ManualAdjustmentResponse,
   WorkDayAdjustmentsResponse,
 } from '../types/manual-adjustment';
+import { inFlightTracker } from '../features/pwa/utils/inFlightTracker';
 
 export const manualAdjustmentService = {
   async getAdjustments(date: string): Promise<WorkDayAdjustmentsResponse> {
@@ -15,10 +16,12 @@ export const manualAdjustmentService = {
     date: string,
     payload: ManualAdjustmentPayload
   ): Promise<ManualAdjustmentResponse> {
-    const response = await api.put<ManualAdjustmentResponse>(
-      `/api/work-days/${date}/manual-adjustment`,
-      payload
-    );
-    return response.data;
+    return inFlightTracker.track(async () => {
+      const response = await api.put<ManualAdjustmentResponse>(
+        `/api/work-days/${date}/manual-adjustment`,
+        payload
+      );
+      return response.data;
+    });
   },
 };

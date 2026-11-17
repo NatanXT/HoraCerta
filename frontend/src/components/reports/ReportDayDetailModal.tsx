@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Calendar, Clock, AlertCircle, Coffee, Utensils } from 'lucide-react';
 import { ReportDay } from '../../types/report';
+import { AppTooltip } from '../ui/AppTooltip';
 
 export interface ReportDayDetailModalProps {
   day: ReportDay | null;
@@ -107,13 +108,15 @@ export const ReportDayDetailModal: React.FC<ReportDayDetailModalProps> = ({ day,
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface)] transition-colors cursor-pointer"
-            title="Fechar"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <AppTooltip content="Fechar">
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface)] transition-colors cursor-pointer"
+              aria-label="Fechar modal de detalhes"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </AppTooltip>
         </div>
 
         {/* Content Body */}

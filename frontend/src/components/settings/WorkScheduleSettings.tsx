@@ -114,8 +114,8 @@ export const WorkScheduleSettings: React.FC<WorkScheduleSettingsProps> = ({
   };
 
   return (
-    <section className="bg-slate-800 rounded-xl border border-slate-700/60 p-6 shadow-sm">
-      <div className="flex items-center gap-3 pb-4 mb-6 border-b border-slate-700/60">
+    <section className="bg-slate-800 rounded-xl border border-slate-700/60 p-5 sm:p-6 shadow-sm">
+      <div className="flex items-center gap-3 pb-3 mb-5 border-b border-slate-700/60">
         <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
           <CalendarDays className="w-5 h-5" />
         </div>
@@ -128,7 +128,7 @@ export const WorkScheduleSettings: React.FC<WorkScheduleSettingsProps> = ({
       </div>
 
       {(successMessage || errorMessage || validationError) && (
-        <div className="mb-6 space-y-2" aria-live="polite">
+        <div className="mb-5 space-y-2" aria-live="polite">
           {successMessage && (
             <div className="flex items-center gap-2 p-3 text-sm rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -145,12 +145,12 @@ export const WorkScheduleSettings: React.FC<WorkScheduleSettingsProps> = ({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+        <div className="space-y-2 sm:space-y-2.5">
           {localDays.map((d) => (
             <div
               key={d.weekday}
-              className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-lg bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] gap-3"
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 sm:p-3 rounded-lg bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] gap-3"
             >
               <div className="flex items-center justify-between sm:justify-start gap-4">
                 <span className="text-sm font-medium text-[var(--hc-text)] min-w-[120px]">
@@ -204,14 +204,14 @@ export const WorkScheduleSettings: React.FC<WorkScheduleSettingsProps> = ({
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-[var(--hc-accent-soft)] border border-[var(--hc-accent-border)] gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-xl bg-[var(--hc-accent-soft)] border border-[var(--hc-accent-border)] gap-3">
           <span className="text-sm font-medium text-[var(--hc-accent-soft-foreground)]">Carga semanal esperada</span>
           <span className="text-lg font-bold text-[var(--hc-accent)] font-mono">
             {formatMinutes(weeklyTotalMinutes)}
           </span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] text-xs text-[var(--hc-text-secondary)] flex items-start gap-3">
+        <div className="p-3.5 rounded-xl bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] text-xs text-[var(--hc-text-secondary)] flex items-start gap-3">
           <Info className="w-4 h-4 text-[var(--hc-accent)] shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-medium text-[var(--hc-text)]">Preservação do histórico</p>

@@ -6,6 +6,8 @@ import { workScheduleRepository } from '../repositories/work-schedule.repository
 import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.repository';
 import { timeEntryRepository } from '../repositories/time-entry.repository';
 import { workDayAdjustmentRepository } from '../repositories/work-day-adjustment.repository';
+import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
+import { holidayRepository } from '../repositories/holiday.repository';
 import { prisma } from '../lib/prisma';
 import { TimeEntryType, TimeEntrySource, Weekday, Prisma } from '@prisma/client';
 import { AppError } from '../errors/app-error';
@@ -141,6 +143,23 @@ describe('ManualAdjustmentService - saveAdjustment & getAdjustments', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-09-21T12:00:00.000Z'));
 
+    vi.spyOn(holidayRepository, 'findByDateRange').mockResolvedValue([]);
+    vi.spyOn(calendarOccurrenceRepository, 'findActiveInRange').mockResolvedValue([]);
+    vi.spyOn(prisma.workBreak, 'updateMany').mockResolvedValue({ count: 0 } as any);
+    vi.spyOn(timeEntryRepository, 'softDeleteActiveByWorkDayId').mockResolvedValue({ count: 0 });
+    vi.spyOn(workScheduleRepository, 'findEffectiveByUserWeekdayAndDate').mockResolvedValue({
+      id: 'sched-default',
+      userId: 'user-1',
+      weekday: Weekday.TUESDAY,
+      expectedMinutes: 480,
+      plannedStartMinutes: 480,
+      plannedEndMinutes: 1035,
+      snackBreakMinutes: 15,
+      lunchBreakMinutes: 60,
+      effectiveFrom: new Date('2000-01-01T00:00:00.000Z'),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
     vi.spyOn(prisma, '$transaction').mockImplementation(async (cb: (tx: typeof prisma) => Promise<unknown>) => {
       return cb(prisma);
     });

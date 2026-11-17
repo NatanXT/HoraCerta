@@ -30,33 +30,59 @@ export const PopoverPortal: React.FC<PopoverPortalProps> = ({
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    let left = rect.left;
-    let top = rect.bottom + 6;
+    const MARGIN = 8;
+    const GAP = 6;
 
-    // Check popover dimensions if rendered
-    if (popoverRef.current) {
-      const popoverRect = popoverRef.current.getBoundingClientRect();
-      // If overflows right edge of screen, shift left
-      if (left + popoverRect.width > viewportWidth - 12) {
-        left = Math.max(12, viewportWidth - popoverRect.width - 12);
-      }
-      // If overflows bottom edge of screen, place above trigger
-      if (top + popoverRect.height > viewportHeight - 12 && rect.top > popoverRect.height + 12) {
-        top = rect.top - popoverRect.height - 6;
+    const spaceBelow = viewportHeight - rect.bottom - GAP - MARGIN;
+    const spaceAbove = rect.top - GAP - MARGIN;
+
+    const popoverRect = popoverRef.current?.getBoundingClientRect();
+    const popoverHeight = popoverRect?.height ?? 320;
+    const popoverWidth = popoverRect?.width ?? (matchWidth ? rect.width : 288);
+
+    // 1. Vertical placement preference:
+    // Try opening below if it fits completely
+    let top: number;
+    if (popoverHeight <= spaceBelow) {
+      top = rect.bottom + GAP;
+    } else if (popoverHeight <= spaceAbove) {
+      // Flip above if it fits above
+      top = rect.top - GAP - popoverHeight;
+    } else {
+      // Neither fits completely: place in direction with more available space
+      if (spaceBelow >= spaceAbove) {
+        top = rect.bottom + GAP;
+      } else {
+        top = rect.top - GAP - popoverHeight;
       }
     }
 
+    // Safety clamp: ensure top stays strictly within viewport margins
+    top = Math.max(MARGIN, Math.min(top, viewportHeight - popoverHeight - MARGIN));
+
+    // 2. Horizontal placement:
+    let left = rect.left;
+    if (left + popoverWidth > viewportWidth - MARGIN) {
+      left = Math.max(MARGIN, viewportWidth - popoverWidth - MARGIN);
+    }
+    if (left < MARGIN) {
+      left = MARGIN;
+    }
+
     setCoords({
-      top: Math.max(6, top),
-      left: Math.max(6, left),
+      top: Math.round(top),
+      left: Math.round(left),
       width: matchWidth ? rect.width : undefined,
     });
   };
 
   useLayoutEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+    updatePosition();
+    const raf = requestAnimationFrame(() => {
       updatePosition();
-    }
+    });
+    return () => cancelAnimationFrame(raf);
   }, [isOpen]);
 
   useEffect(() => {
@@ -66,7 +92,7 @@ export const PopoverPortal: React.FC<PopoverPortalProps> = ({
       updatePosition();
     };
 
-    const handleMouseDownOutside = (e: MouseEvent) => {
+    const handlePointerDownOutside = (e: PointerEvent) => {
       const target = e.target as Node;
       if (
         popoverRef.current &&
@@ -78,14 +104,22 @@ export const PopoverPortal: React.FC<PopoverPortalProps> = ({
       }
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
     window.addEventListener('resize', handleScrollOrResize, { passive: true });
     window.addEventListener('scroll', handleScrollOrResize, { passive: true, capture: true });
-    document.addEventListener('mousedown', handleMouseDownOutside);
+    document.addEventListener('pointerdown', handlePointerDownOutside);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       window.removeEventListener('resize', handleScrollOrResize);
       window.removeEventListener('scroll', handleScrollOrResize, true);
-      document.removeEventListener('mousedown', handleMouseDownOutside);
+      document.removeEventListener('pointerdown', handlePointerDownOutside);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
 
@@ -96,10 +130,13 @@ export const PopoverPortal: React.FC<PopoverPortalProps> = ({
       ref={popoverRef}
       style={{
         position: 'fixed',
-        top: coords.top,
-        left: coords.left,
+        top: `${coords.top}px`,
+        left: `${coords.left}px`,
         width: coords.width ? `${coords.width}px` : undefined,
-        zIndex: 9999,
+        maxWidth: 'calc(100vw - 16px)',
+        maxHeight: `calc(100vh - ${coords.top + 8}px)`,
+        overflowY: 'auto',
+        zIndex: 60,
       }}
       className={className}
       onClick={(e) => e.stopPropagation()}

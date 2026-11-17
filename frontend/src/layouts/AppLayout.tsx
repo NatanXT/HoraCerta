@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, Link } from 'react-router-dom';
-import { Clock, UserCircle, ChevronDown, LogOut, User, Palette } from 'lucide-react';
+import { Clock, UserCircle, ChevronDown, LogOut, User, Palette, Bell, Smartphone } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { PwaOfflineIndicator, PwaUpdateBanner } from '../features/pwa';
 
 export function AppLayout() {
   const { user, logout } = useAuth();
@@ -27,6 +28,7 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-[var(--hc-bg)] text-[var(--hc-text)] flex flex-col selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
+      <PwaOfflineIndicator />
       {/* Top Main Navigation Bar */}
       <header className="bg-[var(--hc-surface)]/90 border-b border-[var(--hc-border)] sticky top-0 z-40 backdrop-blur-md print:hidden">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
@@ -136,12 +138,28 @@ export function AppLayout() {
                   Perfil
                 </Link>
                 <Link
+                  to="/perfil?aba=lembretes"
+                  onClick={() => setDropdownOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors"
+                >
+                  <Bell className="w-4 h-4 text-[var(--hc-accent)]" />
+                  Lembretes
+                </Link>
+                <Link
                   to="/perfil?aba=aparencia"
                   onClick={() => setDropdownOpen(false)}
                   className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors"
                 >
                   <Palette className="w-4 h-4 text-[var(--hc-accent)]" />
                   Aparência
+                </Link>
+                <Link
+                  to="/perfil?aba=aplicativo"
+                  onClick={() => setDropdownOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors"
+                >
+                  <Smartphone className="w-4 h-4 text-[var(--hc-accent)]" />
+                  Aplicativo
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -165,6 +183,9 @@ export function AppLayout() {
       <footer className="border-t border-[var(--hc-border)] py-4 text-center text-xs text-[var(--hc-text-muted)] print:hidden">
         HoraCerta &copy; {new Date().getFullYear()} &mdash; Sistema de Gestão de Ponto e Banco de Horas
       </footer>
+
+      {/* PWA Update Banner */}
+      <PwaUpdateBanner />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { PopoverPortal } from './PopoverPortal';
+import { AppTooltip } from './AppTooltip';
 
 export interface AppDatePickerProps {
   id?: string;
@@ -161,17 +162,19 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
         </div>
 
         {value && !disabled && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange('');
-            }}
-            className="text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] p-0.5 rounded transition-colors cursor-pointer"
-            title="Limpar data"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
+          <AppTooltip content="Limpar data">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange('');
+              }}
+              className="text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] p-0.5 rounded transition-colors cursor-pointer"
+              aria-label="Limpar data"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </AppTooltip>
         )}
       </div>
 
@@ -184,27 +187,31 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
         <div className="w-72 bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl shadow-2xl p-4 space-y-3 backdrop-blur-md animate-fadeIn text-[var(--hc-text)]">
           {/* Calendar Header */}
           <div className="flex items-center justify-between pb-2 border-b border-[var(--hc-border)]">
-            <button
-              type="button"
-              onClick={handlePrevMonth}
-              className="p-1 rounded-lg text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors cursor-pointer"
-              title="Mês anterior"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+            <AppTooltip content="Mês anterior">
+              <button
+                type="button"
+                onClick={handlePrevMonth}
+                className="p-1 rounded-lg text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors cursor-pointer"
+                aria-label="Mês anterior"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </AppTooltip>
 
             <span className="text-sm font-bold text-[var(--hc-text)] font-mono">
               {MONTH_NAMES[viewMonth]} {viewYear}
             </span>
 
-            <button
-              type="button"
-              onClick={handleNextMonth}
-              className="p-1 rounded-lg text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors cursor-pointer"
-              title="Próximo mês"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <AppTooltip content="Próximo mês">
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                className="p-1 rounded-lg text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)] transition-colors cursor-pointer"
+                aria-label="Próximo mês"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </AppTooltip>
           </div>
 
           {/* Weekday Labels Header */}

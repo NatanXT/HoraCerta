@@ -21,6 +21,7 @@ import { formatMinutes, formatBalance } from '../utils/time';
 import { getTodayDateStr } from '../utils/date';
 import { CALENDAR_OCCURRENCE_TYPE_LABELS } from '../types/calendar-occurrence';
 import { AppDatePicker } from '../components/ui/AppDatePicker';
+import { AppTooltip } from '../components/ui/AppTooltip';
 import { MetricCard } from '../components/common/MetricCard';
 import { ReportDayDetailModal } from '../components/reports/ReportDayDetailModal';
 import { ReportDay } from '../types/report';
@@ -136,7 +137,7 @@ export function ReportsPage() {
 
   return (
     <main className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)] print:bg-white print:text-slate-900">
-      <div className="w-full space-y-6 sm:space-y-8 print:p-0 print:space-y-4 print:max-w-none">
+      <div className="w-full space-y-5 sm:space-y-6 print:p-0 print:space-y-4 print:max-w-none">
         {/* Page Header (Hidden on print) */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-[var(--hc-border)] gap-4 print:hidden">
           <div>
@@ -209,7 +210,7 @@ export function ReportsPage() {
         )}
 
         {/* Filter Card (Hidden on print) */}
-        <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-5 shadow-xl space-y-4 backdrop-blur-sm print:hidden">
+        <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4 backdrop-blur-sm print:hidden">
           <div className="flex items-center gap-2 text-[var(--hc-text-secondary)] font-semibold text-xs uppercase tracking-wider">
             <CalendarRange className="w-4 h-4 text-[var(--hc-accent)]" />
             <span>Seleção de Período</span>
@@ -269,40 +270,39 @@ export function ReportsPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-[var(--hc-accent-foreground)] bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 disabled:opacity-50 rounded-xl transition-colors cursor-pointer shadow-sm"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2 text-xs font-semibold text-[var(--hc-accent-foreground)] bg-[var(--hc-accent)] hover:opacity-90 active:opacity-95 rounded-xl transition-colors shadow-md disabled:opacity-50 cursor-pointer"
               >
                 <Search className="w-4 h-4" />
-                <span>{loading ? 'Gerando...' : 'Gerar relatório'}</span>
+                <span>{loading ? 'Gerando relatório...' : 'Atualizar relatório'}</span>
               </button>
             </div>
           </form>
         </div>
 
-        {/* Loading State */}
+        {/* Report Content */}
         {loading && !report && (
-          <div className="p-12 text-center text-xs text-slate-400 bg-slate-900/30 border border-slate-800 rounded-2xl print:hidden">
-            Gerando relatório do período...
+          <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-12 text-center text-xs text-[var(--hc-text-muted)] animate-pulse">
+            Carregando dados do período selecionado...
           </div>
         )}
 
-        {/* Report Content */}
         {report && (
-          <div className="space-y-6 sm:space-y-8 print:space-y-6">
-            {/* 1. Summary Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-5 sm:space-y-6">
+            {/* 1. Metric Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
-                title="Horas trabalhadas"
-                value={formatMinutes(report.summary.workedMinutes)}
-                subtitle={`${report.summary.recordedDays} dias com registro`}
-                icon={Timer}
+                title="Dias trabalhados"
+                value={`${report.summary.recordedDays} dias`}
+                subtitle={`De um total de ${report.summary.calendarDays} dias no período`}
+                icon={ClipboardList}
                 variant="indigo"
               />
 
               <MetricCard
-                title="Carga prevista"
-                value={formatMinutes(report.summary.scheduledMinutes)}
-                subtitle={`${report.summary.calendarDays} dias no período`}
-                icon={ClipboardList}
+                title="Total trabalhado"
+                value={formatMinutes(report.summary.workedMinutes)}
+                subtitle={`Carga esperada: ${formatMinutes(report.summary.scheduledMinutes)}`}
+                icon={Timer}
                 variant="slate"
               />
 
@@ -334,16 +334,16 @@ export function ReportsPage() {
             </div>
 
             {/* 2. Bank Hours Section */}
-            <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 backdrop-blur-sm print:bg-slate-50 print:border-slate-300 print:shadow-none">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 print:border-slate-300">
+            <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4 backdrop-blur-sm print:bg-slate-50 print:border-slate-300 print:shadow-none">
+              <div className="flex items-center justify-between pb-3 border-b border-[var(--hc-border)] print:border-slate-300">
                 <div className="flex items-center gap-2">
                   <PiggyBank className="w-5 h-5 text-emerald-400 print:text-emerald-700" />
-                  <h3 className="text-base font-bold text-white print:text-slate-900">
+                  <h3 className="text-base font-bold text-[var(--hc-text)] print:text-slate-900">
                     Apuração de Banco de Horas no Período
                   </h3>
                 </div>
                 {report.bankHours.configured && (
-                  <span className="text-xs text-slate-400 font-mono print:text-slate-600">
+                  <span className="text-xs text-[var(--hc-text-secondary)] font-mono print:text-slate-600">
                     Início apuração: {report.bankHours.startDate}
                   </span>
                 )}
@@ -352,7 +352,7 @@ export function ReportsPage() {
               {report.bankHours.configured ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1">
                   <div>
-                    <span className="text-[11px] text-slate-400 uppercase tracking-wider block print:text-slate-600">
+                    <span className="text-[11px] text-[var(--hc-text-secondary)] uppercase tracking-wider block print:text-slate-600">
                       Créditos (+)
                     </span>
                     <span className="text-lg font-mono font-bold text-emerald-400 mt-0.5 block print:text-emerald-700">
@@ -361,7 +361,7 @@ export function ReportsPage() {
                   </div>
 
                   <div>
-                    <span className="text-[11px] text-slate-400 uppercase tracking-wider block print:text-slate-600">
+                    <span className="text-[11px] text-[var(--hc-text-secondary)] uppercase tracking-wider block print:text-slate-600">
                       Débitos (-)
                     </span>
                     <span className="text-lg font-mono font-bold text-amber-400 mt-0.5 block print:text-amber-700">
@@ -370,29 +370,29 @@ export function ReportsPage() {
                   </div>
 
                   <div>
-                    <span className="text-[11px] text-slate-400 uppercase tracking-wider block print:text-slate-600">
+                    <span className="text-[11px] text-[var(--hc-text-secondary)] uppercase tracking-wider block print:text-slate-600">
                       Saldo Consolidado
                     </span>
-                    <span className="text-lg font-mono font-bold text-white mt-0.5 block print:text-slate-900">
+                    <span className="text-lg font-mono font-bold text-[var(--hc-text)] mt-0.5 block print:text-slate-900">
                       {formatBalance(report.bankHours.periodConsolidatedBalanceMinutes ?? 0)}
                     </span>
                   </div>
 
                   <div>
-                    <span className="text-[11px] text-slate-400 uppercase tracking-wider block print:text-slate-600">
+                    <span className="text-[11px] text-[var(--hc-text-secondary)] uppercase tracking-wider block print:text-slate-600">
                       Saldo Período Agora
                     </span>
-                    <span className="text-lg font-mono font-bold text-indigo-300 mt-0.5 block print:text-indigo-900">
+                    <span className="text-lg font-mono font-bold text-[var(--hc-accent)] mt-0.5 block print:text-indigo-900">
                       {formatBalance(report.bankHours.livePeriodBalanceMinutes ?? 0)}
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400 flex items-center justify-between gap-3 print:bg-white print:border-slate-300 print:text-slate-700">
+                <div className="p-4 rounded-xl bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] text-xs text-[var(--hc-text-secondary)] flex items-center justify-between gap-3 print:bg-white print:border-slate-300 print:text-slate-700">
                   <span>O Banco de Horas ainda não foi configurado.</span>
                   <Link
                     to="/banco-de-horas"
-                    className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 underline print:hidden"
+                    className="text-xs font-semibold text-[var(--hc-accent)] hover:opacity-90 underline print:hidden"
                   >
                     Configurar banco de horas
                   </Link>
@@ -402,15 +402,15 @@ export function ReportsPage() {
 
             {/* 3. Occurrences Breakdown Section */}
             {report.occurrences.totalOccurrenceDays > 0 && (
-              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 backdrop-blur-sm print:bg-slate-50 print:border-slate-300 print:shadow-none">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 print:border-slate-300">
+              <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4 backdrop-blur-sm print:bg-slate-50 print:border-slate-300 print:shadow-none">
+                <div className="flex items-center justify-between pb-3 border-b border-[var(--hc-border)] print:border-slate-300">
                   <div className="flex items-center gap-2">
-                    <CalendarOff className="w-5 h-5 text-indigo-400 print:text-indigo-700" />
-                    <h3 className="text-base font-bold text-white print:text-slate-900">
+                    <CalendarOff className="w-5 h-5 text-[var(--hc-accent)] print:text-indigo-700" />
+                    <h3 className="text-base font-bold text-[var(--hc-text)] print:text-slate-900">
                       Ocorrências e Ausências no Período
                     </h3>
                   </div>
-                  <span className="text-xs text-indigo-300 font-semibold print:text-slate-700">
+                  <span className="text-xs text-[var(--hc-accent)] font-semibold print:text-slate-700">
                     {report.occurrences.totalOccurrenceDays} dia(s) cobertos
                   </span>
                 </div>
@@ -419,12 +419,12 @@ export function ReportsPage() {
                   {report.occurrences.byType.map((occItem) => (
                     <div
                       key={occItem.type}
-                      className="p-3 bg-slate-950/60 border border-slate-800 rounded-xl space-y-1 print:bg-white print:border-slate-300"
+                      className="p-3 bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl space-y-1 print:bg-white print:border-slate-300"
                     >
-                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block truncate print:text-slate-600">
+                      <span className="text-[10px] font-semibold text-[var(--hc-text-secondary)] uppercase tracking-wider block truncate print:text-slate-600">
                         {CALENDAR_OCCURRENCE_TYPE_LABELS[occItem.type as keyof typeof CALENDAR_OCCURRENCE_TYPE_LABELS] || occItem.type}
                       </span>
-                      <span className="text-base font-mono font-bold text-white block print:text-slate-900">
+                      <span className="text-base font-mono font-bold text-[var(--hc-text)] block print:text-slate-900">
                         {occItem.days} dia(s)
                       </span>
                     </div>
@@ -434,95 +434,114 @@ export function ReportsPage() {
             )}
 
             {/* 4. Daily Details Section */}
-            <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 backdrop-blur-sm print:bg-white print:border-none print:shadow-none print:p-0">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-800/80 print:border-slate-300 gap-2">
-                <h3 className="text-base font-bold text-white print:text-slate-900">
+            <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4 backdrop-blur-sm print:bg-white print:border-none print:shadow-none print:p-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[var(--hc-border)] print:border-slate-300 gap-2">
+                <h3 className="text-base font-bold text-[var(--hc-text)] print:text-slate-900">
                   Detalhamento Diário da Jornada
                 </h3>
-                <p className="text-[11px] text-indigo-300 font-medium flex items-center gap-1.5 print:hidden">
-                  <Info className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                  <span>Dê um duplo clique em qualquer linha para visualizar os detalhes completos do dia.</span>
+                <p className="text-[11px] text-[var(--hc-accent)] font-medium flex items-center gap-1.5 print:hidden">
+                  <Info className="w-3.5 h-3.5 text-[var(--hc-accent)] shrink-0" />
+                  <span>Dê um duplo clique na linha ou selecione a data para visualizar os detalhes completos do dia.</span>
                 </p>
               </div>
 
               {/* Desktop Table View */}
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-300 border-collapse">
+                <table className="w-full text-left text-xs text-[var(--hc-text-secondary)] border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800/80 text-slate-400 font-semibold uppercase text-[10px] tracking-wider print:border-slate-300 print:text-slate-700">
-                      <th className="py-2.5 px-3">Data</th>
-                      <th className="py-2.5 px-3">Dia da semana</th>
-                      <th className="py-2.5 px-3 report-print-hidden print:hidden">Status</th>
-                      <th className="py-2.5 px-3">Ocorrência</th>
-                      <th className="py-2.5 px-3 text-right">Previsto</th>
-                      <th className="py-2.5 px-3 text-right">Trabalhado</th>
-                      <th className="py-2.5 px-3 text-right">Saldo</th>
-                      <th className="py-2.5 px-3 text-center report-print-hidden print:hidden">Origem</th>
+                    <tr className="border-b border-[var(--hc-border)] text-[var(--hc-text-secondary)] font-semibold uppercase text-[10px] tracking-wider print:border-slate-300 print:text-slate-700">
+                      <th className="py-2 px-3">Data</th>
+                      <th className="py-2 px-3">Dia da semana</th>
+                      <th className="py-2 px-3 report-print-hidden print:hidden">Status</th>
+                      <th className="py-2 px-3">Ocorrência</th>
+                      <th className="py-2 px-3 text-right">Previsto</th>
+                      <th className="py-2 px-3 text-right">Trabalhado</th>
+                      <th className="py-2 px-3 text-right">Saldo</th>
+                      <th className="py-2 px-3 text-center report-print-hidden print:hidden">Origem</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/50 print:divide-slate-200">
+                  <tbody className="divide-y divide-[var(--hc-border)] print:divide-slate-200">
                     {report.days.map((day) => (
-                      <tr
+                      <AppTooltip
                         key={day.date}
-                        onDoubleClick={() => setSelectedDetailDay(day)}
-                        title="Duplo clique para abrir detalhes do dia"
-                        className="hover:bg-slate-800/70 cursor-pointer transition-colors print:hover:bg-transparent"
+                        content="Duplo clique para abrir detalhes do dia"
                       >
-                        <td className="py-2.5 px-3 font-mono text-white font-medium whitespace-nowrap print:text-slate-900">
-                          {day.date}
-                        </td>
-                        <td className="py-2.5 px-3 whitespace-nowrap print:text-slate-700">
-                          {formatWeekdayPt(day.weekday)}
-                        </td>
-                        <td className="py-2.5 px-3 whitespace-nowrap report-print-hidden print:hidden">
-                          {day.status === 'RECORDED' && (
-                            <span className="text-emerald-400 font-semibold print:text-emerald-800">Registrado</span>
-                          )}
-                          {day.status === 'EXCUSED' && (
-                            <span className="text-indigo-300 font-semibold print:text-indigo-800">Abonado</span>
-                          )}
-                          {day.status === 'IN_PROGRESS' && (
-                            <span className="text-emerald-400 font-medium print:text-emerald-800">Em andamento</span>
-                          )}
-                          {day.status === 'INCOMPLETE' && (
-                            <span className="text-amber-400 font-semibold print:text-amber-800">Incompleto</span>
-                          )}
-                          {day.status === 'NO_RECORDS' && (
-                            <span className="text-slate-400 print:text-slate-600">Sem registro</span>
-                          )}
-                          {day.status === 'REST_DAY' && (
-                            <span className="text-slate-500 print:text-slate-500">Folga</span>
-                          )}
-                          {day.status === 'FUTURE' && (
-                            <span className="text-slate-600 print:text-slate-400">Futuro</span>
-                          )}
-                        </td>
-                        <td className="py-2.5 px-3 text-slate-300 truncate max-w-[150px] print:text-slate-800">
-                          {day.occurrence ? day.occurrence.title : '-'}
-                        </td>
-                        <td className="py-2.5 px-3 font-mono text-right whitespace-nowrap print:text-slate-800">
-                          {formatMinutes(day.expectedMinutes)}
-                        </td>
-                        <td className="py-2.5 px-3 font-mono font-bold text-white text-right whitespace-nowrap print:text-slate-900">
-                          {formatMinutes(day.workedMinutes)}
-                        </td>
-                        <td
-                          className={`py-2.5 px-3 font-mono font-bold text-right whitespace-nowrap ${
-                            day.balanceMinutes !== null
-                              ? day.balanceMinutes > 0
-                                ? 'text-emerald-400 print:text-emerald-800'
-                                : day.balanceMinutes === 0
-                                ? 'text-slate-300 print:text-slate-800'
-                                : 'text-amber-400 print:text-amber-800'
-                              : 'text-slate-500 print:text-slate-400'
-                          }`}
+                        <tr
+                          onDoubleClick={() => setSelectedDetailDay(day)}
+                          className="hover:bg-[var(--hc-surface-raised)] cursor-pointer transition-colors print:hover:bg-transparent"
                         >
-                          {day.balanceMinutes !== null ? formatBalance(day.balanceMinutes) : '-'}
-                        </td>
-                        <td className="py-2.5 px-3 text-center font-mono text-[10px] text-slate-400 print:text-slate-600 report-print-hidden print:hidden">
-                          {day.entrySource || '-'}
-                        </td>
-                      </tr>
+                          <td className="py-2 px-3 font-mono font-medium whitespace-nowrap print:text-slate-900">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDetailDay(day);
+                              }}
+                              onTouchStart={(e) => {
+                                e.stopPropagation();
+                              }}
+                              onFocus={(e) => {
+                                e.stopPropagation();
+                              }}
+                              className="text-left font-mono font-medium text-[var(--hc-text)] hover:text-[var(--hc-accent)] hover:underline focus:outline-none focus:ring-1 focus:ring-[var(--hc-accent)] rounded px-1 -mx-1 transition-colors cursor-pointer print:text-slate-900 print:hover:text-slate-900 print:p-0 print:m-0 print:hover:no-underline"
+                              aria-label={`Ver detalhes do dia ${day.date}`}
+                            >
+                              {day.date}
+                            </button>
+                          </td>
+                          <td className="py-2 px-3 whitespace-nowrap text-[var(--hc-text-secondary)] print:text-slate-700">
+                            {formatWeekdayPt(day.weekday)}
+                          </td>
+                          <td className="py-2 px-3 whitespace-nowrap report-print-hidden print:hidden">
+                            {day.status === 'RECORDED' && (
+                              <span className="text-emerald-400 font-semibold print:text-emerald-800">Registrado</span>
+                            )}
+                            {day.status === 'EXCUSED' && (
+                              <span className="text-indigo-400 font-semibold print:text-indigo-800">Abonado</span>
+                            )}
+                            {day.status === 'IN_PROGRESS' && (
+                              <span className="text-emerald-400 font-medium print:text-emerald-800">Em andamento</span>
+                            )}
+                            {day.status === 'INCOMPLETE' && (
+                              <span className="text-amber-400 font-semibold print:text-amber-800">Incompleto</span>
+                            )}
+                            {day.status === 'NO_RECORDS' && (
+                              <span className="text-[var(--hc-text-muted)] print:text-slate-600">Sem registro</span>
+                            )}
+                            {day.status === 'REST_DAY' && (
+                              <span className="text-[var(--hc-text-muted)] opacity-80 print:text-slate-500">Folga</span>
+                            )}
+                            {day.status === 'FUTURE' && (
+                              <span className="text-[var(--hc-text-muted)] opacity-60 print:text-slate-400">Futuro</span>
+                            )}
+                          </td>
+                          <td className="py-2 px-3 text-[var(--hc-text-secondary)] truncate max-w-[150px] print:text-slate-800">
+                            {day.occurrence ? day.occurrence.title : '-'}
+                          </td>
+                          <td className="py-2 px-3 font-mono text-right whitespace-nowrap text-[var(--hc-text-secondary)] print:text-slate-800">
+                            {formatMinutes(day.expectedMinutes)}
+                          </td>
+                          <td className="py-2 px-3 font-mono font-bold text-[var(--hc-text)] text-right whitespace-nowrap print:text-slate-900">
+                            {formatMinutes(day.workedMinutes)}
+                          </td>
+                          <td
+                            className={`py-2 px-3 font-mono font-bold text-right whitespace-nowrap ${
+                              day.balanceMinutes !== null
+                                ? day.balanceMinutes > 0
+                                  ? 'text-emerald-400 print:text-emerald-800'
+                                  : day.balanceMinutes === 0
+                                  ? 'text-[var(--hc-text-secondary)] print:text-slate-800'
+                                  : 'text-amber-400 print:text-amber-800'
+                                : 'text-[var(--hc-text-muted)] print:text-slate-400'
+                            }`}
+                          >
+                            {day.balanceMinutes !== null ? formatBalance(day.balanceMinutes) : '-'}
+                          </td>
+                          <td className="py-2 px-3 text-center font-mono text-[10px] text-[var(--hc-text-muted)] print:text-slate-600 report-print-hidden print:hidden">
+                            {day.entrySource || '-'}
+                          </td>
+                        </tr>
+                      </AppTooltip>
                     ))}
                   </tbody>
                 </table>

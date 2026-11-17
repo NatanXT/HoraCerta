@@ -12,7 +12,7 @@ export function TodayEntries({ entries }: TodayEntriesProps) {
   );
 
   return (
-    <section aria-label="Registros de hoje" className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 shadow-md space-y-4">
+    <section aria-label="Registros de hoje" className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-5 sm:p-6 shadow-md space-y-4">
       <div className="flex items-center justify-between pb-3 border-b border-[var(--hc-border)]">
         <h2 className="text-base font-bold text-[var(--hc-text)] flex items-center gap-2">
           <span>Registros de hoje</span>
@@ -23,7 +23,7 @@ export function TodayEntries({ entries }: TodayEntriesProps) {
       </div>
 
       {sortedEntries.length === 0 ? (
-        <div className="py-10 text-center space-y-2">
+        <div className="py-8 text-center space-y-2">
           <div className="w-12 h-12 rounded-2xl bg-[var(--hc-surface-raised)] text-[var(--hc-text-muted)] flex items-center justify-center mx-auto shadow-inner">
             <CalendarDays className="w-6 h-6" aria-hidden="true" />
           </div>
@@ -41,7 +41,7 @@ export function TodayEntries({ entries }: TodayEntriesProps) {
             return (
               <div
                 key={entry.id}
-                className="py-3.5 flex items-center justify-between transition-colors hover:bg-[var(--hc-surface-raised)] px-2 rounded-lg"
+                className="py-2.5 flex items-center justify-between transition-colors hover:bg-[var(--hc-surface-raised)] px-2 rounded-lg"
               >
                 <div className="flex items-center gap-3">
                   <div

@@ -8,6 +8,9 @@ const workDayRouter = Router();
 workDayRouter.use(requireAuth);
 
 workDayRouter.get('/today', (req, res, next) => workDayController.getToday(req, res, next));
+workDayRouter.get('/weekly-summary', (req, res, next) =>
+  workDayController.getWeeklySummary(req, res, next)
+);
 workDayRouter.get('/monthly', (req, res, next) => workDayController.getMonthly(req, res, next));
 workDayRouter.get('/:date/adjustments', (req, res, next) =>
   manualAdjustmentController.getAdjustments(req, res, next)

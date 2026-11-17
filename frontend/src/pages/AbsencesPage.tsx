@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   CalendarOff,
   Plus,
@@ -19,6 +19,8 @@ import {
 } from '../types/calendar-occurrence';
 import { AppDatePicker } from '../components/ui/AppDatePicker';
 import { AppSelect } from '../components/ui/AppSelect';
+import { AppTooltip } from '../components/ui/AppTooltip';
+import { useDirtyFormTracker } from '../features/pwa';
 
 const OCCURRENCE_OPTIONS = [
   { value: 'HOLIDAY', label: 'Feriado' },
@@ -87,6 +89,29 @@ export function AbsencesPage() {
   const [formNote, setFormNote] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
 
+  const initialFormSnapshotRef = useRef<string>('');
+
+  const currentFormSnapshot = JSON.stringify({
+    type: formType,
+    title: formTitle.trim(),
+    startDate: formStartDate,
+    endDate: formEndDate,
+    note: formNote.trim(),
+  });
+
+  const isAbsenceDirty =
+    isModalOpen &&
+    Boolean(initialFormSnapshotRef.current && currentFormSnapshot !== initialFormSnapshotRef.current);
+
+  useDirtyFormTracker(isAbsenceDirty);
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingOccurrence(null);
+    initialFormSnapshotRef.current = '';
+    setFormError(null);
+  };
+
   useEffect(() => {
     const { from, to } = getMonthRange(selectedMonth);
     fetchOccurrences(from, to);
@@ -123,6 +148,13 @@ export function AbsencesPage() {
     setFormEndDate(todayStr);
     setFormNote('');
     setFormError(null);
+    initialFormSnapshotRef.current = JSON.stringify({
+      type: 'HOLIDAY',
+      title: '',
+      startDate: todayStr,
+      endDate: todayStr,
+      note: '',
+    });
     setIsModalOpen(true);
   };
 
@@ -132,8 +164,16 @@ export function AbsencesPage() {
     setFormTitle(occ.title);
     setFormStartDate(occ.startDate);
     setFormEndDate(occ.endDate);
-    setFormNote(occ.note || '');
+    const noteVal = occ.note || '';
+    setFormNote(noteVal);
     setFormError(null);
+    initialFormSnapshotRef.current = JSON.stringify({
+      type: occ.type,
+      title: occ.title.trim(),
+      startDate: occ.startDate,
+      endDate: occ.endDate,
+      note: noteVal.trim(),
+    });
     setIsModalOpen(true);
   };
 
@@ -170,7 +210,7 @@ export function AbsencesPage() {
     }
 
     if (ok) {
-      setIsModalOpen(false);
+      closeModal();
       const { from, to } = getMonthRange(selectedMonth);
       fetchOccurrences(from, to);
     }
@@ -188,7 +228,7 @@ export function AbsencesPage() {
 
   return (
     <div className="min-h-full bg-[var(--hc-bg)] text-[var(--hc-text)] selection:bg-[var(--hc-accent)] selection:text-[var(--hc-accent-foreground)]">
-      <div className="w-full space-y-6 sm:space-y-8">
+      <div className="w-full space-y-5 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-[var(--hc-border)] gap-4">
           <div>
@@ -249,11 +289,11 @@ export function AbsencesPage() {
         {/* Occurrences List */}
         <div className="space-y-3">
           {loading ? (
-            <div className="p-8 text-center text-xs text-[var(--hc-text-muted)] bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl">
+            <div className="p-6 sm:p-7 text-center text-xs text-[var(--hc-text-muted)] bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl">
               Carregando ocorrências...
             </div>
           ) : occurrences.length === 0 ? (
-            <div className="p-8 text-center text-xs text-[var(--hc-text-muted)] bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl space-y-1">
+            <div className="p-6 sm:p-7 text-center text-xs text-[var(--hc-text-muted)] bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-xl space-y-1">
               <p className="font-medium text-[var(--hc-text)]">Nenhuma ocorrência registrada no mês.</p>
               <p className="text-[var(--hc-text-muted)]">
                 Dias sem registro continuarão seguindo a jornada padrão.
@@ -288,20 +328,24 @@ export function AbsencesPage() {
                 </div>
 
                 <div className="flex items-center gap-2 self-end sm:self-center">
-                  <button
-                    onClick={() => openEditModal(occ)}
-                    className="p-2 text-[var(--hc-text-muted)] hover:text-[var(--hc-accent)] hover:bg-[var(--hc-surface-raised)] rounded-lg transition-colors cursor-pointer"
-                    title="Editar"
-                  >
-                    <PencilLine className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setDeletingId(occ.id)}
-                    className="p-2 text-[var(--hc-text-muted)] hover:text-rose-500 hover:bg-[var(--hc-surface-raised)] rounded-lg transition-colors cursor-pointer"
-                    title="Excluir"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <AppTooltip content="Editar">
+                    <button
+                      onClick={() => openEditModal(occ)}
+                      className="p-2 text-[var(--hc-text-muted)] hover:text-[var(--hc-accent)] hover:bg-[var(--hc-surface-raised)] rounded-lg transition-colors cursor-pointer"
+                      aria-label={`Editar ${occ.title}`}
+                    >
+                      <PencilLine className="w-4 h-4" />
+                    </button>
+                  </AppTooltip>
+                  <AppTooltip content="Excluir">
+                    <button
+                      onClick={() => setDeletingId(occ.id)}
+                      className="p-2 text-[var(--hc-text-muted)] hover:text-rose-500 hover:bg-[var(--hc-surface-raised)] rounded-lg transition-colors cursor-pointer"
+                      aria-label={`Excluir ${occ.title}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </AppTooltip>
                 </div>
               </div>
             ))
@@ -314,92 +358,92 @@ export function AbsencesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
           <div className="w-full max-w-md bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-[var(--hc-border)]">
-              <h2 className="text-base font-semibold text-[var(--hc-text)]">
-                {editingOccurrence ? 'Editar ocorrência' : 'Nova ocorrência'}
+              <h2 className="text-base font-bold text-[var(--hc-text)] flex items-center gap-2">
+                <CalendarOff className="w-5 h-5 text-[var(--hc-accent)]" />
+                <span>{editingOccurrence ? 'Editar ocorrência' : 'Nova ocorrência'}</span>
               </h2>
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-[var(--hc-text-muted)] hover:text-[var(--hc-text)] cursor-pointer"
+                onClick={closeModal}
+                className="text-[var(--hc-text-muted)] hover:text-[var(--hc-text)]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="p-3 text-xs text-rose-300 bg-rose-950/50 border border-rose-800/60 rounded-xl">
+              <div className="p-3 text-xs text-rose-300 bg-rose-950/40 border border-rose-800/60 rounded-xl">
                 {formError}
               </div>
             )}
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
-              <AppSelect
-                label="Tipo da ocorrência *"
-                value={formType}
-                options={OCCURRENCE_OPTIONS}
-                onChange={(val) => setFormType(val as CalendarOccurrenceType)}
-              />
-
-              {formType === 'BANK_HOURS_LEAVE' && (
-                <div className="flex items-start gap-2.5 p-3 text-xs bg-amber-950/30 border border-amber-800/50 rounded-xl text-amber-200">
-                  <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="font-medium text-amber-200">
-                      Esta ocorrência utilizará a jornada prevista do período como débito do seu banco de horas.
-                    </p>
-                    <p className="text-[11px] text-amber-300/80">
-                      Impacto estimado: débito equivalente à jornada prevista de cada dia útil abrangido (ex: -08h00 para jornada padrão).
-                    </p>
-                  </div>
-                </div>
-              )}
+              <div>
+                <AppSelect
+                  id="occ-type"
+                  label="Tipo de ocorrência"
+                  value={formType}
+                  onChange={(val) => setFormType(val as CalendarOccurrenceType)}
+                  options={OCCURRENCE_OPTIONS}
+                />
+              </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] mb-1.5 tracking-wide">Título</label>
+                <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] uppercase tracking-wider mb-1.5">
+                  Título / Identificação
+                </label>
                 <input
                   type="text"
+                  required
+                  placeholder="Ex: Feriado Tiradentes, Férias de Julho"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="Ex: Feriado municipal, Férias regulamentares"
-                  maxLength={100}
-                  className="w-full bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl px-3.5 py-2.5 text-sm font-medium text-[var(--hc-text)] placeholder-[var(--hc-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--hc-focus-ring)] focus:border-[var(--hc-accent)] hover:border-[var(--hc-accent-border)] transition-all duration-150 shadow-inner"
-                  required
+                  className="w-full px-3.5 py-2 text-xs bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl text-[var(--hc-text)] placeholder-[var(--hc-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--hc-focus-ring)] focus:border-[var(--hc-accent)]"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <AppDatePicker
-                  label="Data inicial *"
-                  value={formStartDate}
-                  onChange={(val) => setFormStartDate(val)}
-                  required
-                />
-
-                <AppDatePicker
-                  label="Data final *"
-                  value={formEndDate}
-                  onChange={(val) => setFormEndDate(val)}
-                  required
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <AppDatePicker
+                    label="Data inicial"
+                    value={formStartDate}
+                    onChange={(val) => setFormStartDate(val)}
+                    required
+                  />
+                </div>
+                <div>
+                  <AppDatePicker
+                    label="Data final"
+                    value={formEndDate}
+                    onChange={(val) => setFormEndDate(val)}
+                    required
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[var(--hc-text-secondary)] mb-1">
-                  Observação <span className="text-[var(--hc-text-muted)] font-normal">(opcional)</span>
+                <label className="block text-xs font-semibold text-[var(--hc-text-secondary)] uppercase tracking-wider mb-1.5">
+                  Observações (opcional)
                 </label>
                 <textarea
+                  rows={2}
+                  placeholder="Anotações internas sobre a ausência..."
                   value={formNote}
                   onChange={(e) => setFormNote(e.target.value)}
-                  placeholder="Detalhes adicionais..."
-                  maxLength={500}
-                  rows={3}
-                  className="w-full bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl px-3 py-2 text-xs text-[var(--hc-text)] placeholder-[var(--hc-text-muted)] focus:outline-none focus:border-[var(--hc-accent)] resize-none"
+                  className="w-full px-3.5 py-2 text-xs bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] rounded-xl text-[var(--hc-text)] placeholder-[var(--hc-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--hc-focus-ring)] focus:border-[var(--hc-accent)] resize-none"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--hc-border)]">
+              <div className="p-3 rounded-xl bg-[var(--hc-accent-soft)] border border-[var(--hc-accent-border)] text-[11px] text-[var(--hc-accent-soft-foreground)] flex items-start gap-2">
+                <Clock className="w-4 h-4 shrink-0 mt-0.5 text-[var(--hc-accent)]" />
+                <span>
+                  Dias cobertos por esta ocorrência terão a jornada esperada zerada, evitando horas negativas indevidas.
+                </span>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--hc-border)]">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={closeModal}
                   className="px-4 py-2 text-xs font-medium text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] bg-[var(--hc-surface-raised)] hover:bg-[var(--hc-surface-muted)] rounded-xl transition-colors cursor-pointer"
                 >
                   Cancelar

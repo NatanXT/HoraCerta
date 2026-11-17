@@ -173,3 +173,33 @@ export function getMonthDateRange(monthString: string): {
     month,
   };
 }
+
+/**
+ * Returns the Monday-to-Sunday civil date range for any date within that week.
+ */
+export function getWeekDateRange(dateString: string): {
+  startDate: Date;
+  endDate: Date;
+  mondayStr: string;
+  sundayStr: string;
+} {
+  const [yearStr, monthStr, dayStr] = dateString.split('-');
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10);
+  const day = parseInt(dayStr, 10);
+  const civilDate = new Date(Date.UTC(year, month - 1, day));
+  const dayOfWeek = civilDate.getUTCDay(); // 0 is Sunday, 1 is Monday, 6 is Saturday
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const mondayUtc = new Date(civilDate.getTime() + diffToMonday * 86400000);
+  const sundayUtc = new Date(mondayUtc.getTime() + 6 * 86400000);
+
+  const mondayStr = mondayUtc.toISOString().substring(0, 10);
+  const sundayStr = sundayUtc.toISOString().substring(0, 10);
+
+  return {
+    startDate: parseDateToUtcMidnight(mondayStr),
+    endDate: parseDateToUtcMidnight(sundayStr),
+    mondayStr,
+    sundayStr,
+  };
+}

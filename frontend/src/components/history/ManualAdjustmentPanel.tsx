@@ -15,6 +15,7 @@ import { useManualAdjustment } from '../../hooks/useManualAdjustment';
 import { formatFullDate, formatDateTime } from '../../utils/date';
 import { formatMinutes, formatTime } from '../../utils/time';
 import { AppTimePicker } from '../ui/AppTimePicker';
+import { useDirtyFormTracker } from '../../features/pwa';
 
 interface ManualAdjustmentPanelProps {
   day: MonthlyDaySummary;
@@ -38,6 +39,13 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
   const [intervals, setIntervals] = useState<ManualInterval[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  const initialIntervalsRef = React.useRef<string>('');
+  const isAdjustmentDirty = Boolean(
+    reason.trim().length > 0 ||
+    (initialIntervalsRef.current && JSON.stringify(intervals) !== initialIntervalsRef.current)
+  );
+  useDirtyFormTracker(isAdjustmentDirty);
+
   // Initialize intervals from active day entries
   useEffect(() => {
     clearFeedback();
@@ -60,9 +68,13 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
         pairs.push({ clockIn: clockInStr, clockOut: clockOutStr });
       }
 
-      setIntervals(pairs.length > 0 ? pairs : [{ clockIn: '', clockOut: '' }]);
+      const finalInitial = pairs.length > 0 ? pairs : [{ clockIn: '', clockOut: '' }];
+      setIntervals(finalInitial);
+      initialIntervalsRef.current = JSON.stringify(finalInitial);
     } else {
-      setIntervals([{ clockIn: '', clockOut: '' }]);
+      const finalInitial = [{ clockIn: '', clockOut: '' }];
+      setIntervals(finalInitial);
+      initialIntervalsRef.current = JSON.stringify(finalInitial);
     }
   }, [day.date, day.entries, fetchAdjustments, clearFeedback]);
 

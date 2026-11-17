@@ -149,7 +149,7 @@ export const ClockCard: React.FC<ClockCardProps> = ({
   const showLunchBtn = breakSummary ? breakSummary.plannedLunchMinutes > 0 : true;
 
   return (
-    <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 sm:p-8 text-center space-y-6 shadow-xl relative overflow-hidden backdrop-blur-sm">
+    <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-5 sm:p-6 text-center space-y-4 sm:space-y-5 shadow-xl relative overflow-hidden backdrop-blur-sm">
       {/* Background glow gradient */}
       <div
         className={`absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full blur-3xl opacity-15 pointer-events-none transition-colors duration-500 ${
@@ -200,7 +200,7 @@ export const ClockCard: React.FC<ClockCardProps> = ({
       </div>
 
       {/* Digital Clock Display */}
-      <div className="py-2">
+      <div className="py-1">
         <div className="text-4xl sm:text-5xl font-mono font-extrabold tracking-tight text-[var(--hc-text)] drop-shadow-sm select-none">
           {clockTime || '00:00:00'}
         </div>
@@ -251,7 +251,7 @@ export const ClockCard: React.FC<ClockCardProps> = ({
       )}
 
       {/* Action Buttons Container */}
-      <div className="pt-2 max-w-md mx-auto">
+      <div className="pt-1 max-w-md mx-auto">
         {state === 'NOT_STARTED' && (
           <button
             type="button"

@@ -11,7 +11,11 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "prisma db seed",
+    "backup": "powershell -ExecutionPolicy Bypass -File ../scripts/backup/backup-database.ps1",
+    "backup:verify": "powershell -ExecutionPolicy Bypass -File ../scripts/backup/verify-backup.ps1",
+    "backup:retention": "powershell -ExecutionPolicy Bypass -File ../scripts/backup/manage-retention.ps1",
+    "test:backup": "powershell -ExecutionPolicy Bypass -File ../scripts/backup/test-backup-security.ps1"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -28,6 +32,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
@@ -35,7 +40,10 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.13.1",
     "@types/nodemailer": "^8.0.2",
+    "happy-dom": "^21.0.4",
     "prisma": "^6.3.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"

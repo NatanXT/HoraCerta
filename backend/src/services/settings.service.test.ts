@@ -10,6 +10,8 @@ import { workDayRepository, WorkDayWithEntries } from '../repositories/work-day.
 import { bankHoursConfigRepository } from '../repositories/bank-hours-config.repository';
 import { timeEntryRepository } from '../repositories/time-entry.repository';
 import { workDayAdjustmentRepository } from '../repositories/work-day-adjustment.repository';
+import { calendarOccurrenceRepository } from '../repositories/calendar-occurrence.repository';
+import { holidayRepository } from '../repositories/holiday.repository';
 import { updateProfileSchema, updateWorkScheduleSchema } from '../schemas/settings.schema';
 import { WorkScheduleResolver } from '../utils/work-schedule-resolver';
 import { Weekday, TimeEntryType, TimeEntrySource } from '@prisma/client';
@@ -64,6 +66,19 @@ describe('ETAPA 08 — Versionamento de WorkSchedule', () => {
     vi.restoreAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-09-22T12:00:00.000Z'));
+
+    vi.spyOn(calendarOccurrenceRepository, 'findActiveInRange').mockResolvedValue([]);
+    vi.spyOn(holidayRepository, 'findByDateRange').mockResolvedValue([]);
+    vi.spyOn(prisma.workDay, 'findMany').mockResolvedValue([]);
+    vi.spyOn(prisma.timeEntry, 'create').mockResolvedValue({} as any);
+    vi.spyOn(prisma.workBreak, 'updateMany').mockResolvedValue({ count: 0 } as any);
+    vi.spyOn(timeEntryRepository, 'softDeleteActiveByWorkDayId').mockResolvedValue({ count: 0 });
+    vi.spyOn(prisma, '$transaction').mockImplementation(async (cb: any) => {
+      if (typeof cb === 'function') {
+        return cb(prisma);
+      }
+      return cb;
+    });
   });
 
   afterEach(() => {

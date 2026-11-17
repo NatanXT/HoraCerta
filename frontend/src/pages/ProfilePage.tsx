@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { User, Calendar, Clock, Coffee, Utensils, Save, Check, AlertCircle, Info, Palette } from 'lucide-react';
+import { User, Calendar, Clock, Coffee, Utensils, Save, Check, AlertCircle, Info, Palette, Bell, Smartphone } from 'lucide-react';
 import { profileService, ProfileScheduleDay } from '../services/profile.service';
 import { AppTimePicker } from '../components/ui/AppTimePicker';
 import { useAuth } from '../contexts/AuthContext';
 import { AppearanceSettings } from '../components/settings/AppearanceSettings';
+import { RemindersSettingsCard, useReminders } from '../features/jornada-reminders';
+import { PwaInstallCard, useDirtyFormTracker } from '../features/pwa';
 
 const WEEKDAYS = [
   { key: 'MONDAY', label: 'Segunda-feira' },
@@ -40,15 +42,27 @@ interface DayFormState {
 
 export const ProfilePage: React.FC = () => {
   const { refreshMe } = useAuth();
+  const reminders = useReminders();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Tab state directly derived from query params without flicker
   const currentAba = searchParams.get('aba');
-  const activeTab: 'profile' | 'appearance' = currentAba === 'aparencia' ? 'appearance' : 'profile';
+  const activeTab: 'profile' | 'reminders' | 'appearance' | 'app' =
+    currentAba === 'aparencia'
+      ? 'appearance'
+      : currentAba === 'lembretes'
+      ? 'reminders'
+      : currentAba === 'aplicativo'
+      ? 'app'
+      : 'profile';
 
-  const handleTabChange = (tab: 'profile' | 'appearance') => {
+  const handleTabChange = (tab: 'profile' | 'reminders' | 'appearance' | 'app') => {
     if (tab === 'appearance') {
       setSearchParams({ aba: 'aparencia' });
+    } else if (tab === 'reminders') {
+      setSearchParams({ aba: 'lembretes' });
+    } else if (tab === 'app') {
+      setSearchParams({ aba: 'aplicativo' });
     } else {
       setSearchParams({});
     }
@@ -63,6 +77,13 @@ export const ProfilePage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [hasUnconfiguredSchedule, setHasUnconfiguredSchedule] = useState(false);
+
+  const initialProfileSnapshotRef = React.useRef<string>('');
+  const isProfileDirty = Boolean(
+    initialProfileSnapshotRef.current &&
+    JSON.stringify({ name: name.trim(), days }) !== initialProfileSnapshotRef.current
+  );
+  useDirtyFormTracker(isProfileDirty);
 
   useEffect(() => {
     loadProfile();
@@ -100,6 +121,7 @@ export const ProfilePage: React.FC = () => {
 
       setHasUnconfiguredSchedule(unconfigured);
       setDays(initialDays);
+      initialProfileSnapshotRef.current = JSON.stringify({ name: data.user.name.trim(), days: initialDays });
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || 'Erro ao carregar dados do perfil.');
     } finally {
@@ -200,10 +222,16 @@ export const ProfilePage: React.FC = () => {
         };
       });
 
-      await profileService.updateWorkSchedule(schedulePayload);
+      const updatedSchedule = await profileService.updateWorkSchedule(schedulePayload);
+      if (updatedSchedule?.days) {
+        await reminders.refreshSchedule(updatedSchedule.days);
+      } else {
+        await reminders.refreshSchedule();
+      }
 
       setSuccessMessage('Configurações atualizadas com sucesso.');
       setHasUnconfiguredSchedule(false);
+      initialProfileSnapshotRef.current = JSON.stringify({ name: name.trim(), days });
     } catch (err: any) {
       setErrorMessage(
         err?.response?.data?.error?.message ||
@@ -224,7 +252,7 @@ export const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-[1360px] mx-auto space-y-6 pb-12">
+    <div className="max-w-[1360px] mx-auto space-y-5 pb-10">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-[var(--hc-text)] flex items-center gap-2.5">
@@ -253,6 +281,19 @@ export const ProfilePage: React.FC = () => {
 
         <button
           type="button"
+          onClick={() => handleTabChange('reminders')}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'reminders'
+              ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+              : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)]'
+          }`}
+        >
+          <Bell className="w-4 h-4" />
+          Lembretes
+        </button>
+
+        <button
+          type="button"
           onClick={() => handleTabChange('appearance')}
           className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'appearance'
@@ -263,14 +304,47 @@ export const ProfilePage: React.FC = () => {
           <Palette className="w-4 h-4" />
           Aparência
         </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('app')}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'app'
+              ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+              : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface-raised)]'
+          }`}
+        >
+          <Smartphone className="w-4 h-4" />
+          Aplicativo
+        </button>
       </div>
+
+      {/* Tab: Reminders */}
+      {activeTab === 'reminders' && (
+        <div className="animate-in fade-in duration-150">
+          <RemindersSettingsCard
+            settings={reminders.settings}
+            permission={reminders.browserPermission}
+            onSave={reminders.saveSettings}
+            onRequestPermission={reminders.requestPermission}
+            onTestReminder={reminders.testReminder}
+          />
+        </div>
+      )}
 
       {/* Tab: Appearance */}
       {activeTab === 'appearance' && <AppearanceSettings />}
 
+      {/* Tab: PWA Application / Installation */}
+      {activeTab === 'app' && (
+        <div className="animate-in fade-in duration-150">
+          <PwaInstallCard />
+        </div>
+      )}
+
       {/* Tab: Profile & Schedule */}
       {activeTab === 'profile' && (
-        <div className="space-y-6 animate-in fade-in duration-150">
+        <div className="space-y-5 animate-in fade-in duration-150">
           {hasUnconfiguredSchedule && (
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-sm flex items-start gap-3">
               <Info className="w-5 h-5 shrink-0 mt-0.5" />
@@ -297,9 +371,9 @@ export const ProfilePage: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleSave} className="space-y-6">
+          <form onSubmit={handleSave} className="space-y-5">
             {/* Card 1: Personal Info */}
-            <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
               <h2 className="text-base font-semibold text-[var(--hc-text)] flex items-center gap-2 pb-3 border-b border-[var(--hc-border)]">
                 <User className="w-4 h-4 text-[var(--hc-accent)]" />
                 Dados Pessoais
@@ -344,8 +418,8 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             {/* Card 2: Planned Weekly Schedule */}
-            <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-6 shadow-xl space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[var(--hc-border)]">
+            <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-5 sm:p-6 shadow-xl space-y-4 sm:space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[var(--hc-border)]">
                 <div>
                   <h2 className="text-base font-semibold text-[var(--hc-text)] flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-[var(--hc-accent)]" />
@@ -364,7 +438,7 @@ export const ProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-3.5">
+              <div className="space-y-2.5 sm:space-y-3">
                 {days.map((day) => {
                   const weekdayObj = WEEKDAYS.find((w) => w.key === day.weekday)!;
                   const netMins = calculateNetMinutes(day);
@@ -372,7 +446,7 @@ export const ProfilePage: React.FC = () => {
                   return (
                     <div
                       key={day.weekday}
-                      className="p-4 rounded-xl bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] flex flex-col xl:flex-row xl:items-center justify-between gap-4 transition-all hover:border-[var(--hc-accent-border)] shadow-xs"
+                      className="p-3 sm:p-3.5 rounded-xl bg-[var(--hc-surface-raised)] border border-[var(--hc-border)] flex flex-col xl:flex-row xl:items-center justify-between gap-4 transition-all hover:border-[var(--hc-accent-border)] shadow-xs"
                     >
                       {/* Left: Day & Toggle */}
                       <div className="flex items-center justify-between xl:justify-start xl:w-56 gap-3 shrink-0">
@@ -468,7 +542,7 @@ export const ProfilePage: React.FC = () => {
                 className="px-6 py-3 bg-[var(--hc-accent)] hover:opacity-90 disabled:opacity-50 text-[var(--hc-accent-foreground)] font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer text-sm"
               >
                 <Save className="w-4 h-4" />
-                {saving ? 'Salvando...' : 'Salvar configurações'}
+                <span>{saving ? 'Salvando...' : 'Salvar configurações'}</span>
               </button>
             </div>
           </form>
