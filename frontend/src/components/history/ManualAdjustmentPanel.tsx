@@ -46,6 +46,16 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
   );
   useDirtyFormTracker(isAdjustmentDirty);
 
+  const handleClose = () => {
+    if (isAdjustmentDirty) {
+      const confirmDiscard = window.confirm(
+        'Você possui alterações não salvas no ajuste manual. Deseja realmente fechar e descartar as alterações?'
+      );
+      if (!confirmDiscard) return;
+    }
+    onClose();
+  };
+
   // Initialize intervals from active day entries
   useEffect(() => {
     clearFeedback();
@@ -192,7 +202,7 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
             aria-label="Fechar modal"
           >
@@ -383,7 +393,7 @@ export function ManualAdjustmentPanel({ day, onClose, onSaved }: ManualAdjustmen
         <div className="px-6 py-3.5 border-t border-[var(--hc-border)] bg-[var(--hc-surface-raised)] flex items-center justify-end gap-3">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={saving}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[var(--hc-border)] text-xs font-semibold text-[var(--hc-text)] hover:bg-[var(--hc-surface)] transition-colors disabled:opacity-50 cursor-pointer"
           >

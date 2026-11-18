@@ -80,3 +80,46 @@ export interface CompensationSimulationResult {
   differenceFromTargetModeB: number;
   targetReachedDateModeB: string | null;
 }
+
+/**
+ * Status da meta de compensação em relação ao saldo oficial atual.
+ */
+export type GoalStatus =
+  | 'NOT_STARTED' // Saldo oficial atual é idêntico ao saldo inicial (baseline)
+  | 'IN_PROGRESS' // Evolução positiva parcial em direção ao objetivo (0 < progresso < 100%)
+  | 'COMPLETED' // Saldo oficial atual atingiu ou ultrapassou a meta
+  | 'REGRESSED' // Saldo oficial atual piorou em relação ao baseline inicial
+  | 'EXPIRED'; // Prazo limite civil expirou sem conclusão da meta
+
+/**
+ * Representação da meta de compensação salva localmente por usuário.
+ */
+export interface SavedBankHoursGoal {
+  id: string;
+  userId: string;
+  title?: string;
+  targetBalanceMinutes: number;
+  targetDateStr: string; // YYYY-MM-DD
+  dailyAdditionMinutes?: number;
+  mode: SimulationMode;
+  baselineBalanceMinutes: number; // Saldo oficial no momento em que a meta foi definida
+  createdAtStr: string; // Data civil de criação YYYY-MM-DD
+  createdAtTimestamp: number; // Timestamp da criação
+}
+
+/**
+ * Resultado do cálculo do progresso da meta ativa em tempo real.
+ */
+export interface GoalProgressResult {
+  status: GoalStatus;
+  isAchieved: boolean;
+  isExpired: boolean;
+  progressPercentage: number; // 0 a 100 inteiro
+  baselineBalanceMinutes: number;
+  currentBalanceMinutes: number;
+  targetBalanceMinutes: number;
+  remainingMinutes: number; // Minutos restantes para atingir a meta (>= 0)
+  netEvolutionMinutes: number; // currentBalanceMinutes - baselineBalanceMinutes
+  totalSpanMinutes: number; // targetBalanceMinutes - baselineBalanceMinutes
+  daysRemainingCivil: number; // Dias civis restantes até a data limite
+}

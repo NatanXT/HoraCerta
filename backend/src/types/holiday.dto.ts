@@ -4,6 +4,7 @@ export interface HolidayDTO {
   id: string;
   date: string; // YYYY-MM-DD
   name: string;
+  type?: string;
   source: 'BRASIL_API';
 }
 
@@ -18,6 +19,7 @@ export function formatHolidayDTO(holiday: Holiday | null | undefined): HolidayDT
     id: holiday.id,
     date: dateStr,
     name: holiday.name,
+    type: (holiday as unknown as { type?: string }).type || undefined,
     source: 'BRASIL_API',
   };
 }

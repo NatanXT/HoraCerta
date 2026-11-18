@@ -1,5 +1,6 @@
 import React from 'react';
 import { MonthlyDaySummary } from '../../types/work-day';
+import { formatHolidayTypeLabel } from '../../types/holiday';
 import { formatMinutes, formatBalance } from '../../utils/time';
 import { CalendarDays, AlertCircle, Clock, History } from 'lucide-react';
 
@@ -15,6 +16,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   NO_RECORDS: { label: 'Sem registro', color: 'text-[var(--hc-text-muted)] bg-[var(--hc-surface-raised)] border-[var(--hc-border)]' },
   REST_DAY: { label: 'Folga', color: 'text-[var(--hc-text-muted)] bg-[var(--hc-surface-raised)] border-[var(--hc-border)]' },
   FUTURE: { label: 'Futuro', color: 'text-[var(--hc-text-muted)] bg-[var(--hc-surface-raised)] border-[var(--hc-border)]' },
+  DATA_UNAVAILABLE: { label: 'Dados indisponíveis', color: 'text-amber-500 bg-amber-500/10 border-amber-500/30' },
 };
 
 function formatCivilDateToLongPtBr(dateStr: string): string {
@@ -36,6 +38,32 @@ function formatCivilDateToLongPtBr(dateStr: string): string {
 
 export const DayTooltipContent: React.FC<DayTooltipContentProps> = ({ day }) => {
   const dateHeading = formatCivilDateToLongPtBr(day.date);
+
+  if (day.status === 'DATA_UNAVAILABLE') {
+    return (
+      <div className="bg-[var(--hc-surface)] border border-[var(--hc-border)] text-[var(--hc-text)] rounded-xl shadow-2xl p-3 w-64 sm:w-72 text-xs backdrop-blur-md space-y-2.5">
+        {/* Date Header */}
+        <div className="border-b border-[var(--hc-border)] pb-2">
+          <h4 className="font-bold text-[var(--hc-text)] tracking-tight text-xs sm:text-[13px]">
+            {dateHeading}
+          </h4>
+        </div>
+
+        {/* Unavailable notice */}
+        <div className="space-y-1.5 py-1">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold border text-amber-500 bg-amber-500/10 border-amber-500/30">
+              Dados indisponíveis
+            </span>
+          </div>
+          <p className="text-[11px] text-[var(--hc-text-secondary)] leading-relaxed">
+            Os registros e jornada deste dia não foram fornecidos pelo servidor.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const statusConfig = STATUS_LABELS[day.status] || {
     label: day.status,
     color: 'text-[var(--hc-text-secondary)] bg-[var(--hc-surface-raised)] border-[var(--hc-border)]',
@@ -64,7 +92,7 @@ export const DayTooltipContent: React.FC<DayTooltipContentProps> = ({ day }) => 
           <CalendarDays size={14} className="text-[var(--hc-accent)] shrink-0 mt-0.5" />
           <div className="leading-tight">
             <span className="font-semibold text-[10px] uppercase tracking-wider text-[var(--hc-accent)] block">
-              Feriado Nacional
+              {formatHolidayTypeLabel(day.holiday.type)}
             </span>
             <span className="font-medium text-xs">
               {day.holiday.name}

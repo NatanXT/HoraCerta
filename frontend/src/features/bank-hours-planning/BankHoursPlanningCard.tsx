@@ -13,8 +13,12 @@ import {
   Hourglass,
   Layers,
   RotateCcw,
+  Target,
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import { useBankHoursPlanning } from './useBankHoursPlanning';
+import { useBankHoursGoal } from './useBankHoursGoal';
+import { BankHoursGoalTracker } from './BankHoursGoalTracker';
 import { AppDatePicker } from '../../components/ui/AppDatePicker';
 import { formatBalance, formatHoursMinutes } from '../../utils/time';
 import { formatFullDate } from '../../utils/date';
@@ -28,6 +32,9 @@ export function BankHoursPlanningCard({
   currentBalanceMinutes,
   todayStr,
 }: BankHoursPlanningCardProps) {
+  const { user } = useAuth();
+  const currentUserId = user?.id || '';
+
   const {
     mode,
     setMode,
@@ -47,7 +54,24 @@ export function BankHoursPlanningCard({
     retry,
   } = useBankHoursPlanning({ currentBalanceMinutes, todayStr });
 
+  const {
+    activeGoal,
+    progress: goalProgress,
+    forecast: goalForecast,
+    calendarStatus: goalCalendarStatus,
+    calendarError: goalCalendarError,
+    retryCalendar: retryGoalCalendar,
+    saveGoal,
+    discardGoal,
+    hasActiveGoal,
+  } = useBankHoursGoal({
+    userId: currentUserId,
+    currentBalanceMinutes,
+    todayStr,
+  });
+
   const [showCalendarDetails, setShowCalendarDetails] = useState<boolean>(false);
+  const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
 
   const isCurrentPositive = currentBalanceMinutes > 0;
   const isCurrentZero = currentBalanceMinutes === 0;
@@ -73,10 +97,25 @@ export function BankHoursPlanningCard({
   const nonWorkingDays = eligibleDaysList.filter((d) => d.status !== 'ELIGIBLE');
 
   return (
-    <section
-      aria-label="Planejamento de Compensação do Banco de Horas"
-      className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur-sm space-y-6"
-    >
+    <div className="space-y-5 sm:space-y-6">
+      {/* Seção 1: Acompanhamento da Meta Ativa Salva (se existir) */}
+      {hasActiveGoal && activeGoal && goalProgress && (
+        <BankHoursGoalTracker
+          goal={activeGoal}
+          progress={goalProgress}
+          forecast={goalForecast}
+          calendarStatus={goalCalendarStatus}
+          calendarError={goalCalendarError}
+          onRetryCalendar={retryGoalCalendar}
+          onDiscardGoal={discardGoal}
+        />
+      )}
+
+      {/* Seção 2: Simulador e Planejamento */}
+      <section
+        aria-label="Planejamento de Compensação do Banco de Horas"
+        className="bg-[var(--hc-surface)] border border-[var(--hc-border)] rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur-sm space-y-6"
+      >
       {/* Header with Title and Simulation Badge */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[var(--hc-border)]">
         <div className="flex items-center gap-2.5">
@@ -533,8 +572,51 @@ export function BankHoursPlanningCard({
               </div>
             )}
           </div>
+          {/* Botão de Ação: Salvar Planejamento como Meta Ativa */}
+          <div className="pt-3 border-t border-[var(--hc-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="text-xs text-[var(--hc-text-secondary)] space-y-0.5">
+              <strong className="text-[var(--hc-text)] block">
+                {hasActiveGoal ? 'Substituir meta ativa por este cenário?' : 'Deseja acompanhar esta meta?'}
+              </strong>
+              <p className="text-[11px] text-[var(--hc-text-muted)]">
+                Salve este planejamento para acompanhar sua evolução diária neste dispositivo.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const goalTitle =
+                  currentBalanceMinutes < 0 && simTargetBalanceMinutes === 0
+                    ? 'Zerar Saldo Devedor'
+                    : `Meta de Saldo ${formatBalance(simTargetBalanceMinutes)}`;
+                const ok = saveGoal({
+                  title: goalTitle,
+                  targetBalanceMinutes: simTargetBalanceMinutes,
+                  targetDateStr,
+                  mode,
+                  dailyAdditionMinutes,
+                });
+                if (ok) {
+                  setSaveFeedback('Meta salva com sucesso para acompanhamento neste dispositivo!');
+                  setTimeout(() => setSaveFeedback(null), 4000);
+                }
+              }}
+              className="px-4 py-2 rounded-xl bg-[var(--hc-accent)] hover:bg-[var(--hc-accent)]/90 text-white text-xs font-semibold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            >
+              <Target className="w-4 h-4" aria-hidden="true" />
+              <span>{hasActiveGoal ? 'Atualizar meta ativa' : 'Salvar como meta ativa'}</span>
+            </button>
+          </div>
+
+          {saveFeedback && (
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-medium flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{saveFeedback}</span>
+            </div>
+          )}
         </>
       )}
     </section>
+  </div>
   );
 }

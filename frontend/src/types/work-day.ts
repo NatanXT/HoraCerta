@@ -40,7 +40,8 @@ export type MonthlyDayStatus =
   | 'IN_PROGRESS'
   | 'INCOMPLETE'
   | 'RECORDED'
-  | 'EXCUSED';
+  | 'EXCUSED'
+  | 'DATA_UNAVAILABLE';
 
 export interface MonthlyDaySummary {
   date: string;
