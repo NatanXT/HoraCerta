@@ -14,6 +14,7 @@ import { BankHoursPage } from '../pages/BankHoursPage';
 import { AbsencesPage } from '../pages/AbsencesPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { ProfilePage } from '../pages/ProfilePage';
+import { AnalyticsPage } from '../pages/AnalyticsPage';
 
 export function AppRoutes() {
   return (
@@ -38,6 +39,7 @@ export function AppRoutes() {
               >
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/historico" element={<HistoryPage />} />
+                <Route path="/analises" element={<AnalyticsPage />} />
                 <Route path="/banco-de-horas" element={<BankHoursPage />} />
                 <Route path="/ausencias" element={<AbsencesPage />} />
                 <Route path="/relatorios" element={<ReportsPage />} />

@@ -75,6 +75,18 @@ export function AppLayout() {
               Histórico
             </NavLink>
             <NavLink
+              to="/analises"
+              className={({ isActive }) =>
+                `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${
+                  isActive
+                    ? 'bg-[var(--hc-accent)] text-[var(--hc-accent-foreground)] shadow-sm'
+                    : 'text-[var(--hc-text-secondary)] hover:text-[var(--hc-text)] hover:bg-[var(--hc-surface)]'
+                }`
+              }
+            >
+              Análises
+            </NavLink>
+            <NavLink
               to="/banco-de-horas"
               className={({ isActive }) =>
                 `px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap ${

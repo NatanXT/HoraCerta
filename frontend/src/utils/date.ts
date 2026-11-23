@@ -90,20 +90,15 @@ export function formatMonthLabel(
 }
 
 /**
- * Shifts a YYYY-MM month string by delta (-1 or +1).
+ * Shifts a YYYY-MM month string by delta (any positive or negative integer).
  */
 export function shiftMonth(monthStr: string, delta: number): string {
   const [yearStr, monthStrPart] = monthStr.split('-');
   let year = parseInt(yearStr, 10);
-  let month = parseInt(monthStrPart, 10) + delta;
+  let month = parseInt(monthStrPart, 10) - 1 + delta;
 
-  if (month > 12) {
-    month = 1;
-    year += 1;
-  } else if (month < 1) {
-    month = 12;
-    year -= 1;
-  }
+  year += Math.floor(month / 12);
+  month = ((month % 12) + 12) % 12 + 1;
 
   return `${year}-${String(month).padStart(2, '0')}`;
 }
